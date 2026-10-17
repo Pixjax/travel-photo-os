@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080a0f">
+<title>Travel Photo OS — Workspace</title>
+<style>html,body{margin:0;width:100%;height:100%;background:#080a0e;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.boot{position:fixed;inset:0;display:grid;place-items:center}.boot div{text-align:center}.boot b{display:block;font-size:18px}.boot span{display:block;margin-top:8px;color:#9ca4af;font-size:12px}</style>
+</head>
+<body>
+<div class="boot"><div><b>Travel Photo OS Workspace</b><span>Chargement des fenêtres flottantes…</span></div></div>
+<script>
+(async()=>{
+  try{
+    let html=await (await fetch('./app-base.html?v=workspace1',{cache:'no-store'})).text();
+    html=html.replace('<title>Travel Photo OS — PRO MAX</title>','<title>Travel Photo OS — Workspace</title>');
+    html=html.replace('</head>','<link rel="stylesheet" href="./mobile-ux.css?v=workspace1"><link rel="stylesheet" href="./workspace-windows.css?v=workspace1"></head>');
+    const menu=`<button class="mobileActionBtn" id="mobileActionBtn" onclick="toggleMobileActions()" aria-label="Ouvrir les actions">☰</button>
+<div class="mobileActionMenu" id="mobileActionMenu">
+  <div class="mobileActionTitle"><span>Actions</span><button class="btn icon" style="width:34px;min-height:34px" onclick="toggleMobileActions(false)">✕</button></div>
+  <div class="mobileActionGrid">
+    <button class="mobileAction primary" onclick="mobileDo(openNavigationMode)"><b>🧭 Navigation live</b><span>Suivi GPS et arrivée</span></button>
+    <button class="mobileAction" onclick="mobileDo(openGeo)"><b>📍 Live GPS</b><span>Position et partage</span></button>
+    <button class="mobileAction" onclick="mobileDo(openCollab)"><b>👥 Collaboratif</b><span>Membres, votes, Cloud</span></button>
+    <button class="mobileAction" onclick="mobileDo(openUltimate)"><b>◆ Ultimate Hub</b><span>Planning et outils</span></button>
+    <button class="mobileAction full" onclick="mobileDo(openAIBuilder)"><b>✦ ChatGPT Trip Builder</b><span>Créer ou modifier un voyage avec l’IA</span></button>
+    <div class="mobileActionSep"></div>
+    <button class="mobileAction" onclick="mobileDo(locateMe)"><b>◎ Ma position</b><span>Recentrer la carte</span></button>
+    <button class="mobileAction" onclick="mobileDo(flyOverview)"><b>⌖ Vue voyage</b><span>Afficher l’ensemble</span></button>
+    <button class="mobileAction" onclick="toggleSatellite();refreshMobileToggles()"><b>◐ Satellite</b><span id="mSatState">Carte</span></button>
+    <button class="mobileAction" onclick="toggleTerrain();refreshMobileToggles()"><b>⌁ Relief 3D</b><span id="mTerrainState">Activé</span></button>
+    <button class="mobileAction" onclick="toggleBuildings();refreshMobileToggles()"><b>▥ Bâtiments</b><span id="mBuildState">Activés</span></button>
+    <button class="mobileAction" onclick="mobileDo(tour)"><b>▶ Tour</b><span>Visite automatique</span></button>
+    <div class="mobileActionSep"></div>
+    <button class="mobileAction" onclick="mobileDo(toggleLeft)"><b>☷ Spots</b><span>Liste et recherche</span></button>
+    <button class="mobileAction" onclick="mobileDo(showHome)"><b>⌂ Mes voyages</b><span>Retour à l’accueil</span></button>
+  </div>
+</div>`;
+    html=html.replace('<div class="top">',menu+'\n<div class="top">');
+    const scripts='<script src="./mobile-ux.js?v=workspace1"></scr'+'ipt><script src="./workspace-windows.js?v=workspace1"></scr'+'ipt>';
+    html=html.replace('</body>',scripts+'</body>');
+    document.open();document.write(html);document.close();
+  }catch(e){document.body.innerHTML='<div class="boot"><div><b>Impossible de charger le Workspace</b><span>'+String(e.message||e)+'</span></div></div>'}
+})();
+</script>
+</body>
+</html>
