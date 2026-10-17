@@ -1,0 +1,13 @@
+// Travel Photo OS — destination-local departure times
+(function(){
+  const MONTHS={JAN:1,FEB:2,MAR:3,APR:4,MAY:5,MAI:5,JUN:6,JUI:7,JUL:7,AUG:8,AOU:8,SEP:9,OCT:10,NOV:11,DEC:12,DÉC:12};
+  function day(){try{return typeof tripTodayDate==='function'?tripTodayDate():(typeof allDates==='function'?allDates()[0]:null)}catch(e){return null}}
+  function dateFromLabel(label){if(/^\d{4}-\d{2}-\d{2}$/.test(String(label||'')))return new Date(String(label)+'T12:00:00');const m=String(label||'').trim().toUpperCase().match(/^(\d{1,2})\s+([A-ZÀ-Ü]{3,})/);if(!m)return null;const mo=MONTHS[m[2]]||MONTHS[m[2].slice(0,3)];if(!mo)return null;let y=new Date().getFullYear();if(activeTrip?.start&&/^\d{4}-/.test(activeTrip.start))y=Number(activeTrip.start.slice(0,4));return new Date(y,mo-1,Number(m[1]),12)}
+  function zone(){const c=String(activeTrip?.country||'').toLowerCase();return c.includes('japon')||c.includes('japan')?'Asia/Tokyo':undefined}
+  function fmt(d){if(!d||!Number.isFinite(d.getTime?.()))return '—';try{return new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:zone()}).format(d)}catch(e){return d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}}
+  function sub(hhmm,min){const m=String(hhmm||'').match(/^(\d{1,2}):(\d{2})$/);if(!m)return hhmm||'—';let n=Number(m[1])*60+Number(m[2])-min;while(n<0)n+=1440;n%=1440;return `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`}
+  function fix(){const panel=document.getElementById('uxDeparturePanel');if(!panel?.classList.contains('show')||!window.SunCalc)return;let d=day(),spots=[];try{spots=activeSpots().filter(p=>p.date===d).sort((a,b)=>(Number(a.step)||999)-(Number(b.step)||999))}catch(e){}if(!spots.length)return;const p=spots.find(x=>Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.lon)));if(!p)return;const date=dateFromLabel(d);if(!date)return;let t;try{t=SunCalc.getTimes(date,Number(p.lat),Number(p.lon))}catch(e){return}const rise=fmt(t.sunrise),goldPM=fmt(t.goldenHour);const metrics=panel.querySelectorAll('.uxDepartureMetric b');if(metrics[1])metrics[1].textContent=rise;if(metrics[2])metrics[2].textContent=goldPM;const firstTop=!!spots[0]?.top;const firstTime=panel.querySelector('.uxDepartureStop .time')?.textContent?.trim()||'08:00';if(metrics[0])metrics[0].textContent=firstTop?sub(rise,20):sub(firstTime,Number(store?.departurePrefs?.bufferMin||20));}
+  const obs=new MutationObserver(()=>setTimeout(fix,0));
+  function install(){obs.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});setInterval(fix,15000)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
