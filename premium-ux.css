@@ -1,0 +1,54 @@
+/* Travel Photo OS — Premium UX layer */
+:root{--ux-safe-bottom:max(env(safe-area-inset-bottom),8px)}
+.uxTodayCard,.uxNav{display:none}
+
+@media(max-width:760px){
+  /* calmer map chrome */
+  .mobileActionBtn{display:none!important}
+  .mobileActionMenu{display:none!important}
+  .dock{display:none!important}
+  .brand{background:rgba(10,13,18,.74)!important;backdrop-filter:blur(22px) saturate(135%);border:1px solid rgba(255,255,255,.09)!important;box-shadow:0 12px 34px rgba(0,0,0,.28)!important}
+  .top{right:10px!important}
+  .left{bottom:calc(var(--ux-safe-bottom) + 82px)!important;height:min(64vh,620px)!important;border-radius:25px 25px 0 0}
+  .workspace{border-radius:25px 25px 17px 17px!important}
+  .maplibregl-ctrl-bottom-right{bottom:calc(var(--ux-safe-bottom) + 84px)!important}
+  .maplibregl-ctrl-bottom-left{bottom:calc(var(--ux-safe-bottom) + 84px)!important}
+  .toast{bottom:calc(var(--ux-safe-bottom) + 92px)!important}
+
+  /* Today / next spot card */
+  .uxTodayCard{display:block;position:absolute;z-index:64;left:10px;right:10px;bottom:calc(var(--ux-safe-bottom) + 83px);padding:13px 14px 12px;border-radius:22px;background:linear-gradient(145deg,rgba(19,24,31,.96),rgba(10,13,18,.94));border:1px solid rgba(255,255,255,.12);box-shadow:0 22px 65px rgba(0,0,0,.46);backdrop-filter:blur(28px) saturate(140%);transition:.22s transform,.22s opacity}
+  .uxTodayCard.hidden{opacity:0;transform:translateY(18px);pointer-events:none}
+  .uxTodayTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .uxEyebrow{font-size:9px;font-weight:900;letter-spacing:1.15px;text-transform:uppercase;color:#8f98a5}
+  .uxNowPill{font-size:9px;font-weight:850;padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.075);color:#cbd1d9;white-space:nowrap}
+  .uxTodayMain{display:flex;align-items:center;gap:11px;margin-top:7px}
+  .uxTodayText{min-width:0;flex:1}.uxTodayText b{display:block;font-size:17px;line-height:1.18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.uxTodayText span{display:block;color:#aeb6c1;font-size:10px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .uxGo{flex:none;min-width:76px;height:44px;border-radius:14px;background:#fff;color:#0b0d10;font-size:11px;font-weight:900;box-shadow:0 8px 26px rgba(255,255,255,.08)}
+  .uxTodayMeta{display:flex;gap:6px;overflow:auto;margin-top:9px;scrollbar-width:none}.uxTodayMeta::-webkit-scrollbar{display:none}.uxMetric{white-space:nowrap;padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.055);font-size:9px;color:#d2d7de}.uxMetric strong{font-weight:900;color:#fff}
+
+  /* main 5-tab navigation */
+  .uxNav{display:grid;position:absolute;z-index:80;left:8px;right:8px;bottom:var(--ux-safe-bottom);grid-template-columns:repeat(5,1fr);gap:3px;padding:6px;border-radius:22px;background:rgba(12,15,20,.93);border:1px solid rgba(255,255,255,.11);box-shadow:0 18px 54px rgba(0,0,0,.42);backdrop-filter:blur(28px) saturate(140%)}
+  .uxNav button{position:relative;min-height:57px;padding:7px 2px 5px;border-radius:16px;background:transparent;color:#89929e;text-align:center}
+  .uxNav button.on{background:rgba(255,255,255,.095);color:#fff}
+  .uxNav .uxIcon{display:block;font-size:18px;line-height:20px}.uxNav .uxLabel{display:block;font-size:8px;font-weight:850;margin-top:4px;letter-spacing:.05px}
+  .uxNav button.on:after{content:"";position:absolute;left:50%;bottom:2px;width:4px;height:4px;border-radius:50%;background:#fff;transform:translateX(-50%)}
+
+  /* premium spot sheet */
+  .right{left:0!important;right:0!important;top:auto!important;bottom:0!important;width:auto!important;pointer-events:none;z-index:88!important}
+  .right .detail{pointer-events:auto;margin:0 7px calc(var(--ux-safe-bottom) + 69px);max-height:min(76dvh,720px)!important;border-radius:28px!important;background:rgba(15,19,25,.985)!important;border:1px solid rgba(255,255,255,.12);box-shadow:0 -18px 70px rgba(0,0,0,.48);overflow:hidden}
+  .right .detail.show{display:flex!important}
+  .cover{height:225px!important}.cover:after{background:linear-gradient(to top,rgba(8,10,14,.92),rgba(8,10,14,.08) 64%)!important}.coverText{left:18px!important;bottom:17px!important}.coverText h2{font-size:26px!important;letter-spacing:-.5px}.coverText small{color:#e7e9ec}
+  .detailBody{padding:12px 14px calc(var(--ux-safe-bottom) + 14px)!important;max-height:none!important}
+  .uxSpotQuick{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}.uxSpotQuick>div{padding:10px 8px;border-radius:13px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.045);text-align:center}.uxSpotQuick small{display:block;font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.6px;color:#818a96}.uxSpotQuick b{display:block;font-size:11px;margin-top:4px;color:#f5f6f8}
+  .uxSpotCTA{display:grid;grid-template-columns:1.3fr .8fr .8fr;gap:7px;margin-bottom:11px}.uxSpotCTA button{min-height:44px;border-radius:13px;background:rgba(255,255,255,.075);color:#fff;font-size:10px;font-weight:900;border:1px solid rgba(255,255,255,.06)}.uxSpotCTA button:first-child{background:#fff;color:#111}
+  .section,.box,.weatherCard{border-radius:15px!important}
+
+  /* Home becomes lighter / more premium */
+  .home{padding:calc(max(env(safe-area-inset-top),48px) + 28px) 12px calc(var(--ux-safe-bottom) + 84px)!important;background:radial-gradient(circle at 20% 0%,rgba(255,255,255,.075),transparent 34%),#080a0e!important}.homeHead{margin-bottom:22px!important}.homeHead h1{font-size:34px!important;letter-spacing:-1.25px!important}.tripCard,.addTrip{border-radius:24px!important;min-height:225px!important}.tripCard{box-shadow:0 18px 54px rgba(0,0,0,.36)!important}
+}
+
+@media(min-width:761px){
+  /* desktop polish without changing its power-user layout */
+  .detail{box-shadow:0 24px 75px rgba(0,0,0,.45)}
+  .tripCard{transition:.18s transform,.18s border-color}.tripCard:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.18)}
+}
