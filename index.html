@@ -12,16 +12,16 @@
 <script>
 (async()=>{
   try{
-    let html=await (await fetch('./app-base.html?v=20261018b',{cache:'no-store'})).text();
+    let html=await (await fetch('./app-base.html?v=20261018c',{cache:'no-store'})).text();
     html=html.replace('<title>Travel Photo OS — PRO MAX</title>','<title>Travel Photo OS — MOBILE UX</title>');
-    html=html.replace('</head>','<link rel="stylesheet" href="./mobile-ux.css?v=20261018b"></head>');
+    html=html.replace('</head>','<link rel="stylesheet" href="./mobile-ux.css?v=20261018c"><link rel="stylesheet" href="./simple-collab.css?v=20261018c"></head>');
     const menu=`<button class="mobileActionBtn" id="mobileActionBtn" onclick="toggleMobileActions()" aria-label="Ouvrir les actions">☰</button>
 <div class="mobileActionMenu" id="mobileActionMenu">
   <div class="mobileActionTitle"><span>Actions</span><button class="btn icon" style="width:34px;min-height:34px" onclick="toggleMobileActions(false)">✕</button></div>
   <div class="mobileActionGrid">
     <button class="mobileAction primary" onclick="mobileDo(openNavigationMode)"><b>🧭 Navigation live</b><span>Suivi GPS et arrivée</span></button>
     <button class="mobileAction" onclick="mobileDo(openGeo)"><b>📍 Live GPS</b><span>Position et partage</span></button>
-    <button class="mobileAction" onclick="mobileDo(openCollab)"><b>👥 Collaboratif</b><span>Membres, votes, Cloud</span></button>
+    <button class="mobileAction" onclick="mobileDo(openCollab)"><b>👥 Collaboratif</b><span>Créer ou rejoindre</span></button>
     <button class="mobileAction" onclick="mobileDo(openUltimate)"><b>◆ Ultimate Hub</b><span>Planning et outils</span></button>
     <button class="mobileAction full" onclick="mobileDo(openAIBuilder)"><b>✦ ChatGPT Trip Builder</b><span>Créer ou modifier un voyage avec l’IA</span></button>
     <div class="mobileActionSep"></div>
@@ -37,8 +37,8 @@
   </div>
 </div>`;
     html=html.replace('<div class="top">',menu+'\n<div class="top">');
-    const mobileScript='<script src="./mobile-ux.js?v=20261018b"></scr'+'ipt>';
-    html=html.replace('</body>',mobileScript+'</body>');
+    const scripts='<script src="./cloud-config.js?v=20261018c"></scr'+'ipt><script src="./mobile-ux.js?v=20261018c"></scr'+'ipt><script src="./simple-collab.js?v=20261018c"></scr'+'ipt>';
+    html=html.replace('</body>',scripts+'</body>');
     document.open();document.write(html);document.close();
   }catch(e){document.body.innerHTML='<div class="boot"><div><b>Impossible de charger Travel Photo OS</b><span>'+String(e.message||e)+'</span></div></div>'}
 })();
