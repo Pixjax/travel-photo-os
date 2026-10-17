@@ -18,7 +18,6 @@
   const wrap180=v=>{v=wrap360(v);return v>180?v-360:v};
   const smoothAngle=(prev,next,k)=>prev==null?next:wrap360(prev+wrap180(next-prev)*k);
   const smooth=(prev,next,k)=>prev==null?next:prev+(next-prev)*k;
-  const mobile=()=>window.matchMedia('(max-width:760px)').matches;
   const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   function cardinal(d){return ['N','NE','E','SE','S','SO','O','NO'][Math.round(wrap360(d)/45)%8]}
   function fmtCoord(v){return Number(v).toFixed(5)}
@@ -76,7 +75,7 @@
     return d;
   }
   function markerSvg(cls,label,p,w,h){if(!p)return '';const q=project(p.az,p.alt,w,h);if(!q||q.x<-30||q.x>w+30||q.y<-30||q.y>h+30)return '';return `<g class="celArMarker ${cls}" transform="translate(${q.x.toFixed(1)} ${q.y.toFixed(1)})"><circle r="9"></circle><text x="13" y="4">${esc(label)}</text></g>`}
-  function hourMarkers(points,w,h,kind){let out='';for(const p of points){if(p.m%120!==0||p.alt<-2)continue;const q=project(p.az,p.alt,w,h);if(!q||q.x<8||q.x>w-8||q.y<8||q.y>h-8)continue;out+=`<g class="celArHour" transform="translate(${q.x.toFixed(1)} ${q.y.toFixed(1)})"><circle r="2.5"></circle><text x="5" y="3">${String(Math.floor(p.m/60)%24).padStart(2,'0')}h</text></g>`}return out}
+  function hourMarkers(points,w,h){let out='';for(const p of points){if(p.m%120!==0||p.alt<-2)continue;const q=project(p.az,p.alt,w,h);if(!q||q.x<8||q.x>w-8||q.y<8||q.y>h-8)continue;out+=`<g class="celArHour" transform="translate(${q.x.toFixed(1)} ${q.y.toFixed(1)})"><circle r="2.5"></circle><text x="5" y="3">${String(Math.floor(p.m/60)%24).padStart(2,'0')}h</text></g>`}return out}
 
   function render(){
     raf=0;if(!root?.classList.contains('show')||!svg)return;
@@ -84,7 +83,7 @@
     recomputeArcs();
     const d=dateFromControls();sunNow=sunPos(d);moonNow=moonPos(d);
     let html=`<path class="celArHorizon" d="${horizonPath(w,h)}"></path>`;
-    if(showSun){html+=`<path class="celArSunPath" d="${pathFor(sunArc,w,h,false)}"></path><path class="celArSunPath celArBelow" d="${pathFor(sunArc,w,h,true)}"></path>${hourMarkers(sunArc,w,h,'sun')}${markerSvg('celArSunMarker','☀ '+Math.round(sunNow?.az||0)+'° · '+Math.round(sunNow?.alt||0)+'°',sunNow,w,h)}`}
+    if(showSun){html+=`<path class="celArSunPath" d="${pathFor(sunArc,w,h,false)}"></path><path class="celArSunPath celArBelow" d="${pathFor(sunArc,w,h,true)}"></path>${hourMarkers(sunArc,w,h)}${markerSvg('celArSunMarker','☀ '+Math.round(sunNow?.az||0)+'° · '+Math.round(sunNow?.alt||0)+'°',sunNow,w,h)}`}
     if(showMoon){html+=`<path class="celArMoonPath" d="${pathFor(moonArc,w,h,false)}"></path><path class="celArMoonPath celArBelow" d="${pathFor(moonArc,w,h,true)}"></path>${markerSvg('celArMoonMarker','☾ '+Math.round(moonNow?.az||0)+'° · '+Math.round(moonNow?.alt||0)+'°',moonNow,w,h)}`}
     svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.innerHTML=html;
     updateText();
@@ -108,8 +107,8 @@
     let p=null;const ang=Number(screen.orientation?.angle||window.orientation||0);
     if(Math.abs(ang)===90&&Number.isFinite(e.gamma))p=ang===90?Number(e.gamma):-Number(e.gamma);
     else if(Number.isFinite(e.beta))p=90-Number(e.beta);
-    if(h!=null){rawHeading=h;heading=smoothAngle(heading,h,strongStab?.12:.26)}
-    if(p!=null){rawPitch=p;pitch=smooth(pitch,p,strongStab?.12:.28)}
+    if(h!=null){rawHeading=h;heading=smoothAngle(heading,h,strongStab?0.12:0.26)}
+    if(p!=null){rawPitch=p;pitch=smooth(pitch,p,strongStab?0.12:0.28)}
     orientationReady=h!=null&&p!=null;schedule();
   }
 
@@ -180,7 +179,6 @@
   async function openAR(){
     ensureRoot();root.classList.add('show');document.body.style.overflow='hidden';
     const n=new Date();selectedDate=n;selectedMinutes=n.getHours()*60+n.getMinutes();liveMode=true;syncControls();
-    // Start permission prompts from the same user gesture for iOS.
     const orientPromise=requestOrientation();const cameraPromise=requestCamera();const locPromise=requestLocation();
     const [o,c,l]=await Promise.all([orientPromise,cameraPromise,locPromise]);
     const issues=[];if(!o)issues.push('Orientation refusée : les arcs ne pourront pas suivre la caméra.');if(!c)issues.push('Caméra refusée : la vue astronomique reste disponible sur fond noir.');if(!l)issues.push('GPS indisponible : impossible de calculer précisément Soleil et Lune.');warning(issues);recomputeArcs(true);schedule();
