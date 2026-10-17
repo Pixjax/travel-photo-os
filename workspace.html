@@ -12,16 +12,16 @@
 <script>
 (async()=>{
   try{
-    let html=await (await fetch('./app-base.html?v=workspace2',{cache:'no-store'})).text();
+    let html=await (await fetch('./app-base.html?v=workspace3',{cache:'no-store'})).text();
     html=html.replace('<title>Travel Photo OS — PRO MAX</title>','<title>Travel Photo OS — Workspace</title>');
-    html=html.replace('</head>','<link rel="stylesheet" href="./mobile-ux.css?v=workspace2"><link rel="stylesheet" href="./workspace-windows.css?v=workspace2"></head>');
+    html=html.replace('</head>','<link rel="stylesheet" href="./mobile-ux.css?v=workspace3"><link rel="stylesheet" href="./workspace-windows.css?v=workspace3"><link rel="stylesheet" href="./simple-collab.css?v=workspace3"></head>');
     const menu=`<button class="mobileActionBtn" id="mobileActionBtn" onclick="toggleMobileActions()" aria-label="Ouvrir les actions">☰</button>
 <div class="mobileActionMenu" id="mobileActionMenu">
   <div class="mobileActionTitle"><span>Actions</span><button class="btn icon" style="width:34px;min-height:34px" onclick="toggleMobileActions(false)">✕</button></div>
   <div class="mobileActionGrid">
     <button class="mobileAction primary" onclick="mobileDo(openNavigationMode)"><b>🧭 Navigation live</b><span>Suivi GPS et arrivée</span></button>
     <button class="mobileAction" onclick="mobileDo(openGeo)"><b>📍 Live GPS</b><span>Position et partage</span></button>
-    <button class="mobileAction" onclick="mobileDo(openCollab)"><b>👥 Collaboratif</b><span>Membres, votes, Cloud</span></button>
+    <button class="mobileAction" onclick="mobileDo(openCollab)"><b>👥 Collaboratif</b><span>Créer ou rejoindre</span></button>
     <button class="mobileAction" onclick="mobileDo(openUltimate)"><b>◆ Ultimate Hub</b><span>Planning et outils</span></button>
     <button class="mobileAction full" onclick="mobileDo(openAIBuilder)"><b>✦ ChatGPT Trip Builder</b><span>Créer ou modifier un voyage avec l’IA</span></button>
     <div class="mobileActionSep"></div>
@@ -37,7 +37,7 @@
   </div>
 </div>`;
     html=html.replace('<div class="top">',menu+'\n<div class="top">');
-    const scripts='<script src="./mobile-ux.js?v=workspace2"></scr'+'ipt><script src="./workspace-windows.js?v=workspace2"></scr'+'ipt>';
+    const scripts='<script src="./cloud-config.js?v=workspace3"></scr'+'ipt><script src="./mobile-ux.js?v=workspace3"></scr'+'ipt><script src="./workspace-windows.js?v=workspace3"></scr'+'ipt><script src="./simple-collab.js?v=workspace3"></scr'+'ipt>';
     html=html.replace('</body>',scripts+'</body>');
     document.open();document.write(html);document.close();
   }catch(e){document.body.innerHTML='<div class="boot"><div><b>Impossible de charger le Workspace</b><span>'+String(e.message||e)+'</span></div></div>'}
