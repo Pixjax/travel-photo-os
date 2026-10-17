@@ -1,0 +1,64 @@
+/* DRAGGABLE WINDOWS WORKSPACE */
+.dragGrip{display:none}
+.layoutResetBtn{display:none}
+@media(min-width:761px){
+  body.draggableWorkspace .left,
+  body.draggableWorkspace .right{
+    bottom:auto!important;
+    max-height:calc(100vh - 32px);
+    transition:box-shadow .15s ease, border-color .15s ease;
+  }
+  body.draggableWorkspace .left{height:calc(100vh - 106px)}
+  body.draggableWorkspace .right{height:calc(100vh - 106px)}
+  body.draggableWorkspace .left.dragging,
+  body.draggableWorkspace .right.dragging{
+    box-shadow:0 30px 100px rgba(0,0,0,.68)!important;
+    z-index:110!important;
+  }
+  .dragGrip{
+    display:flex;
+    position:absolute;
+    z-index:115;
+    left:50%;top:-11px;
+    transform:translateX(-50%);
+    align-items:center;justify-content:center;
+    width:72px;height:24px;
+    border-radius:999px;
+    background:rgba(15,19,25,.95);
+    border:1px solid rgba(255,255,255,.13);
+    box-shadow:0 8px 24px rgba(0,0,0,.35);
+    color:#cfd4dc;
+    font-size:14px;font-weight:900;
+    letter-spacing:2px;
+    cursor:grab;
+    touch-action:none;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  .dragGrip:active{cursor:grabbing;background:#fff;color:#111}
+  body.draggableWorkspace .left,
+  body.draggableWorkspace .right{overflow:visible}
+  body.draggableWorkspace .workspace,
+  body.draggableWorkspace .detail{min-height:120px}
+  .layoutResetBtn{
+    display:flex;
+    position:absolute;
+    z-index:119;
+    right:14px;
+    bottom:14px;
+    min-height:38px;
+    padding:0 12px;
+    align-items:center;justify-content:center;
+    border-radius:999px;
+    color:#fff;
+    background:rgba(13,16,22,.90);
+    border:1px solid rgba(255,255,255,.11);
+    box-shadow:0 12px 34px rgba(0,0,0,.4);
+    backdrop-filter:blur(16px);
+    font-size:10px;font-weight:850;
+  }
+  .layoutResetBtn:hover{background:#fff;color:#111}
+}
+@media(max-width:760px){
+  .dragGrip,.layoutResetBtn{display:none!important}
+}
