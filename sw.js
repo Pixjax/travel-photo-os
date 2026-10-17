@@ -1,6 +1,6 @@
-const CACHE='travel-photo-os-mobile-ux-v21';
-const RUNTIME='travel-photo-os-runtime-v1';
-const MAP_CACHE='travel-photo-os-map-runtime-v1';
+const CACHE='travel-photo-os-mobile-ux-v22';
+const RUNTIME='travel-photo-os-runtime-v2';
+const MAP_CACHE='travel-photo-os-map-runtime-v2';
 const APP=['./','./index.html','./workspace.html','./app-base.html','./mobile-ux.css','./mobile-ux.js','./workspace-windows.css','./workspace-windows.js','./simple-collab.css','./simple-collab.js','./cloud-config.js','./home-cloud-fix.js','./cloud-sync.js','./premium-ux.css','./premium-ux.js','./day-experience.css','./day-experience.js','./photo-experience.css','./photo-experience.js','./photo-hook.js','./voyage-experience.css','./voyage-experience.js','./voyage-time-fix.js','./booking-launcher.css','./booking-launcher.js','./booking-native.css','./booking-native.js','./desktop-voyage-fab.css','./desktop-voyage-fab.js','./offline-mode.css','./offline-mode.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
 const CORE_EXTERNAL=[
   'https://unpkg.com/maplibre-gl@5.0.1/dist/maplibre-gl.css',
@@ -14,25 +14,36 @@ const CORE_HOSTS=new Set(['unpkg.com','cdn.jsdelivr.net']);
 
 function normalizedSameOrigin(request){
   const u=new URL(request.url);
-  return new Request(u.origin+u.pathname,{method:'GET',headers:request.headers,mode:'same-origin',credentials:request.credentials,redirect:'follow'});
+  return new Request(u.origin+u.pathname,{method:'GET',mode:'same-origin',credentials:'same-origin',redirect:'follow'});
 }
 async function trim(cacheName,max){
   const c=await caches.open(cacheName),keys=await c.keys();
   if(keys.length<=max)return;
   await Promise.all(keys.slice(0,keys.length-max).map(k=>c.delete(k)));
 }
+async function cacheOneApp(path){
+  try{
+    const req=new Request(path,{cache:'reload'});
+    const res=await fetch(req);
+    if(!res||!res.ok)return false;
+    const c=await caches.open(CACHE);
+    await c.put(path,res.clone());
+    return true;
+  }catch(e){return false}
+}
 async function cacheExternal(url){
   try{
-    const req=new Request(url,{mode:'cors'}),res=await fetch(req);
-    if(res&&res.ok){const c=await caches.open(RUNTIME);await c.put(req,res.clone())}
+    const req=new Request(url,{mode:'cors',cache:'reload'}),res=await fetch(req);
+    if(res&&res.ok){const c=await caches.open(RUNTIME);await c.put(req,res.clone());return true}
   }catch(e){}
+  return false;
 }
 
 self.addEventListener('install',e=>{
   self.skipWaiting();
   e.waitUntil((async()=>{
-    const c=await caches.open(CACHE);
-    await c.addAll(APP);
+    // Never let one optional file cancel the entire offline installation.
+    await Promise.allSettled(APP.map(cacheOneApp));
     await Promise.allSettled(CORE_EXTERNAL.map(cacheExternal));
   })());
 });
@@ -46,6 +57,16 @@ self.addEventListener('activate',e=>{
   })());
 });
 
+self.addEventListener('message',e=>{
+  if(e.data?.type==='WARM_OFFLINE'){
+    e.waitUntil((async()=>{
+      await Promise.allSettled(APP.map(cacheOneApp));
+      await Promise.allSettled(CORE_EXTERNAL.map(cacheExternal));
+      try{e.source?.postMessage({type:'OFFLINE_WARMED'})}catch(_){}
+    })());
+  }
+});
+
 self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET')return;
   const url=new URL(e.request.url);
@@ -53,17 +74,18 @@ self.addEventListener('fetch',e=>{
   if(url.origin===location.origin){
     if(e.request.mode==='navigate'){
       e.respondWith((async()=>{
+        const cached=(await caches.match('./index.html',{ignoreSearch:true}))||(await caches.match('./',{ignoreSearch:true}));
         try{
           const net=await fetch(e.request,{cache:'no-store'});
           if(net&&net.ok){const c=await caches.open(CACHE);await c.put('./index.html',net.clone())}
           return net;
-        }catch(err){return (await caches.match('./index.html'))||Response.error()}
+        }catch(err){return cached||new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><body style="background:#080a0e;color:white;font-family:system-ui;padding:30px"><h2>Travel Photo OS</h2><p>Le cache hors ligne n’est pas encore prêt. Reconnecte Internet une fois, ouvre l’app et laisse-la chargée quelques secondes.</p></body>',{headers:{'Content-Type':'text/html; charset=utf-8'}})}
       })());
       return;
     }
     e.respondWith((async()=>{
       const normalized=normalizedSameOrigin(e.request);
-      const cached=await caches.match(normalized,{ignoreSearch:true});
+      const cached=await caches.match(normalized,{ignoreSearch:true})||await caches.match(url.pathname.replace(/^\/travel-photo-os\//,'./'),{ignoreSearch:true});
       if(cached){
         e.waitUntil(fetch(e.request,{cache:'no-store'}).then(async net=>{if(net&&net.ok){const c=await caches.open(CACHE);await c.put(normalized,net.clone())}}).catch(()=>{}));
         return cached;
@@ -72,20 +94,20 @@ self.addEventListener('fetch',e=>{
         const net=await fetch(e.request,{cache:'no-store'});
         if(net&&net.ok){const c=await caches.open(CACHE);await c.put(normalized,net.clone())}
         return net;
-      }catch(err){return Response.error()}
+      }catch(err){return new Response('',{status:503,statusText:'Offline'})}
     })());
     return;
   }
 
   if(CORE_HOSTS.has(url.hostname)){
     e.respondWith((async()=>{
-      const cached=await caches.match(e.request);
+      const cached=await caches.match(e.request,{ignoreSearch:false});
       if(cached)return cached;
       try{
         const net=await fetch(e.request);
-        if(net&&net.ok){const c=await caches.open(RUNTIME);await c.put(e.request,net.clone());trim(RUNTIME,40)}
+        if(net&&net.ok){const c=await caches.open(RUNTIME);await c.put(e.request,net.clone());trim(RUNTIME,50)}
         return net;
-      }catch(err){return Response.error()}
+      }catch(err){return new Response('',{status:503,statusText:'Offline'})}
     })());
     return;
   }
@@ -96,9 +118,9 @@ self.addEventListener('fetch',e=>{
       if(cached)return cached;
       try{
         const net=await fetch(e.request);
-        if(net){const c=await caches.open(MAP_CACHE);await c.put(e.request,net.clone());trim(MAP_CACHE,350)}
+        if(net&&net.ok){const c=await caches.open(MAP_CACHE);await c.put(e.request,net.clone());trim(MAP_CACHE,600)}
         return net;
-      }catch(err){return Response.error()}
+      }catch(err){return new Response('',{status:503,statusText:'Offline'})}
     })());
   }
 });
