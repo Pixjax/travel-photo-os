@@ -11,15 +11,16 @@
 <div class="boot"><div><b>Travel Photo OS</b><span id="bootMsg">Chargement de la version complète…</span></div></div>
 <script>
 (async()=>{
-  const VERSION='index-full-20261018u';
+  const VERSION='index-full-20261018v';
   const setBoot=t=>{const e=document.getElementById('bootMsg');if(e)e.textContent=t};
 
   async function prepareOffline(){
     if(!('serviceWorker' in navigator)||location.protocol==='file:')return;
     try{
-      await navigator.serviceWorker.register('./sw.js');
-      const reg=await navigator.serviceWorker.ready;
-      const worker=reg.active||reg.waiting||reg.installing;
+      const reg=await navigator.serviceWorker.register('./sw.js?v='+VERSION,{updateViaCache:'none'});
+      try{await reg.update()}catch(e){}
+      const ready=await navigator.serviceWorker.ready;
+      const worker=ready.active||ready.waiting||ready.installing;
       if(worker)worker.postMessage({type:'WARM_OFFLINE'});
     }catch(e){}
   }
