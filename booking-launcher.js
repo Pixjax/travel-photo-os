@@ -1,5 +1,8 @@
 // Travel Photo OS — contextual booking launcher
 (function(){
+  if(window.__travelPhotoBookingLauncherLoaded)return;
+  window.__travelPhotoBookingLauncherLoaded=true;
+
   const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   function defaultWhere(){
     try{
@@ -50,25 +53,39 @@
     const w=root.querySelector('#uxBookingProviders');if(!w)return;
     w.innerHTML=providers(type,where,date).map(([name,url,primary])=>`<button class="uxBookingProvider ${primary?'primary':''}" data-book-url="${esc(url)}">${esc(name)}</button>`).join('');
   }
-  function inject(){
-    const scroll=document.getElementById('uxVoyageScroll');if(!scroll||document.getElementById('uxBookingLauncher'))return;
-    const sections=[...scroll.querySelectorAll('.uxVoyageSection')];
-    const reservations=sections.find(s=>s.querySelector('h3')?.textContent.trim()==='Réservations');
-    if(!reservations)return;
-    const box=document.createElement('section');box.id='uxBookingLauncher';box.className='uxBookingLauncher';
+  function build(){
+    const box=document.createElement('section');
+    box.id='uxBookingLauncher';box.className='uxBookingLauncher';
     box.innerHTML=`<div class="uxBookingHead"><h3>Réserver maintenant</h3><span>Ouverture chez le prestataire<br>paiement hors de l’app</span></div><div class="uxBookingForm"><input id="uxBookingWhere" value="${esc(defaultWhere())}" placeholder="Ville, hôtel, activité ou destination"><div class="uxBookingGrid"><select id="uxBookingType"><option>Hôtel</option><option>Transport</option><option>Activité</option><option>Restaurant</option><option>Autre</option></select><input id="uxBookingDate" type="date"></div></div><div class="uxBookingProviders" id="uxBookingProviders"></div><span class="uxBookingHint">Travel Photo OS ouvre le site choisi avec ta recherche. La réservation et le paiement restent directement chez le prestataire.</span>`;
-    reservations.parentNode.insertBefore(box,reservations);
     box.addEventListener('input',()=>renderProviders(box));
     box.addEventListener('change',()=>renderProviders(box));
-    box.addEventListener('click',e=>{const b=e.target.closest('[data-book-url]');if(!b)return;const url=b.dataset.bookUrl;if(!url)return;try{window.open(url,'_blank','noopener,noreferrer')}catch(_){location.href=url}});
+    box.addEventListener('click',e=>{const b=e.target.closest('[data-book-url]');if(!b)return;const url=b.dataset.bookUrl;if(!url)return;const win=window.open(url,'_blank','noopener,noreferrer');if(!win)location.href=url});
     renderProviders(box);
+    return box;
+  }
+  function inject(force=false){
+    const panel=document.getElementById('uxVoyagePanel');
+    const scroll=document.getElementById('uxVoyageScroll');
+    if(!panel||!scroll)return false;
+    if(!panel.classList.contains('show')&&!force)return false;
+    const old=document.getElementById('uxBookingLauncher');
+    if(old&&scroll.contains(old))return true;
+    if(old)old.remove();
+    const box=build();
+    const hero=scroll.querySelector('.uxVoyageHero');
+    const sections=scroll.querySelectorAll('.uxVoyageSection');
+    if(sections.length>=3)scroll.insertBefore(box,sections[2]);
+    else if(hero)hero.insertAdjacentElement('afterend',box);
+    else scroll.prepend(box);
+    return true;
   }
   function install(){
-    inject();
-    const obs=new MutationObserver(()=>{if(!document.getElementById('uxBookingLauncher'))inject()});
-    obs.observe(document.body,{childList:true,subtree:true});
-    document.addEventListener('click',e=>{if(e.target.closest('#uxNav button[data-ux="trip"],#uxVoyageFab'))setTimeout(inject,120)},true);
-    window.addEventListener('travel-photo-voyage-render',inject);
+    const tryInject=()=>inject(false);
+    setTimeout(tryInject,200);
+    setInterval(tryInject,500);
+    const obs=new MutationObserver(()=>{if(document.getElementById('uxVoyagePanel')?.classList.contains('show'))setTimeout(tryInject,0)});
+    obs.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+    document.addEventListener('click',e=>{if(e.target.closest('#uxNav button[data-ux="trip"],#uxVoyageFab'))setTimeout(()=>inject(true),80)},true);
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,800));else setTimeout(install,800);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,700));else setTimeout(install,700);
 })();
