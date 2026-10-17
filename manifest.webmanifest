@@ -1,5 +1,5 @@
 {
-  "name": "Travel Photo OS — LIVE MULTIUSER",
+  "name": "Travel Photo OS — Mobile UX",
   "short_name": "Travel OS",
   "description": "Cockpit multi-voyages pour itinéraires, photo, budget et progression.",
   "start_url": "./index.html",
@@ -7,15 +7,7 @@
   "background_color": "#080a0f",
   "theme_color": "#080a0f",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+    {"src":"icon-192.png","sizes":"192x192","type":"image/png"},
+    {"src":"icon-512.png","sizes":"512x512","type":"image/png"}
   ]
 }

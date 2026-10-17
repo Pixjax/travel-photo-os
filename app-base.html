@@ -1,0 +1,2337 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Travel Photo OS — PRO MAX</title>
+<link href="https://unpkg.com/maplibre-gl@5.0.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@5.0.1/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+ --bg:#07090d;--panel:rgba(13,16,22,.84);--panel2:rgba(18,22,29,.96);
+ --line:rgba(255,255,255,.10);--line2:rgba(255,255,255,.06);
+ --txt:#f7f8fb;--muted:#aeb5c0;--soft:#7f8793;--accent:#fff;
+ --shadow:0 22px 80px rgba(0,0,0,.48);--r:24px;--r2:15px;
+}
+*{box-sizing:border-box}
+html,body,#map{width:100%;height:100%;margin:0;overflow:hidden}
+body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Arial,sans-serif;color:var(--txt)}
+#map{position:absolute;inset:0;background:#080a0e}
+.maplibregl-ctrl-group{background:rgba(12,15,20,.9)!important;border:1px solid var(--line)!important;backdrop-filter:blur(15px)!important;box-shadow:var(--shadow)!important}
+.maplibregl-ctrl-group button{filter:invert(1);opacity:.9}.maplibregl-ctrl-bottom-left,.maplibregl-ctrl-bottom-right{z-index:25}
+.glass{background:var(--panel);backdrop-filter:blur(24px) saturate(125%);border:1px solid var(--line);box-shadow:var(--shadow)}
+button,input,textarea,select{font:inherit}
+button{border:0;cursor:pointer}.btn{background:rgba(255,255,255,.07);color:#fff;border-radius:12px;padding:9px 11px;font-size:12px;font-weight:780}
+.btn:hover{background:rgba(255,255,255,.13)}.btn.on,.btn.primary{background:#fff;color:#111}.btn.icon{width:38px;padding:9px 0}.btn.danger{background:rgba(255,80,92,.15);color:#ff9ca5}
+.top{position:absolute;left:14px;right:14px;top:14px;z-index:50;display:flex;justify-content:space-between;gap:10px;pointer-events:none}
+.brand,.tools{pointer-events:auto}.brand{border-radius:20px;padding:12px 15px;min-width:255px}.brand small{display:block;font-size:9px;letter-spacing:1.5px;font-weight:900;color:#9098a3}.brand strong{display:block;font-size:19px;margin-top:4px}.brand span{font-size:11px;color:#b7bdc8}
+.tools{border-radius:20px;padding:7px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.left{position:absolute;left:14px;top:92px;bottom:14px;width:370px;z-index:42;display:flex;flex-direction:column;gap:10px}
+.dash{border-radius:24px;padding:13px}.heroStats{display:grid;grid-template-columns:1.2fr .8fr;gap:8px}.stat,.big{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.05);border-radius:15px;padding:11px}.big small,.stat small{display:block;color:#8e96a1;font-size:9px;font-weight:900;letter-spacing:.8px;text-transform:uppercase}.big b{display:block;font-size:25px;margin-top:4px}.stat b{display:block;font-size:16px;margin-top:4px}.big span,.stat span{display:block;color:#b7bdc7;font-size:10px;margin-top:2px}.progress{height:7px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin-top:9px}.progress i{display:block;height:100%;width:0;background:#fff;border-radius:99px}.statrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.workspace{flex:1;border-radius:24px;overflow:hidden;display:flex;flex-direction:column}.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:11px 11px 0}.tab{padding:9px 5px;border-radius:11px;background:rgba(255,255,255,.05);text-align:center;font-size:10px;font-weight:820;color:#cbd0d8;cursor:pointer}.tab.on{background:#fff;color:#111}
+.search{padding:11px;border-bottom:1px solid var(--line2)}.search input{width:100%;padding:11px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.07);border-radius:12px;color:#fff;outline:none}.chips,.days{display:flex;gap:6px;overflow:auto;scrollbar-width:none}.chips::-webkit-scrollbar,.days::-webkit-scrollbar{display:none}.chips{padding-top:9px}.days{padding:9px 11px;border-bottom:1px solid var(--line2)}.chip,.day{white-space:nowrap;padding:7px 9px;border-radius:999px;background:rgba(255,255,255,.055);font-size:10px;font-weight:780;color:#d6dae0;cursor:pointer}.chip.on,.day.on{background:#fff;color:#111}.day{border-radius:10px;min-width:56px;text-align:center}
+.list{flex:1;overflow:auto;padding:8px}.item{display:flex;gap:10px;padding:10px;border-radius:14px;border:1px solid transparent;cursor:pointer}.item:hover{background:rgba(255,255,255,.06)}.item.sel{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.08)}.dot{width:10px;height:10px;border-radius:50%;margin-top:5px;flex:none;box-shadow:0 0 0 3px rgba(255,255,255,.05)}.itemText{min-width:0;flex:1}.item b{display:block;font-size:14px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item small{font-size:10px;color:#929aa5;font-weight:850}.meta{font-size:10px;color:#b7bdc6;margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}.tag{padding:2px 5px;border-radius:999px;background:rgba(255,255,255,.075);font-size:9px;font-weight:850}.gold{color:#ffd25f}.done{width:8px;height:8px;border-radius:50%;background:#50d890;display:inline-block}.workspaceFoot{padding:10px 11px;border-top:1px solid var(--line2);display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.right{position:absolute;right:14px;top:92px;bottom:14px;width:410px;z-index:44;display:flex;flex-direction:column;gap:10px}.brief{border-radius:24px;padding:13px}.brief h3{margin:0;font-size:15px}.brief p{margin:6px 0 0;color:#b8bec8;font-size:12px;line-height:1.45}.briefBtns{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.detail{flex:1;border-radius:24px;overflow:hidden;display:none;flex-direction:column;background:var(--panel2)}.detail.show{display:flex}.cover{height:220px;position:relative;background:linear-gradient(145deg,#29313b,#11151b);overflow:hidden}.cover img{width:100%;height:100%;object-fit:cover}.cover:after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.74),rgba(0,0,0,.04) 62%)}.coverText{position:absolute;left:16px;right:50px;bottom:15px;z-index:3}.coverText small{font-size:10px;letter-spacing:1px;font-weight:900}.coverText h2{margin:4px 0 0;font-size:24px}.close{position:absolute;right:12px;top:12px;z-index:5;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.56);color:#fff;border:1px solid rgba(255,255,255,.12)}
+.detailBody{padding:14px;overflow:auto}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.box,.section{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.05);border-radius:13px;padding:10px}.box small{display:block;font-size:9px;letter-spacing:.7px;text-transform:uppercase;font-weight:900;color:#89919c}.box b{display:block;font-size:12px;margin-top:4px}.section{margin-top:9px}.section h4{margin:0 0 8px;font-size:12px}.sunGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.sunCell{background:rgba(255,255,255,.05);border-radius:10px;padding:8px;text-align:center}.sunCell small{display:block;font-size:8px;color:#8c949f;text-transform:uppercase;font-weight:850}.sunCell b{display:block;font-size:11px;margin-top:3px}
+textarea{width:100%;min-height:76px;resize:vertical;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);color:#fff;border-radius:12px;padding:10px;outline:none}.detailActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.detailActions a,.detailActions button{text-align:center;text-decoration:none;padding:10px;border-radius:12px;background:rgba(255,255,255,.075);color:#fff;font-size:11px;font-weight:780;border:1px solid rgba(255,255,255,.05)}.detailActions .main{grid-column:span 2;background:#fff;color:#111}.weatherRow{display:grid;grid-template-columns:1fr 1fr;gap:8px}.weatherCard{background:rgba(255,255,255,.05);padding:10px;border-radius:12px}.weatherCard small{display:block;color:#8f97a2;font-size:9px;text-transform:uppercase;font-weight:850}.weatherCard b{display:block;font-size:13px;margin-top:3px}
+.home{position:absolute;inset:0;z-index:130;background:radial-gradient(circle at 20% 0%,rgba(255,255,255,.055),transparent 34%),#080a0e;overflow:auto;padding:34px}.home.hide{display:none}.homeInner{max-width:1220px;margin:0 auto}.homeHead{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:26px}.homeHead h1{margin:0;font-size:42px;letter-spacing:-1.6px}.homeHead p{margin:8px 0 0;color:#abb2bd}.globalStats{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.globalStat{padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.06);font-size:10px;font-weight:800}
+.tripGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(285px,1fr));gap:16px}.tripCard{position:relative;min-height:240px;border-radius:26px;overflow:hidden;border:1px solid rgba(255,255,255,.1);box-shadow:var(--shadow);cursor:pointer;background:#171b22}.tripBg{position:absolute;inset:0;background:linear-gradient(145deg,#303845,#11151a)}.tripBg.japan{background:linear-gradient(145deg,rgba(175,48,65,.3),rgba(0,0,0,.1)),url('https://commons.wikimedia.org/wiki/Special:FilePath/Chureito%20Pagoda%2C%20Fujiyoshida%20%2834256262385%29.jpg?width=1200') center/cover}.tripCard:after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.82),rgba(0,0,0,.04) 63%)}.tripContent{position:absolute;z-index:3;left:18px;right:18px;bottom:17px}.tripContent small{font-size:10px;letter-spacing:1px;font-weight:900}.tripContent h2{font-size:24px;margin:5px 0 4px}.tripContent p{font-size:12px;color:#d1d6dd;margin:0}.tripBadges{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.tripBadge{padding:6px 9px;border-radius:999px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.11);font-size:10px;font-weight:800}.addTrip{min-height:240px;border-radius:26px;border:1px dashed rgba(255,255,255,.2);display:grid;place-items:center;background:rgba(255,255,255,.02);cursor:pointer}.addTrip:hover{background:rgba(255,255,255,.05)}.addInner{text-align:center}.plus{width:52px;height:52px;border-radius:50%;background:#fff;color:#111;display:grid;place-items:center;margin:0 auto 12px;font-size:28px}.addInner b{display:block;font-size:17px}.addInner span{font-size:12px;color:#9098a4}
+.homeButton{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:56;display:none}
+.overlay{position:absolute;inset:0;z-index:145;background:rgba(0,0,0,.67);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:18px}.overlay.show{display:flex}.modal{width:min(780px,100%);max-height:90vh;overflow:auto;background:#15191f;border:1px solid var(--line);border-radius:26px;padding:20px;box-shadow:var(--shadow)}.modal h2{margin:0 0 7px}.modal p{margin:0 0 13px;color:#adb4bf;font-size:13px;line-height:1.5}.form{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field{background:rgba(255,255,255,.045);border-radius:13px;padding:11px}.field.full{grid-column:span 2}.field label{display:block;font-size:9px;color:#8f97a2;font-weight:900;text-transform:uppercase;letter-spacing:.7px}.field input,.field select,.field textarea{width:100%;margin-top:7px;background:rgba(255,255,255,.065);border:1px solid rgba(255,255,255,.08);color:#fff;border-radius:10px;padding:10px;outline:none}.modalActions{display:flex;gap:8px;justify-content:flex-end;margin-top:13px}.expense,.check{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line2);font-size:12px}.expense span:first-child,.check span:first-child{flex:1}.check input{width:18px;height:18px}
+.toast{position:absolute;left:50%;bottom:28px;z-index:160;transform:translate(-50%,20px);opacity:0;pointer-events:none;border-radius:999px;padding:10px 14px;font-size:11px;transition:.18s}.toast.show{opacity:1;transform:translate(-50%,0)}
+.loader{position:absolute;inset:0;z-index:180;background:#080a0e;display:flex;align-items:center;justify-content:center;transition:.4s}.loader.hide{opacity:0;pointer-events:none}.spin{width:36px;height:36px;border:3px solid rgba(255,255,255,.12);border-top-color:#fff;border-radius:50%;animation:spin .85s linear infinite;margin:auto}@keyframes spin{to{transform:rotate(360deg)}}
+.dock{display:none;position:absolute;left:9px;right:9px;bottom:9px;z-index:60;border-radius:18px;padding:7px;grid-template-columns:repeat(5,1fr);gap:5px}.dock button{background:rgba(255,255,255,.06);color:#fff;border-radius:11px;padding:10px 4px;font-size:10px;font-weight:780}.dock button.on{background:#fff;color:#111}
+@media(max-width:1160px){.left{width:345px}.right{width:375px}}
+@media(max-width:820px){.right{width:345px}}
+@media(max-width:760px){
+ .top{left:9px;right:9px;top:9px}.brand{min-width:0;max-width:64vw}.brand strong{font-size:16px}.brand span{display:none}.tools .desktop{display:none}.tools{padding:5px}.btn{padding:8px 9px}
+ .left{left:9px;right:9px;top:auto;bottom:67px;width:auto;height:54vh;display:none}.left.open{display:flex}.dash{display:none}
+ .right{left:9px;right:9px;top:75px;bottom:auto;width:auto}.brief{display:none}.detail{display:none}.detail.show{display:flex;max-height:65vh}.cover{height:165px}.detailBody{max-height:calc(65vh - 165px)}
+ .dock{display:grid}.sunGrid{grid-template-columns:repeat(2,1fr)}.form{grid-template-columns:1fr}.field.full{grid-column:span 1}
+ .home{padding:20px 12px 80px}.homeHead{align-items:flex-start;flex-direction:column}.homeHead h1{font-size:31px}.homeButton{top:auto;bottom:70px;left:auto;right:10px;transform:none}
+}
+
+.aiFab{position:absolute;right:14px;bottom:92px;z-index:58;border-radius:999px;padding:11px 15px;background:#fff;color:#111;font-size:12px;font-weight:900;box-shadow:0 18px 50px rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.2)}
+.aiFab span{opacity:.7;font-weight:800}
+.aiModalGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.aiCard{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06);border-radius:15px;padding:12px}
+.aiCard h3{margin:0 0 5px;font-size:13px}.aiCard p{margin:0 0 10px;font-size:11px;color:#aeb5c0;line-height:1.45}
+.aiCard textarea{min-height:120px}
+.aiPrompt{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.5;min-height:210px}
+.aiStatus{padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.05);font-size:11px;color:#c7ccd4;margin-top:10px}
+.aiStatus.ok{background:rgba(64,210,132,.11);color:#aaf1c9}.aiStatus.warn{background:rgba(255,183,77,.11);color:#ffd399}
+.aiImportBox{min-height:180px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px}
+.aiPills{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.aiPill{padding:6px 8px;border-radius:999px;background:rgba(255,255,255,.06);font-size:10px;font-weight:800;cursor:pointer}
+@media(max-width:760px){.aiFab{right:10px;bottom:122px}.aiModalGrid{grid-template-columns:1fr}}
+
+
+.ultimateFab{position:absolute;right:14px;bottom:142px;z-index:59;border-radius:999px;padding:11px 15px;background:linear-gradient(135deg,#fff,#dfe7f1);color:#111;font-size:12px;font-weight:900;box-shadow:0 18px 50px rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.25)}
+.ultimateFab span{opacity:.68}
+.ultimateGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.moduleCard{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:13px}
+.moduleCard h3{margin:0 0 5px;font-size:13px}.moduleCard p{margin:0 0 10px;color:#aeb5c0;font-size:11px;line-height:1.45}
+.moduleCard .metric{font-size:23px;font-weight:880;margin:5px 0}.moduleCard small{color:#89919d;font-size:9px;text-transform:uppercase;font-weight:900;letter-spacing:.8px}
+.timeline{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.timeRow{display:grid;grid-template-columns:58px 1fr auto;gap:8px;align-items:center;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:9px}
+.timeRow input[type=time]{width:56px;background:transparent;border:0;color:#fff;font-size:11px;outline:none}
+.timeInfo b{display:block;font-size:12px}.timeInfo span{display:block;font-size:10px;color:#98a0ab;margin-top:2px}
+.timeRow button{background:rgba(255,255,255,.07);color:#fff;border-radius:8px;padding:5px 7px}
+.forecast{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:9px}
+.forecastDay{background:rgba(255,255,255,.05);border-radius:11px;padding:9px;text-align:center}.forecastDay small{display:block;color:#89919d;font-size:8px;text-transform:uppercase;font-weight:850}.forecastDay b{display:block;margin-top:4px;font-size:12px}.forecastDay span{display:block;color:#aeb5c0;font-size:10px;margin-top:3px}
+.recordList{margin-top:9px}.record{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}.record b{display:block;font-size:12px}.record span{display:block;color:#9fa6b1;font-size:10px;margin-top:3px}.recordActions{display:flex;gap:5px;align-items:center}.recordActions button{background:rgba(255,255,255,.07);color:#fff;border-radius:8px;padding:6px 7px}
+.statusPill{display:inline-block;padding:4px 7px;border-radius:999px;background:rgba(255,255,255,.07);font-size:9px;font-weight:850;margin-top:5px}.statusPill.good{background:rgba(73,210,132,.12);color:#9ef0c3}.statusPill.warn{background:rgba(255,183,77,.12);color:#ffd08b}
+.chartBars{display:flex;flex-direction:column;gap:7px;margin-top:10px}.chartRow{display:grid;grid-template-columns:80px 1fr 70px;gap:8px;align-items:center;font-size:10px;color:#cdd2d9}.barTrack{height:8px;background:rgba(255,255,255,.07);border-radius:999px;overflow:hidden}.barFill{height:100%;background:#fff;border-radius:999px}
+.sectionTabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.sectionTab{padding:7px 9px;border-radius:999px;background:rgba(255,255,255,.055);font-size:10px;font-weight:800;cursor:pointer}.sectionTab.on{background:#fff;color:#111}
+@media(max-width:760px){.ultimateFab{right:10px;bottom:170px}.ultimateGrid{grid-template-columns:1fr}.forecast{grid-template-columns:repeat(2,1fr)}}
+
+
+.collabFab{position:absolute;right:14px;bottom:192px;z-index:60;border-radius:999px;padding:11px 15px;background:linear-gradient(135deg,#dff7ff,#fff);color:#111;font-size:12px;font-weight:900;box-shadow:0 18px 50px rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.25)}
+.collabFab span{opacity:.68}
+.collabGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.collabCard{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:13px}
+.collabCard h3{margin:0 0 6px;font-size:13px}.collabCard p{margin:0 0 10px;font-size:11px;color:#aeb5c0;line-height:1.45}
+.inviteCode{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:28px;font-weight:900;letter-spacing:2px;padding:12px;border-radius:14px;background:rgba(255,255,255,.065);text-align:center;border:1px solid rgba(255,255,255,.08)}
+.memberList,.voteList,.commentList,.activityList,.settleList{display:flex;flex-direction:column;gap:7px;margin-top:9px}
+.member,.voteRow,.comment,.activity,.settle{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:9px}
+.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#111;font-size:12px;font-weight:900}
+.member b,.voteRow b,.comment b,.activity b,.settle b{font-size:12px}.member small,.voteRow small,.comment small,.activity small,.settle small{display:block;color:#969eaa;font-size:10px;margin-top:2px}
+.role{padding:4px 7px;border-radius:999px;background:rgba(255,255,255,.07);font-size:9px;font-weight:850}
+.presenceDot{width:8px;height:8px;border-radius:50%;background:#4ed48c;display:inline-block;margin-right:5px}
+.voteBtns{display:flex;gap:5px}.voteBtns button{background:rgba(255,255,255,.07);color:#fff;border-radius:8px;padding:6px 8px}.voteBtns button.on{background:#fff;color:#111}
+.commentComposer{display:grid;grid-template-columns:1fr auto;gap:7px}.commentComposer input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:10px;color:#fff;outline:none}
+.collabTabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.collabTab{padding:7px 9px;border-radius:999px;background:rgba(255,255,255,.055);font-size:10px;font-weight:800;cursor:pointer}.collabTab.on{background:#fff;color:#111}
+.splitTable{width:100%;border-collapse:collapse;margin-top:10px;font-size:11px}.splitTable th,.splitTable td{padding:8px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}.splitTable th{color:#9098a3;font-size:9px;text-transform:uppercase;letter-spacing:.7px}
+.cloudBox{background:rgba(109,207,246,.07);border:1px solid rgba(109,207,246,.18);border-radius:14px;padding:12px}
+.cloudBox code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px}
+.modeBadge{display:inline-block;padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.07);font-size:9px;font-weight:850}.modeBadge.local{color:#ffd18e}.modeBadge.cloud{color:#9ff0c5}
+@media(max-width:760px){.collabFab{right:10px;bottom:218px}.collabGrid{grid-template-columns:1fr}}
+
+
+.geoFab{position:absolute;right:14px;bottom:242px;z-index:61;border-radius:999px;padding:11px 15px;background:linear-gradient(135deg,#dff3ff,#ffffff);color:#111;font-size:12px;font-weight:900;box-shadow:0 18px 50px rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.25)}
+.geoFab span{opacity:.68}
+.geoGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.geoCard{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:13px}
+.geoCard h3{margin:0 0 6px;font-size:13px}.geoCard p{margin:0 0 10px;font-size:11px;color:#aeb5c0;line-height:1.45}
+.geoMetric{font-size:24px;font-weight:900;margin-top:4px}.geoSub{font-size:10px;color:#9da5b0;margin-top:3px}
+.geoDot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#4b9cff;box-shadow:0 0 0 4px rgba(75,156,255,.18);margin-right:6px}
+.geoStatus{padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.05);font-size:11px;color:#c7ccd4;margin-top:10px}
+.geoStatus.ok{background:rgba(64,210,132,.11);color:#aaf1c9}.geoStatus.warn{background:rgba(255,183,77,.11);color:#ffd399}
+.geoMembers{display:flex;flex-direction:column;gap:7px;margin-top:9px}.geoMember{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.05);border-radius:12px;padding:9px}
+.geoPulse{width:12px;height:12px;border-radius:50%;background:#4b9cff;box-shadow:0 0 0 0 rgba(75,156,255,.55);animation:geoPulse 1.8s infinite}
+@keyframes geoPulse{0%{box-shadow:0 0 0 0 rgba(75,156,255,.55)}70%{box-shadow:0 0 0 12px rgba(75,156,255,0)}100%{box-shadow:0 0 0 0 rgba(75,156,255,0)}}
+@media(max-width:760px){.geoFab{right:10px;bottom:266px}.geoGrid{grid-template-columns:1fr}}
+
+
+.navFab{position:absolute;right:14px;bottom:292px;z-index:62;border-radius:999px;padding:11px 15px;background:linear-gradient(135deg,#dce9ff,#fff);color:#111;font-size:12px;font-weight:900;box-shadow:0 18px 50px rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.25)}
+.navFab span{opacity:.68}
+.navGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.navCard{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:13px}
+.navCard h3{margin:0 0 6px;font-size:13px}.navCard p{margin:0 0 10px;font-size:11px;color:#aeb5c0;line-height:1.45}
+.navMetric{font-size:26px;font-weight:900}.navSub{font-size:10px;color:#9da5b0;margin-top:3px}
+.navButtons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.navStatus{padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.05);font-size:11px;color:#c7ccd4;margin-top:10px}
+.navStatus.ok{background:rgba(64,210,132,.11);color:#aaf1c9}.navStatus.warn{background:rgba(255,183,77,.11);color:#ffd399}
+.compassWrap{display:flex;align-items:center;gap:12px;margin-top:9px}.compass{width:62px;height:62px;border-radius:50%;border:1px solid rgba(255,255,255,.15);position:relative;background:rgba(255,255,255,.04)}
+.compass:before{content:"N";position:absolute;top:4px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:900;color:#cfd4dc}
+.compassNeedle{position:absolute;left:50%;top:50%;width:3px;height:24px;background:#fff;border-radius:999px;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(0deg)}
+.arrivalBanner{position:absolute;left:50%;top:88px;transform:translateX(-50%);z-index:80;display:none;background:rgba(17,22,28,.94);backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.10);box-shadow:0 18px 60px rgba(0,0,0,.45);border-radius:18px;padding:12px 16px;font-size:12px;font-weight:800}
+.arrivalBanner.show{display:block}
+@media(max-width:760px){.navFab{right:10px;bottom:314px}.navGrid{grid-template-columns:1fr}.arrivalBanner{top:72px;max-width:88vw;text-align:center}}
+
+
+.liveCloudBadge{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.07);font-size:9px;font-weight:850}
+.liveCloudBadge i{width:8px;height:8px;border-radius:50%;background:#ffb84d}.liveCloudBadge.connected i{background:#50d890;box-shadow:0 0 0 4px rgba(80,216,144,.12)}
+.cloudConnectGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.cloudConnectGrid input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:10px;color:#fff;outline:none}
+.liveUsersBar{position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:58;display:none;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;background:rgba(12,15,20,.86);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.09);box-shadow:0 14px 40px rgba(0,0,0,.35);font-size:10px;font-weight:850}
+.liveUsersBar.show{display:flex}.liveUsersFaces{display:flex}.liveUsersFaces span{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#111;border:2px solid #111;margin-left:-5px;font-size:8px;font-weight:900}.liveUsersFaces span:first-child{margin-left:0}
+.cloudStatusBox{margin-top:9px;padding:10px;border-radius:12px;background:rgba(255,255,255,.05);font-size:11px;color:#c4cad3;line-height:1.45}
+.cloudStatusBox.ok{background:rgba(70,210,137,.10);color:#a7f0c7}.cloudStatusBox.warn{background:rgba(255,183,77,.10);color:#ffd18a}
+.memberLive{display:inline-flex;align-items:center;gap:5px}.memberLive i{width:7px;height:7px;border-radius:50%;background:#50d890}
+@media(max-width:760px){.liveUsersBar{top:58px;max-width:70vw;overflow:hidden}}
+
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div class="liveUsersBar" id="liveUsersBar">
+  <span>LIVE</span>
+  <div class="liveUsersFaces" id="liveUsersFaces"></div>
+  <span id="liveUsersCount">0 voyageurs</span>
+</div>
+
+<div class="loader" id="loader"><div style="text-align:center"><div class="spin"></div><b style="display:block;margin-top:12px">Travel Photo OS — PRO MAX</b><span style="font-size:11px;color:#9199a4">Initialisation du cockpit voyage…</span></div></div>
+
+<div class="home" id="home">
+ <div class="homeInner">
+  <div class="homeHead">
+   <div>
+    <small style="font-size:10px;font-weight:900;letter-spacing:1.7px;color:#8e96a1">TRAVEL PHOTO OS · PRO MAX</small>
+    <h1>Mes voyages</h1>
+    <p>Planification, photo, budget, progression et cartes réunis dans une seule app.</p>
+    <div class="globalStats" id="globalStats"></div>
+   </div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn" onclick="openImportAll()">Importer sauvegarde</button>
+    <button class="btn" onclick="exportAll()">Exporter tout</button>
+    <button class="btn primary" onclick="openTripEditor()">＋ Nouveau voyage</button>
+   </div>
+  </div>
+  <div class="tripGrid" id="tripGrid"></div>
+ </div>
+</div>
+
+<button class="btn glass homeButton" id="homeBtn" onclick="showHome()">⌂ Mes voyages</button>
+
+<div class="top">
+ <div class="brand glass">
+  <small>TRAVEL PHOTO OS · VOYAGE ACTIF</small>
+  <strong id="tripTitle">Japon 2026</strong>
+  <span id="tripSub">PRO MAX · cockpit voyage photo</span>
+ </div>
+ <div class="tools glass">
+  <button class="btn desktop" onclick="flyOverview()">Vue voyage</button>
+  <button class="btn desktop" onclick="flyCity('Osaka')">Osaka</button>
+  <button class="btn desktop" onclick="flyCity('Kyoto')">Kyoto</button>
+  <button class="btn desktop" onclick="flyCity('Fuji')">Fuji</button>
+  <button class="btn desktop" onclick="flyCity('Tokyo')">Tokyo</button>
+  <button class="btn icon" id="satBtn" onclick="toggleSatellite()">◐</button>
+  <button class="btn icon on" id="terrainBtn" onclick="toggleTerrain()">⌁</button>
+  <button class="btn icon on" id="buildBtn" onclick="toggleBuildings()">▥</button>
+  <button class="btn icon" onclick="locateMe()">◎</button>
+  <button class="btn primary" onclick="tour()">▶</button>
+  <button class="btn icon" onclick="toggleLeft()">☰</button>
+ </div>
+</div>
+
+<div class="left" id="leftPanel">
+ <section class="dash glass">
+  <div class="heroStats">
+   <div class="big"><small>Voyage</small><b id="countdown">—</b><span id="countdownSub">jusqu’au départ</span><div class="progress"><i id="progressBar"></i></div></div>
+   <div class="stat"><small>Progression</small><b id="doneStat">0/0</b><span>spots réalisés</span></div>
+  </div>
+  <div class="statrow">
+   <div class="stat"><small>Favoris</small><b id="favStat">0</b><span>spots</span></div>
+   <div class="stat"><small>Budget</small><b id="budgetStat">—</b><span>restant</span></div>
+   <div class="stat"><small>Photo</small><b id="topStat">0</b><span>priorités</span></div>
+  </div>
+ </section>
+
+ <section class="workspace glass">
+  <div class="tabs">
+   <div class="tab on" data-mode="explore" onclick="setMode('explore')">Explorer</div>
+   <div class="tab" data-mode="today" onclick="setMode('today')">Jour</div>
+   <div class="tab" data-mode="photo" onclick="setMode('photo')">Photo</div>
+   <div class="tab" data-mode="favs" onclick="setMode('favs')">Favoris</div>
+   <div class="tab" data-mode="done" onclick="setMode('done')">Faits</div>
+  </div>
+  <div class="search">
+   <input id="search" placeholder="Rechercher spot, ville, date, catégorie…" oninput="renderList()">
+   <div class="chips" id="cityChips"></div>
+  </div>
+  <div class="days" id="dayRow"></div>
+  <div class="list" id="list"></div>
+  <div class="workspaceFoot">
+   <button class="btn" onclick="openSpotEditor()">＋ Spot</button>
+   <button class="btn" onclick="openPlanner()">Budget</button>
+   <button class="btn" onclick="toggleDayRoute()" id="routeBtn">Route</button>
+  </div>
+ </section>
+</div>
+
+<div class="right">
+ <section class="brief glass">
+  <h3 id="briefTitle">Vue d’ensemble</h3>
+  <p id="briefText">Sélectionne une journée ou un spot pour préparer la prochaine étape.</p>
+  <div class="briefBtns">
+   <button class="btn" onclick="selectNextStop()">Prochaine étape</button>
+   <button class="btn" onclick="fitCurrent()">Cadrer</button>
+   <button class="btn" onclick="openChecklist()">Checklist</button>
+   <button class="btn" onclick="openTripEditor(activeTripId)">Modifier voyage</button>
+  </div>
+ </section>
+
+ <section class="detail glass" id="detail">
+  <div class="cover" id="cover">
+   <button class="close" onclick="closeDetail()">✕</button>
+   <div class="coverText"><small id="eyebrow"></small><h2 id="spotTitle"></h2></div>
+  </div>
+  <div class="detailBody">
+   <div class="grid2">
+    <div class="box"><small>Date</small><b id="dDate"></b></div>
+    <div class="box"><small>Ville</small><b id="dCity"></b></div>
+    <div class="box"><small>Étape</small><b id="dStep"></b></div>
+    <div class="box"><small>Coordonnées</small><b id="dCoords"></b></div>
+   </div>
+
+   <div class="section">
+    <h4>Plan lumière</h4>
+    <div class="sunGrid">
+     <div class="sunCell"><small>Lever</small><b id="sunrise">—</b></div>
+     <div class="sunCell"><small>Golden AM</small><b id="goldenAM">—</b></div>
+     <div class="sunCell"><small>Golden PM</small><b id="goldenPM">—</b></div>
+     <div class="sunCell"><small>Coucher</small><b id="sunset">—</b></div>
+    </div>
+   </div>
+
+   <div class="section">
+    <h4>Météo</h4>
+    <div class="weatherRow">
+     <div class="weatherCard"><small>Maintenant</small><b id="weatherNow">—</b></div>
+     <div class="weatherCard"><small>Vent</small><b id="weatherWind">—</b></div>
+    </div>
+    <button class="btn" style="width:100%;margin-top:8px" onclick="loadWeather()">Actualiser météo</button>
+   </div>
+
+   <div class="section">
+    <h4>Notes photo</h4>
+    <textarea id="note" placeholder="Focale, cadrage, horaire, météo, idée de série…" oninput="saveNote()"></textarea>
+   </div>
+
+   <div class="detailActions">
+    <button id="doneBtn" onclick="toggleDone()">✓ Marquer fait</button>
+    <button id="favBtn" onclick="toggleFav()">★ Favori</button>
+    <a class="main" id="mapsLink" target="_blank">Google Maps</a>
+    <a id="earthLink" target="_blank">Google Earth</a>
+    <a id="dirLink" target="_blank">Itinéraire</a>
+    <button onclick="openSpotEditor(selected.id)">Modifier spot</button>
+    <button onclick="selectNextStop()">Étape suivante</button>
+   </div>
+  </div>
+ </section>
+</div>
+
+<div class="dock glass">
+ <button class="on" data-mode="explore" onclick="setMode('explore');toggleLeft(true)">Explorer</button>
+ <button data-mode="today" onclick="setMode('today');toggleLeft(true)">Jour</button>
+ <button data-mode="photo" onclick="setMode('photo');toggleLeft(true)">Photo</button>
+ <button data-mode="favs" onclick="setMode('favs');toggleLeft(true)">Favs</button>
+ <button onclick="showHome()">Voyages</button>
+</div>
+
+<!-- Trip editor -->
+<div class="overlay" id="tripOverlay" onclick="if(event.target===this)closeOverlay('tripOverlay')">
+ <div class="modal">
+  <h2 id="tripEditorTitle">Nouveau voyage</h2>
+  <p>Chaque voyage possède ses propres spots, notes, favoris, budget et checklist.</p>
+  <div class="form">
+   <div class="field full"><label>Nom du voyage</label><input id="tName" placeholder="Ex. Nouvelle-Zélande 2027"></div>
+   <div class="field"><label>Pays</label><input id="tCountry" placeholder="Nouvelle-Zélande"></div>
+   <div class="field"><label>Ville de départ</label><input id="tStartCity" placeholder="Auckland"></div>
+   <div class="field"><label>Date de début</label><input type="date" id="tStart"></div>
+   <div class="field"><label>Date de fin</label><input type="date" id="tEnd"></div>
+   <div class="field"><label>Devise budget</label><select id="tCurrency"><option>JPY</option><option>EUR</option><option>AUD</option><option>NZD</option><option>SEK</option><option>NOK</option><option>USD</option></select></div>
+   <div class="field"><label>Emoji / icône</label><input id="tEmoji" placeholder="🇯🇵"></div>
+   <div class="field full"><label>Description</label><textarea id="tDesc" placeholder="Road trip photo, PVT, city trip…"></textarea></div>
+  </div>
+  <div class="modalActions">
+   <button class="btn danger" id="deleteTripBtn" onclick="deleteActiveTrip()" style="margin-right:auto;display:none">Supprimer voyage</button>
+   <button class="btn" onclick="closeOverlay('tripOverlay')">Annuler</button>
+   <button class="btn primary" onclick="saveTripEditor()">Enregistrer</button>
+  </div>
+ </div>
+</div>
+
+<!-- Spot editor -->
+<div class="overlay" id="spotOverlay" onclick="if(event.target===this)closeOverlay('spotOverlay')">
+ <div class="modal">
+  <h2 id="spotEditorTitle">Ajouter un spot</h2>
+  <p>Ajoute un lieu photo ou une étape à n’importe quel voyage.</p>
+  <div class="form">
+   <div class="field full"><label>Nom</label><input id="sName" placeholder="Nom du spot"></div>
+   <div class="field"><label>Ville / zone</label><input id="sCity" placeholder="Tokyo"></div>
+   <div class="field"><label>Date</label><input type="date" id="sDate"></div>
+   <div class="field"><label>Latitude</label><input type="number" step="0.000001" id="sLat"></div>
+   <div class="field"><label>Longitude</label><input type="number" step="0.000001" id="sLon"></div>
+   <div class="field"><label>Catégorie</label><select id="sCat"><option>Photo</option><option>Visite</option><option>Transport</option><option>Food</option><option>Logement</option><option>Randonnée</option><option>Autre</option></select></div>
+   <div class="field"><label>Priorité photo</label><select id="sTop"><option value="false">Normal</option><option value="true">TOP photo</option></select></div>
+   <div class="field"><label>Focale conseillée</label><input id="sLens" placeholder="24–70 mm"></div>
+   <div class="field"><label>Meilleur moment</label><input id="sBestTime" placeholder="Lever du soleil"></div>
+   <div class="field full"><label>URL photo / couverture</label><input id="sImage" placeholder="https://…"></div>
+   <div class="field full"><label>Google Maps URL</label><input id="sMaps" placeholder="https://maps.google.com/…"></div>
+   <div class="field full"><label>Description / idée photo</label><textarea id="sDesc"></textarea></div>
+  </div>
+  <div class="modalActions">
+   <button class="btn danger" id="deleteSpotBtn" onclick="deleteSpot()" style="margin-right:auto;display:none">Supprimer spot</button>
+   <button class="btn" onclick="closeOverlay('spotOverlay')">Annuler</button>
+   <button class="btn primary" onclick="saveSpotEditor()">Enregistrer</button>
+  </div>
+ </div>
+</div>
+
+<!-- Planner -->
+<div class="overlay" id="plannerOverlay" onclick="if(event.target===this)closeOverlay('plannerOverlay')">
+ <div class="modal">
+  <h2>Budget & dépenses</h2>
+  <p>Budget séparé pour le voyage actif.</p>
+  <div class="form">
+   <div class="field"><label>Budget total</label><input type="number" id="budgetTotal" min="0" step="1" oninput="saveBudget()"></div>
+   <div class="field"><label>Dépensé</label><div style="font-size:22px;font-weight:850;margin-top:7px" id="expenseTotal">—</div></div>
+   <div class="field"><label>Montant</label><input type="number" id="expAmount" min="0" step="1"></div>
+   <div class="field"><label>Catégorie</label><select id="expCat"><option>Transport</option><option>Logement</option><option>Repas</option><option>Photo</option><option>Activité</option><option>Shopping</option><option>Autre</option></select></div>
+   <div class="field full"><label>Note</label><input id="expNote" placeholder="Ex. bus Kyoto → Tokyo"></div>
+  </div>
+  <button class="btn primary" style="width:100%;margin-top:10px" onclick="addExpense()">Ajouter la dépense</button>
+  <div id="expenseList" style="margin-top:10px"></div>
+  <div class="modalActions"><button class="btn" onclick="exportActiveTrip()">Exporter voyage</button><button class="btn primary" onclick="closeOverlay('plannerOverlay')">Fermer</button></div>
+ </div>
+</div>
+
+<!-- Checklist -->
+<div class="overlay" id="checkOverlay" onclick="if(event.target===this)closeOverlay('checkOverlay')">
+ <div class="modal">
+  <h2>Checklist</h2>
+  <p>Équipement, documents et préparation du voyage.</p>
+  <div id="checkList"></div>
+  <div class="form" style="margin-top:10px">
+   <div class="field full"><label>Nouvel élément</label><input id="newCheck" placeholder="Ex. batteries chargées"></div>
+  </div>
+  <button class="btn primary" style="width:100%;margin-top:10px" onclick="addCheck()">Ajouter</button>
+  <div class="modalActions"><button class="btn primary" onclick="closeOverlay('checkOverlay')">Fermer</button></div>
+ </div>
+</div>
+
+
+
+
+
+
+<button class="navFab" onclick="openNavigationMode()">🧭 <span>Navigation live</span></button>
+<div class="arrivalBanner" id="arrivalBanner">📍 Tu es arrivé près du spot.</div>
+
+<div class="overlay" id="navOverlay" onclick="if(event.target===this)closeOverlay('navOverlay')">
+ <div class="modal" style="width:min(900px,100%)">
+  <h2>🧭 Navigation live</h2>
+  <p>Mode suivi comme une vraie app de navigation : la carte peut te suivre automatiquement pendant ton déplacement.</p>
+
+  <div class="navGrid">
+   <div class="navCard">
+    <h3>Suivi de position</h3>
+    <div class="navMetric" id="navFollowState">OFF</div>
+    <div class="navSub" id="navFollowSub">La carte ne te suit pas.</div>
+    <div class="navButtons">
+     <button class="btn primary" id="followBtn" onclick="toggleFollowMode()">Suivre ma position</button>
+     <button class="btn" onclick="flyToMe()">Recentrer</button>
+    </div>
+    <div class="navStatus" id="navGpsStatus">GPS non démarré.</div>
+   </div>
+
+   <div class="navCard">
+    <h3>Direction</h3>
+    <div class="compassWrap">
+      <div class="compass"><div class="compassNeedle" id="compassNeedle"></div></div>
+      <div>
+        <div class="navMetric" id="headingValue">—</div>
+        <div class="navSub" id="headingSub">Orientation indisponible.</div>
+      </div>
+    </div>
+   </div>
+  </div>
+
+  <div class="navGrid" style="margin-top:10px">
+   <div class="navCard">
+    <h3>Prochain spot</h3>
+    <div class="navMetric" id="navNextName">—</div>
+    <div class="navSub" id="navNextDist">Aucune destination.</div>
+    <div class="navButtons">
+     <button class="btn" onclick="selectNextSpotForNavigation()">Voir le spot</button>
+     <button class="btn" onclick="navigateToNext()">Google Maps</button>
+    </div>
+   </div>
+
+   <div class="navCard">
+    <h3>Alerte d’arrivée</h3>
+    <div class="navMetric" id="arrivalRadiusLabel">50 m</div>
+    <div class="navSub">Alerte quand tu entres dans le rayon du spot.</div>
+    <input type="range" min="20" max="300" step="10" value="50" id="arrivalRadius" oninput="updateArrivalRadius()" style="width:100%;margin-top:12px">
+    <div class="navButtons">
+     <button class="btn" id="arrivalToggleBtn" onclick="toggleArrivalAlerts()">Alertes : ON</button>
+     <button class="btn" onclick="testArrivalAlert()">Tester</button>
+    </div>
+   </div>
+  </div>
+
+  <div class="navCard" style="margin-top:10px">
+   <h3>Infos live</h3>
+   <div class="navGrid">
+    <div><small style="color:#89919d;font-size:9px;font-weight:900;text-transform:uppercase">Précision</small><div class="navMetric" id="navAccuracy">—</div></div>
+    <div><small style="color:#89919d;font-size:9px;font-weight:900;text-transform:uppercase">Vitesse</small><div class="navMetric" id="navSpeed">—</div></div>
+   </div>
+  </div>
+
+  <div class="modalActions"><button class="btn primary" onclick="closeOverlay('navOverlay')">Fermer</button></div>
+ </div>
+</div>
+
+<button class="geoFab" onclick="openGeo()">📍 <span>Live GPS</span></button>
+
+<div class="overlay" id="geoOverlay" onclick="if(event.target===this)closeOverlay('geoOverlay')">
+ <div class="modal" style="width:min(900px,100%)">
+  <h2>📍 Géolocalisation live</h2>
+  <p>Suivi GPS en direct, spot le plus proche, distance jusqu’à la prochaine étape et partage de position avec le groupe.</p>
+
+  <div class="geoGrid">
+   <div class="geoCard">
+    <h3>Ma position</h3>
+    <div class="geoMetric" id="geoCoords">—</div>
+    <div class="geoSub" id="geoAccuracy">Précision inconnue</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+     <button class="btn primary" id="geoStartBtn" onclick="startLiveLocation()">Démarrer le suivi</button>
+     <button class="btn" onclick="stopLiveLocation()">Arrêter</button>
+    </div>
+    <div class="geoStatus" id="geoStatus">Suivi arrêté.</div>
+   </div>
+
+   <div class="geoCard">
+    <h3>Navigation rapide</h3>
+    <div class="geoMetric" id="nearestName">—</div>
+    <div class="geoSub" id="nearestDistance">Aucun calcul</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+     <button class="btn" onclick="flyToMe()">Me recentrer</button>
+     <button class="btn" onclick="selectNearestSpot()">Spot le plus proche</button>
+    </div>
+   </div>
+  </div>
+
+  <div class="geoGrid" style="margin-top:10px">
+   <div class="geoCard">
+    <h3>Prochaine étape</h3>
+    <div class="geoMetric" id="nextDistance">—</div>
+    <div class="geoSub" id="nextDistanceSub">Sélectionne ou planifie une étape.</div>
+    <button class="btn" style="width:100%;margin-top:10px" onclick="navigateToNext()">Ouvrir l’itinéraire</button>
+   </div>
+
+   <div class="geoCard">
+    <h3>Partager ma position</h3>
+    <p>Tu contrôles totalement le partage. En mode local, la position est visible dans les autres onglets. Avec le Cloud, elle pourra être visible sur les autres téléphones du voyage.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+     <button class="btn" id="shareGeoBtn" onclick="toggleGeoSharing()">Partager : OFF</button>
+     <button class="btn" onclick="shareForOneHour()">Partager 1 h</button>
+    </div>
+    <div class="geoStatus" id="shareGeoStatus">Position privée.</div>
+   </div>
+  </div>
+
+  <div class="geoCard" style="margin-top:10px">
+   <h3>Voyageurs sur la carte</h3>
+   <p>Les positions partagées apparaissent comme des points nommés. Pour plusieurs appareils, la connexion Cloud est nécessaire.</p>
+   <div class="geoMembers" id="geoMemberList"></div>
+  </div>
+
+  <div class="modalActions"><button class="btn primary" onclick="closeOverlay('geoOverlay')">Fermer</button></div>
+ </div>
+</div>
+
+<button class="collabFab" onclick="openCollab()">👥 <span>Voyage collaboratif</span></button>
+
+<div class="overlay" id="collabOverlay" onclick="if(event.target===this)closeOverlay('collabOverlay')">
+ <div class="modal" style="width:min(980px,100%)">
+  <h2>👥 Voyage collaboratif</h2>
+  <p>Invite 2, 3, 4, 5 personnes ou plus. Votes, commentaires, dépenses partagées, membres et activité du voyage.</p>
+
+  <div class="collabTabs">
+   <div class="collabTab on" data-c="members" onclick="showCollabSection('members')">Membres</div>
+   <div class="collabTab" data-c="votes" onclick="showCollabSection('votes')">Votes</div>
+   <div class="collabTab" data-c="comments" onclick="showCollabSection('comments')">Commentaires</div>
+   <div class="collabTab" data-c="split" onclick="showCollabSection('split')">Dépenses partagées</div>
+   <div class="collabTab" data-c="activity" onclick="showCollabSection('activity')">Activité</div>
+   <div class="collabTab" data-c="cloud" onclick="showCollabSection('cloud')">Cloud</div>
+  </div>
+
+  <section id="c-members">
+   <div class="collabGrid">
+    <div class="collabCard">
+     <h3>Code du voyage</h3>
+     <p>Partage ce code avec les autres voyageurs.</p>
+     <div class="inviteCode" id="inviteCode">—</div>
+     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">
+      <button class="btn" onclick="copyInviteCode()">Copier</button>
+      <button class="btn primary" onclick="regenerateInviteCode()">Nouveau code</button>
+     </div>
+     <div class="aiStatus" id="collabModeStatus">Mode local.</div>
+    </div>
+    <div class="collabCard">
+     <h3>Rejoindre avec un code</h3>
+     <p>Sur la version Cloud, ce code permet de retrouver le voyage depuis un autre appareil.</p>
+     <input id="joinCode" placeholder="JPN-X7K4Q" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:10px;color:#fff;outline:none">
+     <button class="btn primary" style="width:100%;margin-top:9px" onclick="joinByCode()">Rejoindre</button>
+    </div>
+   </div>
+
+   <div class="collabCard" style="margin-top:10px">
+    <h3>Membres</h3>
+    <div class="form">
+     <div class="field"><label>Prénom / pseudo</label><input id="memberName" placeholder="Manon"></div>
+     <div class="field"><label>Rôle</label><select id="memberRole"><option>Éditeur</option><option>Admin</option><option>Lecture seule</option></select></div>
+    </div>
+    <button class="btn primary" style="width:100%;margin-top:9px" onclick="addMember()">Ajouter un membre</button>
+    <div class="memberList" id="memberList"></div>
+   </div>
+  </section>
+
+  <section id="c-votes" style="display:none">
+   <div class="collabCard">
+    <h3>Votes sur les spots</h3>
+    <p>👍 Oui · 🤷 Peut-être · 👎 Non. Le résultat est sauvegardé pour chaque membre.</p>
+    <div class="voteList" id="voteList"></div>
+   </div>
+  </section>
+
+  <section id="c-comments" style="display:none">
+   <div class="collabCard">
+    <h3>Commentaires</h3>
+    <p>Choisis un spot, puis laisse un message pour le groupe.</p>
+    <select id="commentSpot" style="width:100%;background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:10px"></select>
+    <div class="commentComposer" style="margin-top:8px">
+     <input id="commentText" placeholder="Écrire un commentaire…">
+     <button class="btn primary" onclick="addComment()">Envoyer</button>
+    </div>
+    <div class="commentList" id="commentList"></div>
+   </div>
+  </section>
+
+  <section id="c-split" style="display:none">
+   <div class="collabCard">
+    <h3>Dépense partagée</h3>
+    <p>Ajoute qui a payé et les participants. L’app calcule les soldes du groupe.</p>
+    <div class="form">
+     <div class="field"><label>Libellé</label><input id="shTitle" placeholder="Hôtel Kyoto"></div>
+     <div class="field"><label>Montant</label><input type="number" id="shAmount" min="0"></div>
+     <div class="field"><label>Payé par</label><select id="shPayer"></select></div>
+     <div class="field"><label>Participants</label><select id="shParticipants" multiple style="min-height:90px"></select></div>
+    </div>
+    <button class="btn primary" style="width:100%;margin-top:9px" onclick="addSharedExpense()">Ajouter la dépense</button>
+    <div id="sharedExpenseList" class="recordList"></div>
+   </div>
+
+   <div class="collabGrid" style="margin-top:10px">
+    <div class="collabCard">
+     <h3>Soldes</h3>
+     <table class="splitTable"><thead><tr><th>Membre</th><th>Solde</th></tr></thead><tbody id="balanceTable"></tbody></table>
+    </div>
+    <div class="collabCard">
+     <h3>Remboursements conseillés</h3>
+     <div class="settleList" id="settleList"></div>
+    </div>
+   </div>
+  </section>
+
+  <section id="c-activity" style="display:none">
+   <div class="collabCard">
+    <h3>Fil d’activité</h3>
+    <p>Les dernières actions du groupe.</p>
+    <div class="activityList" id="activityList"></div>
+   </div>
+  </section>
+
+  
+<section id="c-cloud" style="display:none">
+ <div class="collabGrid">
+  <div class="collabCard">
+   <h3>Cloud temps réel</h3>
+   <p>Connecte un projet Supabase pour synchroniser le voyage et afficher les positions GPS des membres sur plusieurs téléphones.</p>
+   <div class="liveCloudBadge" id="liveCloudBadge"><i></i><span>Non connecté</span></div>
+   <div class="cloudConnectGrid">
+    <input id="sbUrl" placeholder="https://xxxx.supabase.co">
+    <input id="sbAnon" placeholder="Clé publique anon">
+   </div>
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">
+    <button class="btn" onclick="saveCloudConfig()">Enregistrer</button>
+    <button class="btn primary" onclick="connectCloud()">Connecter</button>
+   </div>
+   <div class="cloudStatusBox" id="cloudStatus">Non configuré.</div>
+  </div>
+
+  <div class="collabCard">
+   <h3>Voyage Cloud</h3>
+   <p>Publie le voyage actif, puis partage son code. Les autres téléphones utilisent « Rejoindre avec un code ».</p>
+   <div class="inviteCode" id="cloudInviteCode">—</div>
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">
+    <button class="btn primary" onclick="publishTripToCloud()">Activer le Cloud</button>
+    <button class="btn" onclick="copyCloudInvite()">Copier le code</button>
+   </div>
+   <div class="cloudStatusBox" id="cloudTripStatus">Voyage non publié.</div>
+  </div>
+ </div>
+
+ <div class="collabCard" style="margin-top:10px">
+  <h3>Positions live du groupe</h3>
+  <p>Quand un membre active « Partager ma position », son téléphone envoie sa position au voyage Cloud. Les autres la voient presque instantanément.</p>
+  <div class="geoMembers" id="cloudLiveMemberList"></div>
+ </div>
+</section>
+
+
+  <div class="modalActions"><button class="btn primary" onclick="closeOverlay('collabOverlay')">Fermer</button></div>
+ </div>
+</div>
+
+<button class="ultimateFab" onclick="openUltimate()">◆ <span>Ultimate Hub</span></button>
+
+<div class="overlay" id="ultimateOverlay" onclick="if(event.target===this)closeOverlay('ultimateOverlay')">
+ <div class="modal" style="width:min(980px,100%)">
+  <h2>◆ Ultimate Hub</h2>
+  <p>Le cockpit complet du voyage : optimiser une journée, météo, timeline, réservations, documents, urgence et budget avancé.</p>
+
+  <div class="sectionTabs">
+   <div class="sectionTab on" data-u="day" onclick="showUltimateSection('day')">Journée intelligente</div>
+   <div class="sectionTab" data-u="bookings" onclick="showUltimateSection('bookings')">Réservations</div>
+   <div class="sectionTab" data-u="docs" onclick="showUltimateSection('docs')">Documents</div>
+   <div class="sectionTab" data-u="emergency" onclick="showUltimateSection('emergency')">Urgence</div>
+   <div class="sectionTab" data-u="budget" onclick="showUltimateSection('budget')">Budget +</div>
+  </div>
+
+  <section id="u-day">
+   <div class="ultimateGrid">
+    <div class="moduleCard">
+     <h3>Optimiser ma journée</h3>
+     <p>L’app réordonne automatiquement les spots du jour en tenant compte de la distance, des TOP photo et des golden hours.</p>
+     <select id="optDay" style="width:100%;background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.08);border-radius:11px;padding:10px"></select>
+     <button class="btn primary" style="width:100%;margin-top:9px" onclick="optimizeSelectedDay()">Optimiser cette journée</button>
+     <div class="aiStatus" id="optStatus">Choisis une journée.</div>
+    </div>
+    <div class="moduleCard">
+     <h3>Plan B météo</h3>
+     <p>Analyse simple : si pluie/vent fort, l’app privilégie les lieux plus urbains, couverts ou faciles d’accès.</p>
+     <button class="btn" style="width:100%" onclick="buildPlanB()">Créer un Plan B</button>
+     <div class="aiStatus" id="planBStatus">Aucun Plan B généré.</div>
+    </div>
+   </div>
+
+   <div class="moduleCard" style="margin-top:10px">
+    <h3>Timeline du jour</h3>
+    <p>Tu peux modifier les heures. L’ordre est sauvegardé par journée.</p>
+    <div class="timeline" id="dayTimeline"></div>
+   </div>
+
+   <div class="moduleCard" style="margin-top:10px">
+    <h3>Météo du spot / zone</h3>
+    <p>Prévision gratuite via Open-Meteo pour la position du premier spot du jour.</p>
+    <button class="btn" onclick="loadDayForecast()">Charger la prévision</button>
+    <div class="forecast" id="forecastGrid"></div>
+   </div>
+  </section>
+
+  <section id="u-bookings" style="display:none">
+   <div class="moduleCard">
+    <h3>Réservations</h3>
+    <p>Vols, trains, bus, hôtels et activités. Tout reste enregistré dans le navigateur.</p>
+    <div class="form">
+     <div class="field"><label>Type</label><select id="bkType"><option>Vol</option><option>Train</option><option>Bus</option><option>Hôtel</option><option>Hostel</option><option>Activité</option><option>Location véhicule</option><option>Autre</option></select></div>
+     <div class="field"><label>Titre</label><input id="bkTitle" placeholder="Ex. Bus Kyoto → Tokyo"></div>
+     <div class="field"><label>Date / heure</label><input type="datetime-local" id="bkDate"></div>
+     <div class="field"><label>Référence</label><input id="bkRef" placeholder="Booking / PNR"></div>
+     <div class="field full"><label>Adresse / lieu</label><input id="bkPlace" placeholder="Gare, hôtel, terminal…"></div>
+     <div class="field full"><label>Lien</label><input id="bkLink" placeholder="https://…"></div>
+     <div class="field full"><label>Notes</label><textarea id="bkNotes"></textarea></div>
+    </div>
+    <button class="btn primary" style="width:100%;margin-top:10px" onclick="addBooking()">Ajouter la réservation</button>
+    <div class="recordList" id="bookingList"></div>
+   </div>
+  </section>
+
+  <section id="u-docs" style="display:none">
+   <div class="moduleCard">
+    <h3>Documents importants</h3>
+    <p>Passeport, visa, assurance, permis, billets. Aucun fichier sensible n’est stocké : seulement les infos et dates.</p>
+    <div class="form">
+     <div class="field"><label>Document</label><input id="docName" placeholder="Passeport"></div>
+     <div class="field"><label>Expiration</label><input type="date" id="docExpiry"></div>
+     <div class="field full"><label>Référence / note</label><input id="docNote" placeholder="Numéro masqué, rappel, lien…"></div>
+    </div>
+    <button class="btn primary" style="width:100%;margin-top:10px" onclick="addDocument()">Ajouter</button>
+    <div class="recordList" id="documentList"></div>
+   </div>
+  </section>
+
+  <section id="u-emergency" style="display:none">
+   <div class="moduleCard">
+    <h3>Contacts & urgence</h3>
+    <p>Assurance, ambassade, proche, hébergement, numéro local.</p>
+    <div class="form">
+     <div class="field"><label>Nom</label><input id="emName" placeholder="Assurance voyage"></div>
+     <div class="field"><label>Téléphone</label><input id="emPhone" placeholder="+81…"></div>
+     <div class="field full"><label>Note</label><input id="emNote" placeholder="N° contrat / horaires / adresse"></div>
+    </div>
+    <button class="btn primary" style="width:100%;margin-top:10px" onclick="addEmergency()">Ajouter le contact</button>
+    <div class="recordList" id="emergencyList"></div>
+   </div>
+  </section>
+
+  <section id="u-budget" style="display:none">
+   <div class="ultimateGrid">
+    <div class="moduleCard"><small>Dépensé</small><div class="metric" id="uSpent">—</div><span class="statusPill" id="uBudgetState">Budget</span></div>
+    <div class="moduleCard"><small>Reste estimé / jour</small><div class="metric" id="uDailyLeft">—</div><span class="statusPill" id="uDailyState">Projection</span></div>
+   </div>
+   <div class="moduleCard" style="margin-top:10px">
+    <h3>Dépenses par catégorie</h3>
+    <div class="chartBars" id="budgetBars"></div>
+   </div>
+  </section>
+
+  <div class="modalActions"><button class="btn primary" onclick="closeOverlay('ultimateOverlay')">Fermer</button></div>
+ </div>
+</div>
+
+<button class="aiFab" onclick="openAIBuilder()">✦ ChatGPT <span>Trip Builder</span></button>
+
+<div class="overlay" id="aiOverlay" onclick="if(event.target===this)closeOverlay('aiOverlay')">
+ <div class="modal" style="width:min(920px,100%)">
+  <h2>✦ ChatGPT Trip Builder</h2>
+  <p>Décris ton voyage normalement. L’app transforme ta demande en brief complet pour ChatGPT, puis peut importer sa réponse pour construire automatiquement le voyage et ses spots.</p>
+
+  <div class="aiModalGrid">
+   <div class="aiCard">
+    <h3>1 · Décris ce que tu veux</h3>
+    <p>Tu peux parler comme dans ChatGPT : budget, durée, villes, photographie, rythme, transports, hébergements, etc.</p>
+    <textarea id="aiRequest" placeholder="Ex. 20 jours en Nouvelle-Zélande en novembre. Je suis photographe, petit budget, auberges, paysages et animaux, pas trop de musées, je veux faire Auckland → Rotorua → Wellington → South Island..."></textarea>
+    <div class="aiPills">
+     <span class="aiPill" onclick="appendAI('petit budget')">Petit budget</span>
+     <span class="aiPill" onclick="appendAI('priorité photographie')">Photo</span>
+     <span class="aiPill" onclick="appendAI('road trip')">Road trip</span>
+     <span class="aiPill" onclick="appendAI('auberges de jeunesse')">Hostels</span>
+     <span class="aiPill" onclick="appendAI('lever et coucher du soleil')">Golden hours</span>
+    </div>
+    <button class="btn primary" style="width:100%;margin-top:10px" onclick="buildAIPrompt()">Construire le brief ChatGPT</button>
+   </div>
+
+   <div class="aiCard">
+    <h3>2 · Brief généré</h3>
+    <p>Le brief inclut automatiquement les règles nécessaires pour que ChatGPT renvoie un voyage importable.</p>
+    <textarea class="aiPrompt" id="aiPrompt" readonly placeholder="Le prompt apparaîtra ici…"></textarea>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px">
+     <button class="btn" onclick="copyAIPrompt()">Copier le prompt</button>
+     <button class="btn primary" onclick="openChatGPT()">Ouvrir ChatGPT</button>
+    </div>
+    <div class="aiStatus" id="aiStatus">Aucun brief généré.</div>
+   </div>
+  </div>
+
+  <div class="aiCard" style="margin-top:10px">
+   <h3>3 · Importe la réponse de ChatGPT</h3>
+   <p>Demande à ChatGPT de répondre avec le JSON prévu par le brief, puis colle-le ici. L’app créera le voyage et ses spots automatiquement.</p>
+   <textarea class="aiImportBox" id="aiImport" placeholder='{"trip": {...}, "spots": [...]}'></textarea>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">
+    <button class="btn" onclick="validateAIImport()">Vérifier la réponse</button>
+    <button class="btn primary" onclick="importAITrip()">Créer le voyage automatiquement</button>
+   </div>
+   <div class="aiStatus" id="aiImportStatus">En attente d’une réponse.</div>
+  </div>
+
+  <div class="aiCard" style="margin-top:10px">
+   <h3>Mode IA direct — architecture prête</h3>
+   <p>Pour supprimer complètement le copier-coller, cette app peut être reliée ensuite à un backend OpenAI. La clé API ne doit pas être placée directement dans le HTML public. Le backend reçoit ton brief, interroge OpenAI, valide le JSON puis renvoie le voyage à l’app.</p>
+  </div>
+
+  <div class="modalActions">
+   <button class="btn primary" onclick="closeOverlay('aiOverlay')">Fermer</button>
+  </div>
+ </div>
+</div>
+
+<input type="file" id="importAllFile" accept="application/json" style="display:none">
+<div class="toast glass" id="toast"></div>
+
+<script>
+const BUILTIN_JAPAN_SPOTS = [{"date": "08 NOV", "city": "Osaka", "name": "Shinsekai", "query": "Tsutenkaku", "earth": "https://earth.google.com/web/search/Tsutenkaku", "maps": "https://www.google.com/maps/search/?api=1&query=Tsutenkaku", "lat": 34.6525, "lon": 135.5063, "color": "#ff6b6b", "top": false, "image": "", "id": 0, "step": 1}, {"date": "08 NOV", "city": "Osaka", "name": "Hozenji Yokocho", "query": "Hozenji Yokocho", "earth": "https://earth.google.com/web/search/Hozenji%20Yokocho", "maps": "https://www.google.com/maps/search/?api=1&query=Hozenji%20Yokocho", "lat": 34.6687, "lon": 135.5036, "color": "#ff6b6b", "top": false, "image": "", "id": 1, "step": 2}, {"date": "08 NOV", "city": "Osaka", "name": "Dotonbori", "query": "Dotonbori", "earth": "https://earth.google.com/web/search/Dotonbori", "maps": "https://www.google.com/maps/search/?api=1&query=Dotonbori", "lat": 34.6687, "lon": 135.501, "color": "#ff6b6b", "top": true, "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Osaka%20Dotonbori%20yoru.jpg?width=1200", "id": 2, "step": 3}, {"date": "09 NOV", "city": "Osaka", "name": "Osaka Castle", "query": "Osaka Castle", "earth": "https://earth.google.com/web/search/Osaka%20Castle", "maps": "https://www.google.com/maps/search/?api=1&query=Osaka%20Castle", "lat": 34.6873, "lon": 135.5259, "color": "#ff6b6b", "top": false, "image": "", "id": 3, "step": 1}, {"date": "09 NOV", "city": "Osaka", "name": "Nakanoshima", "query": "Nakanoshima Park", "earth": "https://earth.google.com/web/search/Nakanoshima%20Park", "maps": "https://www.google.com/maps/search/?api=1&query=Nakanoshima%20Park", "lat": 34.6915, "lon": 135.5062, "color": "#ff6b6b", "top": false, "image": "", "id": 4, "step": 2}, {"date": "09 NOV", "city": "Osaka", "name": "Osaka Station", "query": "Osaka Station", "earth": "https://earth.google.com/web/search/Osaka%20Station", "maps": "https://www.google.com/maps/search/?api=1&query=Osaka%20Station", "lat": 34.7025, "lon": 135.4959, "color": "#ff6b6b", "top": false, "image": "", "id": 5, "step": 3}, {"date": "10 NOV", "city": "Osaka", "name": "Sumiyoshi Taisha", "query": "Sumiyoshi Taisha", "earth": "https://earth.google.com/web/search/Sumiyoshi%20Taisha", "maps": "https://www.google.com/maps/search/?api=1&query=Sumiyoshi%20Taisha", "lat": 34.6126, "lon": 135.492, "color": "#ff6b6b", "top": false, "image": "", "id": 6, "step": 1}, {"date": "10 NOV", "city": "Osaka", "name": "Namba Yasaka Shrine", "query": "Namba Yasaka Shrine", "earth": "https://earth.google.com/web/search/Namba%20Yasaka%20Shrine", "maps": "https://www.google.com/maps/search/?api=1&query=Namba%20Yasaka%20Shrine", "lat": 34.6616, "lon": 135.4961, "color": "#ff6b6b", "top": false, "image": "", "id": 7, "step": 2}, {"date": "10 NOV", "city": "Osaka", "name": "Kuromon Market", "query": "Kuromon Ichiba Market", "earth": "https://earth.google.com/web/search/Kuromon%20Ichiba%20Market", "maps": "https://www.google.com/maps/search/?api=1&query=Kuromon%20Ichiba%20Market", "lat": 34.6654, "lon": 135.506, "color": "#ff6b6b", "top": false, "image": "", "id": 8, "step": 3}, {"date": "11 NOV", "city": "Kyoto", "name": "Fushimi Inari", "query": "Fushimi Inari Taisha", "earth": "https://earth.google.com/web/search/Fushimi%20Inari%20Taisha", "maps": "https://www.google.com/maps/search/?api=1&query=Fushimi%20Inari%20Taisha", "lat": 34.9671, "lon": 135.7727, "color": "#9b7bff", "top": true, "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fushimi%20Inari%20Senbon%20Torii.jpg?width=1200", "id": 9, "step": 1}, {"date": "11 NOV", "city": "Kyoto", "name": "Tofuku-ji", "query": "Tofuku-ji", "earth": "https://earth.google.com/web/search/Tofuku-ji", "maps": "https://www.google.com/maps/search/?api=1&query=Tofuku-ji", "lat": 34.976, "lon": 135.7708, "color": "#9b7bff", "top": false, "image": "", "id": 10, "step": 2}, {"date": "11 NOV", "city": "Kyoto", "name": "Yasaka Shrine", "query": "Yasaka Shrine", "earth": "https://earth.google.com/web/search/Yasaka%20Shrine", "maps": "https://www.google.com/maps/search/?api=1&query=Yasaka%20Shrine", "lat": 35.0037, "lon": 135.7785, "color": "#9b7bff", "top": false, "image": "", "id": 11, "step": 3}, {"date": "11 NOV", "city": "Kyoto", "name": "Gion", "query": "Gion", "earth": "https://earth.google.com/web/search/Gion", "maps": "https://www.google.com/maps/search/?api=1&query=Gion", "lat": 35.0034, "lon": 135.7753, "color": "#9b7bff", "top": false, "image": "", "id": 12, "step": 4}, {"date": "11 NOV", "city": "Kyoto", "name": "Yasaka Pagoda", "query": "Hokan-ji Temple (Yasaka Pagoda)", "earth": "https://earth.google.com/web/search/Hokan-ji%20Temple%20%28Yasaka%20Pagoda%29", "maps": "https://www.google.com/maps/search/?api=1&query=Hokan-ji%20Temple%20%28Yasaka%20Pagoda%29", "lat": 34.9988, "lon": 135.7793, "color": "#9b7bff", "top": true, "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Yasaka%20Pagode.jpg?width=1200", "id": 13, "step": 5}, {"date": "12 NOV", "city": "Kyoto", "name": "Arashiyama Bamboo Grove", "query": "Arashiyama Bamboo Forest", "earth": "https://earth.google.com/web/search/Arashiyama%20Bamboo%20Forest", "maps": "https://www.google.com/maps/search/?api=1&query=Arashiyama%20Bamboo%20Forest", "lat": 35.017, "lon": 135.6714, "color": "#9b7bff", "top": true, "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Arashiyama%20Bamboo%20Grove.jpg?width=1200", "id": 14, "step": 1}, {"date": "12 NOV", "city": "Kyoto", "name": "Togetsukyo Bridge", "query": "Togetsukyo Bridge", "earth": "https://earth.google.com/web/search/Togetsukyo%20Bridge", "maps": "https://www.google.com/maps/search/?api=1&query=Togetsukyo%20Bridge", "lat": 35.0136, "lon": 135.6777, "color": "#9b7bff", "top": false, "image": "", "id": 15, "step": 2}, {"date": "13 NOV", "city": "Kyoto", "name": "Kiyomizu-dera", "query": "Kiyomizu-dera", "earth": "https://earth.google.com/web/search/Kiyomizu-dera", "maps": "https://www.google.com/maps/search/?api=1&query=Kiyomizu-dera", "lat": 34.9949, "lon": 135.785, "color": "#9b7bff", "top": false, "image": "", "id": 16, "step": 1}, {"date": "13 NOV", "city": "Kyoto", "name": "Sannenzaka", "query": "Sannenzaka", "earth": "https://earth.google.com/web/search/Sannenzaka", "maps": "https://www.google.com/maps/search/?api=1&query=Sannenzaka", "lat": 34.9963, "lon": 135.7819, "color": "#9b7bff", "top": false, "image": "", "id": 17, "step": 2}, {"date": "13 NOV", "city": "Kyoto", "name": "Ninenzaka", "query": "Ninenzaka", "earth": "https://earth.google.com/web/search/Ninenzaka", "maps": "https://www.google.com/maps/search/?api=1&query=Ninenzaka", "lat": 34.9981, "lon": 135.7807, "color": "#9b7bff", "top": false, "image": "", "id": 18, "step": 3}, {"date": "14 NOV", "city": "Nara", "name": "Nara Park", "query": "Nara Park", "earth": "https://earth.google.com/web/search/Nara%20Park", "maps": "https://www.google.com/maps/search/?api=1&query=Nara%20Park", "lat": 34.6851, "lon": 135.843, "color": "#57c282", "top": true, "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Deer%20at%20nara%20park%201.jpg?width=1200", "id": 19, "step": 1}, {"date": "14 NOV", "city": "Nara", "name": "Todai-ji", "query": "Todai-ji", "earth": "https://earth.google.com/web/search/Todai-ji", "maps": "https://www.google.com/maps/search/?api=1&query=Todai-ji", "lat": 34.689, "lon": 135.8398, "color": "#57c282", "top": false, "image": "", "id": 20, "step": 2}, {"date": "14 NOV", "city": "Nara", "name": "Nigatsudo", "query": "Nigatsudo", "earth": "https://earth.google.com/web/search/Nigatsudo", "maps": "https://www.google.com/maps/search/?api=1&query=Nigatsudo", "lat": 34.6903, "lon": 135.8429, "color": "#57c282", "top": false, "image": "", "id": 21, "step": 3}, {"date": "14 NOV", "city": "Nara", "name": "Kasuga Taisha", "query": "Kasuga Taisha", "earth": "https://earth.google.com/web/search/Kasuga%20Taisha", "maps": "https://www.google.com/maps/search/?api=1&query=Kasuga%20Taisha", "lat": 34.6814, "lon": 135.8484, "color": "#57c282", "top": false, "image": "", "id": 22, "step": 4}, {"date": "15 NOV", "city": "Kyoto", "name": "Nanzen-ji", "query": "Nanzen-ji", "earth": "https://earth.google.com/web/search/Nanzen-ji", "maps": "https://www.google.com/maps/search/?api=1&query=Nanzen-ji", "lat": 35.0114, "lon": 135.7932, "color": "#9b7bff", "top": false, "image": "", "id": 23, "step": 1}, {"date": "15 NOV", "city": "Kyoto", "name": "Eikando", "query": "Eikando", "earth": "https://earth.google.com/web/search/Eikando", "maps": "https://www.google.com/maps/search/?api=1&query=Eikando", "lat": 35.0147, "lon": 135.794, "color": "#9b7bff", "top": false, "image": "", "id": 24, "step": 2}, {"date": "15 NOV", "city": "Kyoto", "name": "Philosopher's Path", "query": "Philosopher's Path", "earth": "https://earth.google.com/web/search/Philosopher%27s%20Path", "maps": "https://www.google.com/maps/search/?api=1&query=Philosopher%27s%20Path", "lat": 35.0263, "lon": 135.7954, "color": "#9b7bff", "top": false, "image": "", "id": 25, "step": 3}, {"date": "16 NOV", "city": "Transport", "name": "Kyoto Station", "query": "Kyoto Station", "earth": "https://earth.google.com/web/search/Kyoto%20Station", "maps": "https://www.google.com/maps/search/?api=1&query=Kyoto%20Station", "lat": 34.9858, "lon": 135.7588, "color": "#a7adb7", "top": false, "image": "", "id": 26, "step": 1}, {"date": "16 NOV", "city": "Transport", "name": "Busta Shinjuku", "query": "Shinjuku Expressway Bus Terminal", "earth": "https://earth.google.com/web/search/Shinjuku%20Expressway%20Bus%20Terminal", "maps": "https://www.google.com/maps/search/?api=1&query=Shinjuku%20Expressway%20Bus%20Terminal", "lat": 35.6896, "lon": 139.7006, "color": "#a7adb7", "top": false, "image": "", "id": 27, "step": 2}, {"date": "17 NOV", "city": "Fuji", "name": "Chureito Pagoda", "query": "Arakurayama Sengen Park", "earth": "https://earth.google.com/web/search/Arakurayama%20Sengen%20Park", "maps": "https://www.google.com/maps/search/?api=1&query=Arakurayama%20Sengen%20Park", "lat": 35.5013, "lon": 138.8016, "color": "#ffa24f", "top": true, "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Chureito%20Pagoda%2C%20Fujiyoshida%20%2834256262385%29.jpg?width=1200", "id": 28, "step": 1}, {"date": "17 NOV", "city": "Fuji", "name": "Oishi Park", "query": "Oishi Park", "earth": "https://earth.google.com/web/search/Oishi%20Park", "maps": "https://www.google.com/maps/search/?api=1&query=Oishi%20Park", "lat": 35.5225, "lon": 138.7469, "color": "#ffa24f", "top": true, "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mount%20Fuji%20from%20Oishi%20Park.jpg?width=1200", "id": 29, "step": 2}, {"date": "18 NOV", "city": "Fuji", "name": "Lake Kawaguchi", "query": "Lake Kawaguchi", "earth": "https://earth.google.com/web/search/Lake%20Kawaguchi", "maps": "https://www.google.com/maps/search/?api=1&query=Lake%20Kawaguchi", "lat": 35.517, "lon": 138.755, "color": "#ffa24f", "top": true, "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mount%20Fuji%20from%20Oishi%20Park.jpg?width=1200", "id": 30, "step": 1}, {"date": "18 NOV", "city": "Transport", "name": "Kawaguchiko Station", "query": "Kawaguchiko Station", "earth": "https://earth.google.com/web/search/Kawaguchiko%20Station", "maps": "https://www.google.com/maps/search/?api=1&query=Kawaguchiko%20Station", "lat": 35.4982, "lon": 138.7686, "color": "#a7adb7", "top": false, "image": "", "id": 31, "step": 2}, {"date": "19 NOV", "city": "Tokyo", "name": "Senso-ji", "query": "Senso-ji", "earth": "https://earth.google.com/web/search/Senso-ji", "maps": "https://www.google.com/maps/search/?api=1&query=Senso-ji", "lat": 35.7148, "lon": 139.7967, "color": "#f065b5", "top": true, "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Asakusa%20Sensoji.jpg?width=1200", "id": 32, "step": 1}, {"date": "19 NOV", "city": "Tokyo", "name": "Ueno Park", "query": "Ueno Park", "earth": "https://earth.google.com/web/search/Ueno%20Park", "maps": "https://www.google.com/maps/search/?api=1&query=Ueno%20Park", "lat": 35.7148, "lon": 139.7745, "color": "#f065b5", "top": false, "image": "", "id": 33, "step": 2}, {"date": "20 NOV", "city": "Tokyo", "name": "Meiji Jingu", "query": "Meiji Jingu", "earth": "https://earth.google.com/web/search/Meiji%20Jingu", "maps": "https://www.google.com/maps/search/?api=1&query=Meiji%20Jingu", "lat": 35.6764, "lon": 139.6993, "color": "#f065b5", "top": false, "image": "", "id": 34, "step": 1}, {"date": "20 NOV", "city": "Tokyo", "name": "Harajuku", "query": "Takeshita Street", "earth": "https://earth.google.com/web/search/Takeshita%20Street", "maps": "https://www.google.com/maps/search/?api=1&query=Takeshita%20Street", "lat": 35.6716, "lon": 139.702, "color": "#f065b5", "top": false, "image": "", "id": 35, "step": 2}, {"date": "20 NOV", "city": "Tokyo", "name": "Omotesando", "query": "Omotesando", "earth": "https://earth.google.com/web/search/Omotesando", "maps": "https://www.google.com/maps/search/?api=1&query=Omotesando", "lat": 35.6652, "lon": 139.7101, "color": "#f065b5", "top": false, "image": "", "id": 36, "step": 3}, {"date": "20 NOV", "city": "Tokyo", "name": "Shibuya Crossing", "query": "Shibuya Scramble Crossing", "earth": "https://earth.google.com/web/search/Shibuya%20Scramble%20Crossing", "maps": "https://www.google.com/maps/search/?api=1&query=Shibuya%20Scramble%20Crossing", "lat": 35.6596, "lon": 139.7005, "color": "#f065b5", "top": true, "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Shibuya%20Crossing.jpg?width=1200", "id": 37, "step": 4}, {"date": "20 NOV", "city": "Tokyo", "name": "Tokyo Metropolitan Government Building", "query": "Tokyo Metropolitan Government Building", "earth": "https://earth.google.com/web/search/Tokyo%20Metropolitan%20Government%20Building", "maps": "https://www.google.com/maps/search/?api=1&query=Tokyo%20Metropolitan%20Government%20Building", "lat": 35.6896, "lon": 139.6917, "color": "#f065b5", "top": false, "image": "", "id": 38, "step": 5}, {"date": "20 NOV", "city": "Tokyo", "name": "Kabukicho", "query": "Kabukicho", "earth": "https://earth.google.com/web/search/Kabukicho", "maps": "https://www.google.com/maps/search/?api=1&query=Kabukicho", "lat": 35.695, "lon": 139.7004, "color": "#f065b5", "top": false, "image": "", "id": 39, "step": 6}, {"date": "21 NOV", "city": "Tokyo", "name": "Odaiba Seaside Park", "query": "Odaiba Seaside Park", "earth": "https://earth.google.com/web/search/Odaiba%20Seaside%20Park", "maps": "https://www.google.com/maps/search/?api=1&query=Odaiba%20Seaside%20Park", "lat": 35.6295, "lon": 139.7755, "color": "#f065b5", "top": false, "image": "", "id": 40, "step": 1}, {"date": "21 NOV", "city": "Tokyo", "name": "Rainbow Bridge", "query": "Rainbow Bridge", "earth": "https://earth.google.com/web/search/Rainbow%20Bridge", "maps": "https://www.google.com/maps/search/?api=1&query=Rainbow%20Bridge", "lat": 35.6367, "lon": 139.7632, "color": "#f065b5", "top": false, "image": "", "id": 41, "step": 2}, {"date": "21 NOV", "city": "Tokyo", "name": "DiverCity", "query": "DiverCity Tokyo Plaza", "earth": "https://earth.google.com/web/search/DiverCity%20Tokyo%20Plaza", "maps": "https://www.google.com/maps/search/?api=1&query=DiverCity%20Tokyo%20Plaza", "lat": 35.6252, "lon": 139.7754, "color": "#f065b5", "top": false, "image": "", "id": 42, "step": 3}, {"date": "22 NOV", "city": "Tokyo", "name": "Yanaka Ginza", "query": "Yanaka Ginza", "earth": "https://earth.google.com/web/search/Yanaka%20Ginza", "maps": "https://www.google.com/maps/search/?api=1&query=Yanaka%20Ginza", "lat": 35.7274, "lon": 139.7665, "color": "#f065b5", "top": false, "image": "", "id": 43, "step": 1}, {"date": "22 NOV", "city": "Tokyo", "name": "Yanaka Cemetery", "query": "Yanaka Cemetery", "earth": "https://earth.google.com/web/search/Yanaka%20Cemetery", "maps": "https://www.google.com/maps/search/?api=1&query=Yanaka%20Cemetery", "lat": 35.7241, "lon": 139.7716, "color": "#f065b5", "top": false, "image": "", "id": 44, "step": 2}, {"date": "22 NOV", "city": "Tokyo", "name": "Ameyoko", "query": "Ameya-Yokocho", "earth": "https://earth.google.com/web/search/Ameya-Yokocho", "maps": "https://www.google.com/maps/search/?api=1&query=Ameya-Yokocho", "lat": 35.7103, "lon": 139.7747, "color": "#f065b5", "top": false, "image": "", "id": 45, "step": 3}, {"date": "22 NOV", "city": "Tokyo", "name": "Akihabara", "query": "Akihabara", "earth": "https://earth.google.com/web/search/Akihabara", "maps": "https://www.google.com/maps/search/?api=1&query=Akihabara", "lat": 35.6984, "lon": 139.7731, "color": "#f065b5", "top": false, "image": "", "id": 46, "step": 4}, {"date": "23 NOV", "city": "Tokyo", "name": "Nakano Broadway", "query": "Nakano Broadway", "earth": "https://earth.google.com/web/search/Nakano%20Broadway", "maps": "https://www.google.com/maps/search/?api=1&query=Nakano%20Broadway", "lat": 35.7092, "lon": 139.6657, "color": "#f065b5", "top": false, "image": "", "id": 47, "step": 1}, {"date": "23 NOV", "city": "Tokyo", "name": "Shin-Okubo", "query": "Shin-Okubo", "earth": "https://earth.google.com/web/search/Shin-Okubo", "maps": "https://www.google.com/maps/search/?api=1&query=Shin-Okubo", "lat": 35.7013, "lon": 139.7003, "color": "#f065b5", "top": false, "image": "", "id": 48, "step": 2}, {"date": "23 NOV", "city": "Tokyo", "name": "Golden Gai", "query": "Shinjuku Golden Gai", "earth": "https://earth.google.com/web/search/Shinjuku%20Golden%20Gai", "maps": "https://www.google.com/maps/search/?api=1&query=Shinjuku%20Golden%20Gai", "lat": 35.6941, "lon": 139.7043, "color": "#f065b5", "top": false, "image": "", "id": 49, "step": 3}, {"date": "24 NOV", "city": "Tokyo", "name": "Ginkgo Avenue", "query": "Meiji Jingu Gaien Ginkgo Avenue", "earth": "https://earth.google.com/web/search/Meiji%20Jingu%20Gaien%20Ginkgo%20Avenue", "maps": "https://www.google.com/maps/search/?api=1&query=Meiji%20Jingu%20Gaien%20Ginkgo%20Avenue", "lat": 35.6722, "lon": 139.7215, "color": "#f065b5", "top": true, "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gingko%20Avenue%20%40%20Meiji%20Jingu%20Gaien%20%2810960255083%29.jpg?width=1200", "id": 50, "step": 1}, {"date": "24 NOV", "city": "Tokyo", "name": "Imperial Palace / Nijubashi", "query": "Nijubashi Bridge", "earth": "https://earth.google.com/web/search/Nijubashi%20Bridge", "maps": "https://www.google.com/maps/search/?api=1&query=Nijubashi%20Bridge", "lat": 35.6807, "lon": 139.7528, "color": "#f065b5", "top": false, "image": "", "id": 51, "step": 2}, {"date": "24 NOV", "city": "Tokyo", "name": "Tokyo International Forum", "query": "Tokyo International Forum", "earth": "https://earth.google.com/web/search/Tokyo%20International%20Forum", "maps": "https://www.google.com/maps/search/?api=1&query=Tokyo%20International%20Forum", "lat": 35.6769, "lon": 139.7637, "color": "#f065b5", "top": false, "image": "", "id": 52, "step": 3}, {"date": "24 NOV", "city": "Tokyo", "name": "Tokyo Station", "query": "Tokyo Station", "earth": "https://earth.google.com/web/search/Tokyo%20Station", "maps": "https://www.google.com/maps/search/?api=1&query=Tokyo%20Station", "lat": 35.6812, "lon": 139.7671, "color": "#f065b5", "top": true, "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tokyo%20Station%20%28Marunouchi%20Building%29.jpg?width=1200", "id": 53, "step": 4}, {"date": "26 NOV", "city": "Transport", "name": "Narita Airport", "query": "Narita International Airport", "earth": "https://earth.google.com/web/search/Narita%20International%20Airport", "maps": "https://www.google.com/maps/search/?api=1&query=Narita%20International%20Airport", "lat": 35.772, "lon": 140.3929, "color": "#a7adb7", "top": false, "image": "", "id": 54, "step": 1}];
+const BUILTIN_JAPAN_DAYS = ["08 NOV", "09 NOV", "10 NOV", "11 NOV", "12 NOV", "13 NOV", "14 NOV", "15 NOV", "16 NOV", "17 NOV", "18 NOV", "19 NOV", "20 NOV", "21 NOV", "22 NOV", "23 NOV", "24 NOV", "26 NOV"];
+
+const TRIPS_KEY="travel_photo_os_pro_max_trips_v1";
+const DATA_PREFIX="travel_photo_os_pro_max_data_";
+let trips=loadTrips();
+let activeTripId="japan-2026";
+let activeTrip=null;
+let store=null;
+let mode="explore",currentCity="Tous",currentDay="Tous",selected=null;
+let map,satellite=false,terrainOn=true,buildingsOn=true,routeOn=false,touring=false;
+let editingTripId=null,editingSpotId=null;
+let dynamicSpotSourceReady=false;
+
+function uid(prefix){return prefix+"-"+Date.now()+"-"+Math.random().toString(36).slice(2,8)}
+function defaults(){
+ return{
+  favorites:[],done:[],notes:{},budgetTotal:0,expenses:[],
+  checklist:[
+   {id:uid("c"),t:"Passeport",d:false},{id:uid("c"),t:"Assurance voyage",d:false},
+   {id:uid("c"),t:"Cartes bancaires / cash",d:false},{id:uid("c"),t:"Batteries appareil photo chargées",d:false},
+   {id:uid("c"),t:"Cartes SD / sauvegarde",d:false},{id:uid("c"),t:"Powerbank",d:false},
+   {id:uid("c"),t:"Adaptateur secteur",d:false},{id:uid("c"),t:"Trépied / mini-trépied",d:false}
+  ],
+  customSpots:[]
+ }
+}
+function initialTrips(){
+ return[{
+  id:"japan-2026",name:"Japon 2026",country:"Japon",startCity:"Osaka",
+  start:"2026-11-08",end:"2026-11-26",currency:"JPY",emoji:"🇯🇵",
+  description:"Voyage photo Osaka → Kyoto → Nara → Fuji → Tokyo",builtIn:true
+ }]
+}
+function loadTrips(){try{const r=localStorage.getItem(TRIPS_KEY);if(r)return JSON.parse(r)}catch(e){}return initialTrips()}
+function saveTrips(){localStorage.setItem(TRIPS_KEY,JSON.stringify(trips));renderHome()}
+function loadData(id){try{const r=localStorage.getItem(DATA_PREFIX+id);if(r)return Object.assign(defaults(),JSON.parse(r))}catch(e){}return defaults()}
+function saveData(){if(!store)return;localStorage.setItem(DATA_PREFIX+activeTripId,JSON.stringify(store));refreshStats();renderHome()}
+function activeSpots(){
+ const custom=store?.customSpots||[];
+ if(activeTripId==="japan-2026") return [...BUILTIN_JAPAN_SPOTS.map(p=>({...p,_builtin:true})),...custom];
+ return custom;
+}
+function allDates(){
+ const dates=[...new Set(activeSpots().map(p=>p.date).filter(Boolean))];
+ return dates.sort((a,b)=>String(a).localeCompare(String(b)));
+}
+function currency(){return activeTrip?.currency||"JPY"}
+function money(v){try{return new Intl.NumberFormat("fr-FR",{style:"currency",currency:currency(),maximumFractionDigits:0}).format(v||0)}catch(e){return (v||0)+" "+currency()}}
+
+function renderHome(){
+ const g=document.getElementById("tripGrid");if(!g)return;g.innerHTML="";
+ let allSpots=0,allDone=0,allCountries=new Set();
+ trips.forEach(t=>{
+  const d=loadData(t.id),base=t.id==="japan-2026"?BUILTIN_JAPAN_SPOTS.length:0,spotCount=base+(d.customSpots||[]).length;
+  allSpots+=spotCount;allDone+=(d.done||[]).length;allCountries.add(t.country||"");
+  const card=document.createElement("div");card.className="tripCard";card.innerHTML=`
+   <div class="tripBg ${t.id==="japan-2026"?"japan":""}"></div>
+   <div class="tripContent">
+    <small>${t.emoji||"✈️"} ${(t.country||"VOYAGE").toUpperCase()}</small>
+    <h2>${escapeHtml(t.name)}</h2>
+    <p>${formatDate(t.start)} → ${formatDate(t.end)}${t.startCity?" · "+escapeHtml(t.startCity):""}</p>
+    <div class="tripBadges">
+     <span class="tripBadge">${spotCount} spots</span>
+     <span class="tripBadge">${(d.done||[]).length} faits</span>
+     <span class="tripBadge">${(d.favorites||[]).length} favoris</span>
+     <span class="tripBadge">${moneyForTrip(t,d)}</span>
+    </div>
+   </div>`;
+  card.onclick=()=>openTrip(t.id);g.appendChild(card)
+ });
+ const add=document.createElement("div");add.className="addTrip";add.innerHTML='<div class="addInner"><div class="plus">＋</div><b>Créer un voyage</b><span>Destination, dates, budget, spots…</span></div>';add.onclick=()=>openTripEditor();g.appendChild(add);
+ document.getElementById("globalStats").innerHTML=`<span class="globalStat">${trips.length} voyage${trips.length>1?"s":""}</span><span class="globalStat">${allCountries.size} pays</span><span class="globalStat">${allSpots} spots</span><span class="globalStat">${allDone} spots faits</span>`;
+}
+function moneyForTrip(t,d){const spent=(d.expenses||[]).reduce((s,e)=>s+Number(e.amount||0),0),remain=Math.max(0,Number(d.budgetTotal||0)-spent);try{return new Intl.NumberFormat("fr-FR",{style:"currency",currency:t.currency||"JPY",maximumFractionDigits:0}).format(remain)}catch(e){return remain+" "+(t.currency||"")}}
+function formatDate(s){if(!s)return "—";const d=new Date(s+"T12:00:00");return d.toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"})}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+
+function showHome(){document.getElementById("home").classList.remove("hide");document.getElementById("homeBtn").style.display="none";renderHome()}
+function openTrip(id){
+ activeTripId=id;activeTrip=trips.find(t=>t.id===id);store=loadData(id);mode="explore";currentCity="Tous";currentDay="Tous";selected=null;
+ document.getElementById("home").classList.add("hide");document.getElementById("homeBtn").style.display="block";
+ document.getElementById("tripTitle").textContent=activeTrip.name;document.getElementById("tripSub").textContent=(activeTrip.description||"PRO MAX · cockpit voyage photo");
+ document.getElementById("detail").classList.remove("show");
+ rebuildTripUI();refreshStats();renderExpenses();renderChecklist();updateGeoJSON();updateBrief();flyOverview()
+}
+
+function initMap(){
+ map=new maplibregl.Map({container:"map",style:"https://tiles.openfreemap.org/styles/liberty",center:[137.65,35.2],zoom:4.9,pitch:46,bearing:-8,maxPitch:85,attributionControl:true});
+ map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),"bottom-right");map.addControl(new maplibregl.ScaleControl({maxWidth:110,unit:"metric"}),"bottom-left");
+ map.on("load",()=>{
+  map.addSource("dem",{type:"raster-dem",tiles:["https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"],tileSize:256,maxzoom:15,encoding:"terrarium"});map.setTerrain({source:"dem",exaggeration:1.18});
+  map.addLayer({id:"hill",type:"hillshade",source:"dem",paint:{"hillshade-shadow-color":"#3a3d43","hillshade-highlight-color":"#fff","hillshade-accent-color":"#777","hillshade-exaggeration":.18}});
+  map.addSource("sat",{type:"raster",tiles:["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],tileSize:256,attribution:"Tiles © Esri"});
+  const layers=map.getStyle().layers||[],firstSymbol=layers.find(l=>l.type==="symbol");map.addLayer({id:"satLayer",type:"raster",source:"sat",layout:{visibility:"none"},paint:{"raster-opacity":.96,"raster-saturation":-.05,"raster-contrast":.08}},firstSymbol?firstSymbol.id:undefined);
+  const vs=Object.keys(map.getStyle().sources).find(id=>map.getStyle().sources[id].type==="vector");if(vs){try{map.addLayer({id:"buildings",source:vs,"source-layer":"building",type:"fill-extrusion",minzoom:13,paint:{"fill-extrusion-color":["interpolate",["linear"],["zoom"],13,"#9ca2ab",16,"#c7ccd2",18,"#e7eaee"],"fill-extrusion-height":["coalesce",["to-number",["get","render_height"]],["to-number",["get","height"]],["*",["to-number",["get","building:levels"]],3],7],"fill-extrusion-base":["coalesce",["to-number",["get","render_min_height"]],["to-number",["get","min_height"]],0],"fill-extrusion-opacity":.82}},firstSymbol?firstSymbol.id:undefined)}catch(e){buildingsOn=false}}
+  map.addSource("pois",{type:"geojson",data:{type:"FeatureCollection",features:[]}});dynamicSpotSourceReady=true;
+  map.addLayer({id:"glow",type:"circle",source:"pois",paint:{"circle-radius":["interpolate",["linear"],["zoom"],4,8,10,12,15,15],"circle-color":["get","color"],"circle-opacity":.18,"circle-blur":.45}});
+  map.addLayer({id:"dots",type:"circle",source:"pois",paint:{"circle-radius":["case",["==",["get","top"],true],8,6],"circle-color":["get","color"],"circle-stroke-width":["case",["==",["get","top"],true],2.6,1.8],"circle-stroke-color":"#fff"}});
+  map.addSource("route",{type:"geojson",data:{type:"FeatureCollection",features:[]}});map.addLayer({id:"routeShadow",type:"line",source:"route",layout:{visibility:"none"},paint:{"line-color":"rgba(0,0,0,.45)","line-width":7,"line-blur":2}});map.addLayer({id:"routeLine",type:"line",source:"route",layout:{visibility:"none"},paint:{"line-color":"#fff","line-width":3.2,"line-opacity":.9,"line-dasharray":[1.2,1.2]}});
+  map.on("click","dots",e=>{const id=e.features[0].properties.uid;selectPlace(activeSpots().find(p=>String(spotUid(p))===String(id)),true)});map.on("mouseenter","dots",()=>map.getCanvas().style.cursor="pointer");map.on("mouseleave","dots",()=>map.getCanvas().style.cursor="");
+  addGeoLayers();renderHome();setTimeout(()=>document.getElementById("loader").classList.add("hide"),450)
+ })
+}
+function spotUid(p){return p._builtin?"builtin-"+p.id:(p.uid||p.id)}
+function colorFor(p){if(p.color)return p.color;const c={Photo:"#f065b5",Visite:"#9b7bff",Transport:"#a7adb7",Food:"#ff9f4f",Logement:"#57c282",Randonnée:"#67b7ff",Autre:"#b8bdc6"};return c[p.category]||"#b8bdc6"}
+function updateGeoJSON(){
+ if(!dynamicSpotSourceReady)return;const feats=activeSpots().filter(p=>Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lon))).map(p=>({type:"Feature",geometry:{type:"Point",coordinates:[Number(p.lon),Number(p.lat)]},properties:{uid:String(spotUid(p)),name:p.name||"",city:p.city||"",date:p.date||"",color:colorFor(p),top:!!p.top}}));map.getSource("pois").setData({type:"FeatureCollection",features:feats});applyFilter()
+}
+
+function rebuildTripUI(){
+ document.getElementById("cityChips").innerHTML="";document.getElementById("dayRow").innerHTML="";
+ const cities=["Tous",...new Set(activeSpots().map(p=>p.city).filter(Boolean))];cities.forEach(c=>{const e=document.createElement("div");e.className="chip"+(c==="Tous"?" on":"");e.textContent=c;e.onclick=()=>{currentCity=c;document.querySelectorAll("#cityChips .chip").forEach(x=>x.classList.remove("on"));e.classList.add("on");renderList();applyFilter()};document.getElementById("cityChips").appendChild(e)});
+ const all=document.createElement("div");all.className="day on";all.textContent="TOUS";all.onclick=()=>chooseDay("Tous",all);document.getElementById("dayRow").appendChild(all);allDates().forEach(d=>{const e=document.createElement("div");e.className="day";e.textContent=prettyDay(d);e.onclick=()=>chooseDay(d,e);document.getElementById("dayRow").appendChild(e)});
+ document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.mode==="explore"));document.querySelectorAll(".dock button[data-mode]").forEach(x=>x.classList.toggle("on",x.dataset.mode==="explore"));renderList()
+}
+function prettyDay(d){if(!d)return"—";if(/^\d{4}-\d{2}-\d{2}$/.test(d)){const x=new Date(d+"T12:00:00");return x.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}return d}
+function chooseDay(d,e){currentDay=d;document.querySelectorAll(".day").forEach(x=>x.classList.remove("on"));e.classList.add("on");routeOn=false;hideRoute();renderList();applyFilter();updateBrief();if(d!=="Tous")fitPlaces(activeSpots().filter(p=>p.date===d))}
+function setMode(m){mode=m;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.mode===m));document.querySelectorAll(".dock button[data-mode]").forEach(x=>x.classList.toggle("on",x.dataset.mode===m));renderList();applyFilter();updateBrief()}
+function tripTodayDate(){if(!activeTrip)return"Tous";const now=new Date(),s=new Date(activeTrip.start+"T00:00:00"),e=new Date(activeTrip.end+"T23:59:59");if(now<s)return allDates()[0]||"Tous";if(now>e)return allDates().slice(-1)[0]||"Tous";const iso=now.toISOString().slice(0,10);return allDates().find(d=>d===iso)||allDates()[0]||"Tous"}
+function filtered(){
+ const q=document.getElementById("search").value.toLowerCase().trim(),target=(mode==="today"&&currentDay==="Tous")?tripTodayDate():currentDay;
+ return activeSpots().filter(p=>{const cityOk=currentCity==="Tous"||p.city===currentCity,dayOk=target==="Tous"||p.date===target,textOk=!q||[p.name,p.city,p.query,p.date,p.category,p.description].filter(Boolean).some(v=>String(v).toLowerCase().includes(q));let modeOk=true;if(mode==="photo")modeOk=!!p.top;if(mode==="favs")modeOk=isFav(p);if(mode==="done")modeOk=isDone(p);return cityOk&&dayOk&&textOk&&modeOk})
+}
+function isFav(p){return store.favorites.includes(String(spotUid(p)))}function isDone(p){return store.done.includes(String(spotUid(p)))}
+function renderList(){
+ const w=document.getElementById("list"),arr=filtered();w.innerHTML="";if(!arr.length){w.innerHTML='<div style="padding:24px;text-align:center;color:#9299a4;font-size:13px">Aucun spot pour cette sélection.</div>';return}
+ arr.forEach((p,i)=>{const e=document.createElement("div");e.className="item"+(selected&&String(spotUid(selected))===String(spotUid(p))?" sel":"");e.innerHTML=`<i class="dot" style="background:${colorFor(p)}"></i><div class="itemText"><small>${prettyDay(p.date)}${p.step?" · #"+p.step:""}</small><b>${escapeHtml(p.name)}</b><div class="meta"><span>${escapeHtml(p.city||"")}</span>${p.top?'<span class="gold">★ TOP</span>':''}${isFav(p)?'<span class="tag">★</span>':''}${isDone(p)?'<span class="done"></span>':''}${p.category?'<span class="tag">'+escapeHtml(p.category)+'</span>':''}</div></div>`;e.onclick=()=>selectPlace(p,true);w.appendChild(e)})
+}
+function applyFilter(){
+ if(!map||!map.getLayer("dots"))return;let c=[];if(currentCity!=="Tous")c.push(["==",["get","city"],currentCity]);const d=(mode==="today"&&currentDay==="Tous")?tripTodayDate():currentDay;if(d!=="Tous")c.push(["==",["get","date"],d]);if(mode==="photo")c.push(["==",["get","top"],true]);const allowed=filtered().map(p=>String(spotUid(p)));if(["favs","done"].includes(mode))c.push(allowed.length?["in",["get","uid"],["literal",allowed]]:["==",["get","uid"],"__none__"]);const f=!c.length?null:c.length===1?c[0]:["all",...c];["glow","dots"].forEach(id=>map.setFilter(id,f))
+}
+
+function selectPlace(p,fly){
+ if(!p)return;selected=p;renderList();document.getElementById("eyebrow").textContent=(p.top?"★ TOP PHOTO · ":"")+(prettyDay(p.date))+" · "+String(p.city||"").toUpperCase();document.getElementById("spotTitle").textContent=p.name||"Spot";document.getElementById("dDate").textContent=prettyDay(p.date);document.getElementById("dCity").textContent=p.city||"—";document.getElementById("dStep").textContent=p.step?"Étape "+p.step:(p.category||"Spot");document.getElementById("dCoords").textContent=(Number(p.lat).toFixed(4)+", "+Number(p.lon).toFixed(4));document.getElementById("note").value=store.notes[String(spotUid(p))]||"";
+ document.getElementById("mapsLink").href=p.maps||`https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lon}`;document.getElementById("earthLink").href=p.earth||`https://earth.google.com/web/search/${encodeURIComponent(p.name||"")}`;document.getElementById("dirLink").href=`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}`;document.getElementById("doneBtn").classList.toggle("primary",isDone(p));document.getElementById("favBtn").classList.toggle("primary",isFav(p));document.getElementById("doneBtn").textContent=isDone(p)?"✓ Fait":"✓ Marquer fait";document.getElementById("favBtn").textContent=isFav(p)?"★ Favori":"★ Ajouter favori";
+ const cover=document.getElementById("cover");cover.querySelectorAll("img").forEach(x=>x.remove());if(p.image){const im=document.createElement("img");im.src=p.image;im.onerror=()=>im.remove();cover.prepend(im)}
+ fillSun(p);document.getElementById("weatherNow").textContent="—";document.getElementById("weatherWind").textContent="—";document.getElementById("detail").classList.add("show");if(fly)map.flyTo({center:[Number(p.lon),Number(p.lat)],zoom:p.city==="Fuji"?13:16,pitch:p.city==="Fuji"?68:66,bearing:p.city==="Fuji"?22:18,duration:1500,essential:true});if(window.innerWidth<761)document.getElementById("leftPanel").classList.remove("open")
+}
+function closeDetail(){document.getElementById("detail").classList.remove("show");selected=null;renderList()}
+function saveNote(){if(!selected)return;store.notes[String(spotUid(selected))]=document.getElementById("note").value;saveData()}
+function toggleFav(){if(!selected)return;const id=String(spotUid(selected));store.favorites=isFav(selected)?store.favorites.filter(x=>x!==id):[...store.favorites,id];saveData();selectPlace(selected,false);toast(isFav(selected)?"Favori ajouté":"Favori retiré")}
+function toggleDone(){if(!selected)return;const id=String(spotUid(selected));store.done=isDone(selected)?store.done.filter(x=>x!==id):[...store.done,id];saveData();selectPlace(selected,false);updateBrief();toast(isDone(selected)?"Spot marqué fait":"Spot retiré")}
+
+function parseDateForSun(label){
+ if(/^\d{4}-\d{2}-\d{2}$/.test(label))return new Date(label+"T12:00:00");const n=parseInt(label);if(Number.isFinite(n)&&activeTrip?.start){const y=new Date(activeTrip.start+"T12:00:00").getFullYear(),m=new Date(activeTrip.start+"T12:00:00").getMonth()+1;return new Date(`${y}-${String(m).padStart(2,"0")}-${String(n).padStart(2,"0")}T12:00:00`)}return new Date()
+}
+function fmtTime(d){return d&&isFinite(d)?d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}):"—"}
+function fillSun(p){try{const t=SunCalc.getTimes(parseDateForSun(p.date),Number(p.lat),Number(p.lon));document.getElementById("sunrise").textContent=fmtTime(t.sunrise);document.getElementById("goldenAM").textContent=fmtTime(t.goldenHourEnd);document.getElementById("goldenPM").textContent=fmtTime(t.goldenHour);document.getElementById("sunset").textContent=fmtTime(t.sunset)}catch(e){}}
+async function loadWeather(){if(!selected)return;try{document.getElementById("weatherNow").textContent="Chargement…";const u=`https://api.open-meteo.com/v1/forecast?latitude=${selected.lat}&longitude=${selected.lon}&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto`;const r=await fetch(u),j=await r.json(),c=j.current||{};document.getElementById("weatherNow").textContent=(c.temperature_2m??"—")+" °C";document.getElementById("weatherWind").textContent=(c.wind_speed_10m??"—")+" km/h"}catch(e){document.getElementById("weatherNow").textContent="Indisponible";document.getElementById("weatherWind").textContent="—"}}
+
+function updateBrief(){let d=currentDay;if(mode==="today"&&d==="Tous")d=tripTodayDate();const t=document.getElementById("briefTitle"),p=document.getElementById("briefText");if(d==="Tous"){t.textContent="Vue d’ensemble";p.textContent=`${activeSpots().length} spots · ${activeTrip?.description||"Voyage actif"}`;return}const a=activeSpots().filter(x=>x.date===d),n=a.filter(isDone).length,next=a.find(x=>!isDone(x));t.textContent=`${prettyDay(d)} · ${n}/${a.length} faits`;p.innerHTML=next?`Prochaine étape : <b>${escapeHtml(next.name)}</b>.`:"Toutes les étapes du jour sont terminées."}
+function selectNextStop(){let d=currentDay;if(selected)d=selected.date;if(mode==="today"&&d==="Tous")d=tripTodayDate();let a=d==="Tous"?activeSpots():activeSpots().filter(x=>x.date===d),next=a.find(x=>!isDone(x))||a[0];if(next)selectPlace(next,true);else toast("Aucune étape")}
+function fitCurrent(){fitPlaces(filtered())}
+function fitPlaces(a){const pts=a.filter(p=>Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lon)));if(!pts.length)return;const b=new maplibregl.LngLatBounds();pts.forEach(p=>b.extend([Number(p.lon),Number(p.lat)]));map.fitBounds(b,{padding:{top:105,bottom:90,left:window.innerWidth<761?50:390,right:window.innerWidth<761?50:430},duration:1500,pitch:50,bearing:0,maxZoom:12.5})}
+function flyOverview(){const a=activeSpots();a.length?fitPlaces(a):map.flyTo({center:[137.65,35.2],zoom:4,pitch:35,duration:1200})}
+function showRoute(d){const p=activeSpots().filter(x=>x.date===d&&Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.lon)));if(p.length<2)return toast("Pas assez de spots ce jour");map.getSource("route").setData({type:"FeatureCollection",features:[{type:"Feature",geometry:{type:"LineString",coordinates:p.map(x=>[Number(x.lon),Number(x.lat)])},properties:{}}]});["routeShadow","routeLine"].forEach(id=>map.setLayoutProperty(id,"visibility","visible"));fitPlaces(p)}
+function hideRoute(){if(map&&map.getLayer("routeLine"))["routeShadow","routeLine"].forEach(id=>map.setLayoutProperty(id,"visibility","none"))}
+function toggleDayRoute(){let d=currentDay;if(mode==="today"&&d==="Tous")d=tripTodayDate();if(d==="Tous")return toast("Choisis une journée");routeOn=!routeOn;document.getElementById("routeBtn").classList.toggle("on",routeOn);routeOn?showRoute(d):hideRoute()}
+
+function refreshStats(){
+ if(!activeTrip||!store)return;const s=new Date(activeTrip.start+"T00:00:00"),e=new Date(activeTrip.end+"T23:59:59"),now=new Date(),daysUntil=Math.ceil((s-now)/86400000),during=now>=s&&now<=e;document.getElementById("countdown").textContent=during?"EN COURS":daysUntil>0?daysUntil+" j":"TERMINÉ";document.getElementById("countdownSub").textContent=during?"voyage en cours":daysUntil>0?"jusqu’au départ":"voyage terminé";const total=activeSpots().length,pct=total?Math.round(store.done.length/total*100):0;document.getElementById("progressBar").style.width=pct+"%";document.getElementById("doneStat").textContent=`${store.done.length}/${total}`;document.getElementById("favStat").textContent=store.favorites.length;document.getElementById("topStat").textContent=activeSpots().filter(p=>p.top).length;const spent=store.expenses.reduce((s,e)=>s+Number(e.amount||0),0),remain=Number(store.budgetTotal||0)-spent;document.getElementById("budgetStat").textContent=store.budgetTotal?money(Math.max(0,remain)):"—";document.getElementById("budgetTotal").value=store.budgetTotal||"";document.getElementById("expenseTotal").textContent=money(spent)
+}
+
+function openTripEditor(id=null){
+ editingTripId=id;const t=id?trips.find(x=>x.id===id):null;document.getElementById("tripEditorTitle").textContent=t?"Modifier le voyage":"Nouveau voyage";document.getElementById("tName").value=t?.name||"";document.getElementById("tCountry").value=t?.country||"";document.getElementById("tStartCity").value=t?.startCity||"";document.getElementById("tStart").value=t?.start||"";document.getElementById("tEnd").value=t?.end||"";document.getElementById("tCurrency").value=t?.currency||"EUR";document.getElementById("tEmoji").value=t?.emoji||"";document.getElementById("tDesc").value=t?.description||"";document.getElementById("deleteTripBtn").style.display=t&&t.id!=="japan-2026"?"block":"none";document.getElementById("tripOverlay").classList.add("show")
+}
+function saveTripEditor(){
+ const name=document.getElementById("tName").value.trim();if(!name)return toast("Donne un nom au voyage");if(editingTripId){const t=trips.find(x=>x.id===editingTripId);Object.assign(t,{name,country:document.getElementById("tCountry").value.trim(),startCity:document.getElementById("tStartCity").value.trim(),start:document.getElementById("tStart").value,end:document.getElementById("tEnd").value,currency:document.getElementById("tCurrency").value,emoji:document.getElementById("tEmoji").value.trim(),description:document.getElementById("tDesc").value.trim()})}else{const id=uid("trip");trips.push({id,name,country:document.getElementById("tCountry").value.trim()||"Voyage",startCity:document.getElementById("tStartCity").value.trim(),start:document.getElementById("tStart").value,end:document.getElementById("tEnd").value,currency:document.getElementById("tCurrency").value,emoji:document.getElementById("tEmoji").value.trim()||"✈️",description:document.getElementById("tDesc").value.trim(),builtIn:false});localStorage.setItem(DATA_PREFIX+id,JSON.stringify(defaults()))}saveTrips();closeOverlay("tripOverlay");if(editingTripId===activeTripId)openTrip(activeTripId);toast("Voyage enregistré")
+}
+function deleteActiveTrip(){if(!editingTripId||editingTripId==="japan-2026")return;if(!confirm("Supprimer définitivement ce voyage et ses données ?"))return;localStorage.removeItem(DATA_PREFIX+editingTripId);trips=trips.filter(x=>x.id!==editingTripId);saveTrips();closeOverlay("tripOverlay");showHome();toast("Voyage supprimé")}
+
+function openSpotEditor(id=null){
+ if(!activeTrip)return toast("Ouvre d’abord un voyage");editingSpotId=id;let p=id?activeSpots().find(x=>String(spotUid(x))===String(id)):null;document.getElementById("spotEditorTitle").textContent=p?"Modifier le spot":"Ajouter un spot";document.getElementById("sName").value=p?.name||"";document.getElementById("sCity").value=p?.city||"";document.getElementById("sDate").value=/^\d{4}-\d{2}-\d{2}$/.test(p?.date||"")?p.date:"";document.getElementById("sLat").value=p?.lat??"";document.getElementById("sLon").value=p?.lon??"";document.getElementById("sCat").value=p?.category||"Photo";document.getElementById("sTop").value=String(!!p?.top);document.getElementById("sLens").value=p?.lens||"";document.getElementById("sBestTime").value=p?.bestTime||"";document.getElementById("sImage").value=p?.image||"";document.getElementById("sMaps").value=p?.maps||"";document.getElementById("sDesc").value=p?.description||"";document.getElementById("deleteSpotBtn").style.display=p&&!p._builtin?"block":"none";document.getElementById("spotOverlay").classList.add("show")
+}
+function saveSpotEditor(){
+ const name=document.getElementById("sName").value.trim(),lat=Number(document.getElementById("sLat").value),lon=Number(document.getElementById("sLon").value);if(!name||!Number.isFinite(lat)||!Number.isFinite(lon))return toast("Nom + latitude + longitude requis");
+ const data={name,city:document.getElementById("sCity").value.trim(),date:document.getElementById("sDate").value,lat,lon,category:document.getElementById("sCat").value,top:document.getElementById("sTop").value==="true",lens:document.getElementById("sLens").value.trim(),bestTime:document.getElementById("sBestTime").value.trim(),image:document.getElementById("sImage").value.trim(),maps:document.getElementById("sMaps").value.trim(),description:document.getElementById("sDesc").value.trim()};
+ if(editingSpotId){let p=store.customSpots.find(x=>String(x.uid)===String(editingSpotId));if(!p)return toast("Les spots intégrés du Japon sont protégés. Crée une copie personnalisée si besoin.");Object.assign(p,data)}else store.customSpots.push({uid:uid("spot"),...data});
+ saveData();closeOverlay("spotOverlay");rebuildTripUI();updateGeoJSON();refreshStats();toast("Spot enregistré")
+}
+function deleteSpot(){if(!editingSpotId)return;store.customSpots=store.customSpots.filter(x=>String(x.uid)!==String(editingSpotId));saveData();closeOverlay("spotOverlay");closeDetail();rebuildTripUI();updateGeoJSON();toast("Spot supprimé")}
+
+function openPlanner(){document.getElementById("plannerOverlay").classList.add("show");refreshStats();renderExpenses()}
+function saveBudget(){store.budgetTotal=Number(document.getElementById("budgetTotal").value||0);saveData()}
+function addExpense(){const amount=Number(document.getElementById("expAmount").value||0);if(!amount)return toast("Entre un montant");store.expenses.push({id:uid("exp"),amount,cat:document.getElementById("expCat").value,note:document.getElementById("expNote").value||"",date:new Date().toISOString()});document.getElementById("expAmount").value="";document.getElementById("expNote").value="";saveData();renderExpenses();toast("Dépense ajoutée")}
+function delExpense(id){store.expenses=store.expenses.filter(e=>e.id!==id);saveData();renderExpenses()}
+function renderExpenses(){const w=document.getElementById("expenseList");if(!w||!store)return;w.innerHTML="";store.expenses.slice().reverse().forEach(e=>{const d=document.createElement("div");d.className="expense";d.innerHTML=`<span><b>${escapeHtml(e.cat)}</b>${e.note?` · ${escapeHtml(e.note)}`:""}</span><span>${money(Number(e.amount))}</span><button class="btn" onclick="delExpense('${e.id}')">✕</button>`;w.appendChild(d)})}
+function openChecklist(){document.getElementById("checkOverlay").classList.add("show");renderChecklist()}
+function renderChecklist(){const w=document.getElementById("checkList");if(!w||!store)return;w.innerHTML="";store.checklist.forEach(c=>{const d=document.createElement("div");d.className="check";d.innerHTML=`<input type="checkbox" ${c.d?"checked":""} onchange="toggleCheck('${c.id}',this.checked)"><span style="${c.d?"text-decoration:line-through;color:#7f8792":""}">${escapeHtml(c.t)}</span><button class="btn" onclick="delCheck('${c.id}')">✕</button>`;w.appendChild(d)})}
+function toggleCheck(id,v){const c=store.checklist.find(x=>x.id===id);if(c)c.d=v;saveData();renderChecklist()}function delCheck(id){store.checklist=store.checklist.filter(x=>x.id!==id);saveData();renderChecklist()}
+function addCheck(){const i=document.getElementById("newCheck");if(!i.value.trim())return;store.checklist.push({id:uid("c"),t:i.value.trim(),d:false});i.value="";saveData();renderChecklist()}
+function closeOverlay(id){document.getElementById(id).classList.remove("show")}
+
+function exportAll(){const payload={app:"Travel Photo OS PRO MAX",version:1,exportedAt:new Date().toISOString(),trips,data:{}};trips.forEach(t=>payload.data[t.id]=loadData(t.id));downloadJSON(payload,"Travel_Photo_OS_PRO_MAX_backup.json")}
+function exportActiveTrip(){const payload={app:"Travel Photo OS PRO MAX",version:1,exportedAt:new Date().toISOString(),trip:activeTrip,data:store};downloadJSON(payload,(activeTrip?.name||"voyage").replace(/\s+/g,"_")+"_backup.json")}
+function downloadJSON(obj,name){const b=new Blob([JSON.stringify(obj,null,2)],{type:"application/json"}),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);toast("Sauvegarde exportée")}
+function openImportAll(){document.getElementById("importAllFile").click()}
+document.getElementById("importAllFile").addEventListener("change",ev=>{const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const j=JSON.parse(r.result);if(j.trips&&j.data){trips=j.trips;localStorage.setItem(TRIPS_KEY,JSON.stringify(trips));Object.entries(j.data).forEach(([id,d])=>localStorage.setItem(DATA_PREFIX+id,JSON.stringify(d)));renderHome();toast("Sauvegarde complète importée")}else if(j.trip&&j.data){const existing=trips.find(t=>t.id===j.trip.id);if(!existing)trips.push(j.trip);else Object.assign(existing,j.trip);saveTrips();localStorage.setItem(DATA_PREFIX+j.trip.id,JSON.stringify(j.data));renderHome();toast("Voyage importé")}else toast("Format non reconnu")}catch(e){toast("Fichier invalide")}};r.readAsText(f)})
+
+function toggleSatellite(){satellite=!satellite;map.setLayoutProperty("satLayer","visibility",satellite?"visible":"none");document.getElementById("satBtn").classList.toggle("on",satellite);toast(satellite?"Satellite activé":"Carte activée")}
+function toggleTerrain(){terrainOn=!terrainOn;map.setTerrain(terrainOn?{source:"dem",exaggeration:1.18}:null);map.setLayoutProperty("hill","visibility",terrainOn?"visible":"none");document.getElementById("terrainBtn").classList.toggle("on",terrainOn)}
+function toggleBuildings(){buildingsOn=!buildingsOn;if(map.getLayer("buildings"))map.setLayoutProperty("buildings","visibility",buildingsOn?"visible":"none");document.getElementById("buildBtn").classList.toggle("on",buildingsOn)}
+function locateMe(){if(!navigator.geolocation)return toast("Géolocalisation indisponible");navigator.geolocation.getCurrentPosition(p=>map.flyTo({center:[p.coords.longitude,p.coords.latitude],zoom:15,pitch:55,duration:1500}),()=>toast("Localisation refusée ou indisponible"),{enableHighAccuracy:true,timeout:8000})}
+function toggleLeft(force){const e=document.getElementById("leftPanel");if(force===true)e.classList.add("open");else e.classList.toggle("open")}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");clearTimeout(window._toast);window._toast=setTimeout(()=>t.classList.remove("show"),1800)}
+function flyCity(c){const v={Osaka:[[135.502,34.68],11.6,61,18],Kyoto:[[135.768,35.012],11.4,61,-11],Nara:[[135.84,34.685],11.6,60,8],Fuji:[[138.76,35.47],9.55,68,22],Tokyo:[[139.70,35.68],10.7,63,14]}[c];if(!v)return toast("Ville non configurée");map.flyTo({center:v[0],zoom:v[1],pitch:v[2],bearing:v[3],duration:1800,essential:true})}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));async function tour(){if(touring)return;touring=true;closeDetail();const pts=activeSpots().filter(p=>Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lon)));for(const p of pts.filter((_,i)=>i%Math.max(1,Math.floor(pts.length/8))===0).slice(0,8)){map.flyTo({center:[Number(p.lon),Number(p.lat)],zoom:12,pitch:60,bearing:18,duration:1800,essential:true});await sleep(2200)}touring=false}
+document.addEventListener("keydown",e=>{if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName))return;const k=e.key.toLowerCase();if(k==="escape"){closeDetail();document.querySelectorAll(".overlay").forEach(x=>x.classList.remove("show"))}if(k==="s")toggleSatellite();if(k==="r")toggleTerrain();if(k==="h")showHome()})
+
+
+
+function ensureUltimateData(){
+  if(!store)return;
+  if(!store.dayPlans)store.dayPlans={};
+  if(!store.bookings)store.bookings=[];
+  if(!store.documents)store.documents=[];
+  if(!store.emergency)store.emergency=[];
+}
+const oldLoadDataUltimate=loadData;
+loadData=function(id){
+  const d=oldLoadDataUltimate(id);
+  if(!d.dayPlans)d.dayPlans={};
+  if(!d.bookings)d.bookings=[];
+  if(!d.documents)d.documents=[];
+  if(!d.emergency)d.emergency=[];
+  return d;
+};
+
+
+const COLLAB_CHANNEL="travel-photo-os-collab-v1";
+let collabChannel=null;
+
+
+
+let followMode=false;
+let arrivalAlerts=true;
+let arrivalRadiusMeters=50;
+let lastArrivalSpotId=null;
+let deviceHeading=null;
+
+function openNavigationMode(){
+  if(!activeTrip)return toast("Ouvre d’abord un voyage");
+  document.getElementById("navOverlay").classList.add("show");
+  if(geoWatchId===null)startLiveLocation();
+  updateNavigationUI();
+  enableDeviceOrientation();
+}
+function toggleFollowMode(){
+  followMode=!followMode;
+  document.getElementById("followBtn").classList.toggle("primary",followMode);
+  updateNavigationUI();
+  if(followMode){
+    if(geoWatchId===null)startLiveLocation();
+    if(myGeo)followMyPosition();
+  }
+}
+function updateNavigationUI(){
+  const st=document.getElementById("navFollowState");
+  const sub=document.getElementById("navFollowSub");
+  if(st){st.textContent=followMode?"ON":"OFF";sub.textContent=followMode?"La carte suit automatiquement ta position.":"La carte ne te suit pas."}
+  if(document.getElementById("navGpsStatus")){
+    document.getElementById("navGpsStatus").textContent=myGeo?"GPS actif.":"GPS non démarré.";
+    document.getElementById("navGpsStatus").className="navStatus "+(myGeo?"ok":"");
+  }
+  if(myGeo){
+    document.getElementById("navAccuracy").textContent="±"+Math.round(myGeo.accuracy||0)+" m";
+    const sp=Number(myGeo.speed);
+    document.getElementById("navSpeed").textContent=Number.isFinite(sp)&&sp>=0?(sp*3.6).toFixed(1)+" km/h":"—";
+  }
+  const nxt=findNextPlannedSpot();
+  if(nxt&&myGeo){
+    const d=haversine({lat:myGeo.lat,lon:myGeo.lon},nxt);
+    document.getElementById("navNextName").textContent=nxt.name;
+    document.getElementById("navNextDist").textContent=formatDistance(d);
+  }else if(nxt){
+    document.getElementById("navNextName").textContent=nxt.name;
+    document.getElementById("navNextDist").textContent="Démarre le GPS pour calculer la distance.";
+  }else{
+    document.getElementById("navNextName").textContent="—";
+    document.getElementById("navNextDist").textContent="Aucune destination.";
+  }
+}
+function followMyPosition(){
+  if(!myGeo||!followMode)return;
+  const heading=Number.isFinite(Number(myGeo.heading))?Number(myGeo.heading):(Number.isFinite(deviceHeading)?deviceHeading:0);
+  map.easeTo({
+    center:[myGeo.lon,myGeo.lat],
+    zoom:17,
+    pitch:62,
+    bearing:heading||map.getBearing(),
+    duration:700,
+    essential:true
+  });
+}
+function selectNextSpotForNavigation(){
+  const p=findNextPlannedSpot();if(!p)return toast("Aucune prochaine étape");
+  closeOverlay("navOverlay");selectPlace(p,true);
+}
+function updateArrivalRadius(){
+  arrivalRadiusMeters=Number(document.getElementById("arrivalRadius").value||50);
+  document.getElementById("arrivalRadiusLabel").textContent=arrivalRadiusMeters+" m";
+}
+function toggleArrivalAlerts(){
+  arrivalAlerts=!arrivalAlerts;
+  document.getElementById("arrivalToggleBtn").textContent="Alertes : "+(arrivalAlerts?"ON":"OFF");
+  document.getElementById("arrivalToggleBtn").classList.toggle("primary",arrivalAlerts);
+}
+function testArrivalAlert(){
+  showArrivalBanner("📍 Test : alerte d’arrivée active.");
+}
+function showArrivalBanner(msg){
+  const b=document.getElementById("arrivalBanner");
+  b.textContent=msg;b.classList.add("show");
+  clearTimeout(window._arrivalTimer);
+  window._arrivalTimer=setTimeout(()=>b.classList.remove("show"),3500);
+}
+function checkArrival(){
+  if(!arrivalAlerts||!myGeo)return;
+  const p=findNextPlannedSpot();if(!p)return;
+  const id=String(spotUid(p));
+  const meters=haversine({lat:myGeo.lat,lon:myGeo.lon},p)*1000;
+  if(meters<=arrivalRadiusMeters&&lastArrivalSpotId!==id){
+    lastArrivalSpotId=id;
+    showArrivalBanner(`📍 Arrivé près de ${p.name} · ${Math.round(meters)} m`);
+    if("vibrate" in navigator){try{navigator.vibrate([120,80,120])}catch(e){}}
+  }
+  if(meters>arrivalRadiusMeters*1.8&&lastArrivalSpotId===id)lastArrivalSpotId=null;
+}
+function enableDeviceOrientation(){
+  if(!window.DeviceOrientationEvent)return;
+  const start=()=>{
+    window.addEventListener("deviceorientation",e=>{
+      let h=null;
+      if(typeof e.webkitCompassHeading==="number")h=e.webkitCompassHeading;
+      else if(typeof e.alpha==="number")h=(360-e.alpha)%360;
+      if(Number.isFinite(h)){
+        deviceHeading=h;
+        const n=document.getElementById("compassNeedle");
+        if(n)n.style.transform=`translate(-50%,-100%) rotate(${h}deg)`;
+        const v=document.getElementById("headingValue"),s=document.getElementById("headingSub");
+        if(v)v.textContent=Math.round(h)+"°";
+        if(s)s.textContent=headingLabel(h);
+      }
+    },true);
+  };
+  if(typeof DeviceOrientationEvent.requestPermission==="function"){
+    DeviceOrientationEvent.requestPermission().then(r=>{if(r==="granted")start()}).catch(()=>{});
+  }else start();
+}
+function headingLabel(h){
+  const dirs=["N","NE","E","SE","S","SO","O","NO"];
+  return dirs[Math.round(h/45)%8];
+}
+
+const oldOnGeoPositionNav=onGeoPosition;
+onGeoPosition=function(pos){
+  oldOnGeoPositionNav(pos);
+  if(followMode)followMyPosition();
+  checkArrival();
+  updateNavigationUI();
+};
+
+let geoWatchId=null;
+let myGeo=null;
+let geoSharing=false;
+let geoShareUntil=null;
+let geoMarkerSourceReady=false;
+
+function ensureGeoData(){
+  if(!store)return;
+  if(!store.geo)store.geo={};
+  if(!store.geo.sharedMembers)store.geo.sharedMembers={};
+}
+const oldLoadDataGeo=loadData;
+loadData=function(id){
+  const d=oldLoadDataGeo(id);
+  if(!d.geo)d.geo={};
+  if(!d.geo.sharedMembers)d.geo.sharedMembers={};
+  return d;
+};
+
+function openGeo(){
+  if(!activeTrip)return toast("Ouvre d’abord un voyage");
+  ensureGeoData();
+  document.getElementById("geoOverlay").classList.add("show");
+  renderGeoMembers();
+  updateGeoUI();
+}
+function addGeoLayers(){
+  if(!map||geoMarkerSourceReady)return;
+  map.addSource("live-user-location",{type:"geojson",data:{type:"FeatureCollection",features:[]}});
+  map.addLayer({id:"live-user-accuracy",type:"circle",source:"live-user-location",filter:["==",["get","kind"],"me"],paint:{
+    "circle-radius":["interpolate",["linear"],["zoom"],5,10,15,26],
+    "circle-color":"rgba(75,156,255,.13)",
+    "circle-stroke-color":"rgba(75,156,255,.28)",
+    "circle-stroke-width":1
+  }});
+  map.addLayer({id:"live-user-dot",type:"circle",source:"live-user-location",paint:{
+    "circle-radius":["case",["==",["get","kind"],"me"],8,7],
+    "circle-color":["case",["==",["get","kind"],"me"],"#4b9cff","#50d890"],
+    "circle-stroke-color":"#ffffff","circle-stroke-width":2.4
+  }});
+  map.addLayer({id:"live-user-label",type:"symbol",source:"live-user-location",minzoom:8,layout:{
+    "text-field":["get","label"],"text-size":11,"text-offset":[0,1.35],"text-anchor":"top"
+  },paint:{"text-color":"#ffffff","text-halo-color":"rgba(0,0,0,.9)","text-halo-width":2}});
+  geoMarkerSourceReady=true;
+}
+function startLiveLocation(){
+  if(!navigator.geolocation){
+    setGeoStatus("Géolocalisation non disponible sur cet appareil.",true);return;
+  }
+  if(geoWatchId!==null)return;
+  addGeoLayers();
+  setGeoStatus("Recherche de la position…");
+  geoWatchId=navigator.geolocation.watchPosition(onGeoPosition,onGeoError,{
+    enableHighAccuracy:true,maximumAge:3000,timeout:15000
+  });
+  document.getElementById("geoStartBtn").classList.add("on");
+}
+function stopLiveLocation(){
+  if(geoWatchId!==null){navigator.geolocation.clearWatch(geoWatchId);geoWatchId=null}
+  document.getElementById("geoStartBtn").classList.remove("on");
+  setGeoStatus("Suivi arrêté.");
+}
+function onGeoPosition(pos){
+  myGeo={
+    lat:pos.coords.latitude,
+    lon:pos.coords.longitude,
+    accuracy:pos.coords.accuracy,
+    speed:pos.coords.speed,
+    heading:pos.coords.heading,
+    timestamp:pos.timestamp
+  };
+  setGeoStatus("Position mise à jour.",false,true);
+  updateGeoUI();
+  updateLiveLocationSource();
+  if(geoSharing)publishMyLocation();
+}
+function onGeoError(err){
+  const msg=err.code===1?"Permission de localisation refusée.":err.code===2?"Position indisponible.":"Délai dépassé pour obtenir la position.";
+  setGeoStatus(msg,true);
+  stopLiveLocation();
+}
+function setGeoStatus(msg,warn=false,ok=false){
+  const s=document.getElementById("geoStatus");if(!s)return;
+  s.textContent=msg;s.className="geoStatus "+(warn?"warn":ok?"ok":"");
+}
+function updateGeoUI(){
+  if(!myGeo){
+    document.getElementById("geoCoords").textContent="—";
+    document.getElementById("geoAccuracy").textContent="Précision inconnue";
+    document.getElementById("nearestName").textContent="—";
+    document.getElementById("nearestDistance").textContent="Aucun calcul";
+    document.getElementById("nextDistance").textContent="—";
+    return;
+  }
+  document.getElementById("geoCoords").textContent=myGeo.lat.toFixed(5)+", "+myGeo.lon.toFixed(5);
+  document.getElementById("geoAccuracy").textContent="Précision ±"+Math.round(myGeo.accuracy||0)+" m";
+  const near=findNearestSpot();
+  if(near){
+    document.getElementById("nearestName").textContent=near.spot.name;
+    document.getElementById("nearestDistance").textContent=formatDistance(near.distance);
+  }
+  const nxt=findNextPlannedSpot();
+  if(nxt){
+    const d=haversine({lat:myGeo.lat,lon:myGeo.lon},nxt);
+    document.getElementById("nextDistance").textContent=formatDistance(d);
+    document.getElementById("nextDistanceSub").textContent=nxt.name;
+  }else{
+    document.getElementById("nextDistance").textContent="—";
+    document.getElementById("nextDistanceSub").textContent="Aucune prochaine étape trouvée.";
+  }
+}
+function formatDistance(km){
+  if(km<1)return Math.round(km*1000)+" m";
+  return km.toFixed(km<10?1:0)+" km";
+}
+function findNearestSpot(){
+  if(!myGeo)return null;
+  const pts=activeSpots().filter(p=>Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lon)));
+  let best=null;
+  pts.forEach(p=>{
+    const d=haversine({lat:myGeo.lat,lon:myGeo.lon},p);
+    if(!best||d<best.distance)best={spot:p,distance:d};
+  });
+  return best;
+}
+function selectNearestSpot(){
+  const n=findNearestSpot();if(!n)return toast("Position ou spots indisponibles");
+  closeOverlay("geoOverlay");selectPlace(n.spot,true);
+}
+function findNextPlannedSpot(){
+  if(selected)return selected;
+  const d=(mode==="today"&&currentDay==="Tous")?tripTodayDate():currentDay;
+  if(d!=="Tous"){
+    const arr=plannedItemsForDay?plannedItemsForDay(d):activeSpots().filter(p=>p.date===d).map(p=>({p}));
+    const next=arr.map(x=>x.p).find(p=>!isDone(p));
+    if(next)return next;
+  }
+  return activeSpots().find(p=>!isDone(p))||null;
+}
+function navigateToNext(){
+  const p=findNextPlannedSpot();if(!p)return toast("Aucune prochaine étape");
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}`,"_blank","noopener,noreferrer");
+}
+function flyToMe(){
+  if(!myGeo)return toast("Démarre d’abord le suivi GPS");
+  map.flyTo({center:[myGeo.lon,myGeo.lat],zoom:16,pitch:55,duration:1200,essential:true});
+}
+function toggleGeoSharing(){
+  geoSharing=!geoSharing;
+  geoShareUntil=null;
+  if(geoSharing&&!myGeo)startLiveLocation();
+  updateShareUI();
+  if(geoSharing)publishMyLocation();else removeMySharedLocation();
+}
+function shareForOneHour(){
+  geoSharing=true;
+  geoShareUntil=Date.now()+3600000;
+  if(!myGeo)startLiveLocation();
+  updateShareUI();
+  if(myGeo)publishMyLocation();
+}
+function updateShareUI(){
+  const b=document.getElementById("shareGeoBtn"),s=document.getElementById("shareGeoStatus");
+  if(!b||!s)return;
+  b.textContent="Partager : "+(geoSharing?"ON":"OFF");b.classList.toggle("primary",geoSharing);
+  if(!geoSharing){s.textContent="Position privée.";s.className="geoStatus"}
+  else if(geoShareUntil){s.textContent="Partage actif jusqu’à "+new Date(geoShareUntil).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})+".";s.className="geoStatus ok"}
+  else{s.textContent="Partage actif tant que cette session reste ouverte.";s.className="geoStatus ok"}
+}
+function publishMyLocation(){
+  ensureGeoData();
+  if(!myGeo||!geoSharing)return;
+  if(geoShareUntil&&Date.now()>geoShareUntil){geoSharing=false;geoShareUntil=null;updateShareUI();removeMySharedLocation();return}
+  const m=store.collab?.members?.[0]||{id:"owner",name:"Propriétaire"};
+  store.geo.sharedMembers[m.id]={
+    memberId:m.id,name:m.name,lat:myGeo.lat,lon:myGeo.lon,accuracy:myGeo.accuracy,
+    updatedAt:new Date().toISOString(),shareUntil:geoShareUntil
+  };
+  localStorage.setItem(DATA_PREFIX+activeTripId,JSON.stringify(store));
+  broadcastCollab?.();
+  updateLiveLocationSource();
+  renderGeoMembers();
+}
+function removeMySharedLocation(){
+  ensureGeoData();
+  const id=store.collab?.members?.[0]?.id||"owner";
+  delete store.geo.sharedMembers[id];
+  localStorage.setItem(DATA_PREFIX+activeTripId,JSON.stringify(store));
+  broadcastCollab?.();
+  updateLiveLocationSource();
+  renderGeoMembers();
+}
+function renderGeoMembers(){
+  const w=document.getElementById("geoMemberList");if(!w||!store)return;w.innerHTML="";
+  ensureGeoData();
+  const entries=Object.values(store.geo.sharedMembers||{}).filter(x=>{
+    if(x.shareUntil&&Date.now()>x.shareUntil)return false;
+    return Date.now()-new Date(x.updatedAt).getTime()<15*60*1000;
+  });
+  if(!entries.length){
+    w.innerHTML='<div style="font-size:11px;color:#9098a4">Aucune position partagée actuellement.</div>';
+    return;
+  }
+  entries.forEach(x=>{
+    const age=Math.max(0,Math.round((Date.now()-new Date(x.updatedAt))/1000));
+    const e=document.createElement("div");e.className="geoMember";
+    e.innerHTML=`<div class="geoPulse"></div><div><b>${escapeHtml(x.name)}</b><small>${Number(x.lat).toFixed(5)}, ${Number(x.lon).toFixed(5)} · il y a ${age}s</small></div><button class="btn" onclick="flyToSharedMember('${x.memberId}')">Voir</button>`;
+    w.appendChild(e)
+  })
+}
+function flyToSharedMember(id){
+  const x=store.geo?.sharedMembers?.[id];if(!x)return;
+  closeOverlay("geoOverlay");
+  map.flyTo({center:[Number(x.lon),Number(x.lat)],zoom:16,pitch:50,duration:1200,essential:true});
+}
+function updateLiveLocationSource(){
+  if(!geoMarkerSourceReady||!map.getSource("live-user-location"))return;
+  ensureGeoData();
+  const feats=[];
+  if(myGeo)feats.push({type:"Feature",geometry:{type:"Point",coordinates:[myGeo.lon,myGeo.lat]},properties:{kind:"me",label:"Moi",accuracy:myGeo.accuracy||0}});
+  const myId=store.collab?.members?.[0]?.id||"owner";
+  Object.values(store.geo.sharedMembers||{}).forEach(x=>{
+    if(x.memberId===myId&&myGeo)return;
+    if(x.shareUntil&&Date.now()>x.shareUntil)return;
+    if(Date.now()-new Date(x.updatedAt).getTime()>15*60*1000)return;
+    feats.push({type:"Feature",geometry:{type:"Point",coordinates:[Number(x.lon),Number(x.lat)]},properties:{kind:"member",label:x.name||"Voyageur"}})
+  });
+  map.getSource("live-user-location").setData({type:"FeatureCollection",features:feats});
+}
+const oldSetupCollabChannelGeo=setupCollabChannel;
+setupCollabChannel=function(){
+  oldSetupCollabChannelGeo();
+  if(collabChannel){
+    const previous=collabChannel.onmessage;
+    collabChannel.onmessage=e=>{
+      if(previous)previous(e);
+      if(!e.data||e.data.tripId!==activeTripId)return;
+      store=loadData(activeTripId);
+      renderGeoMembers();
+      updateLiveLocationSource();
+    }
+  }
+};
+
+function ensureCollabData(){
+  if(!store)return;
+  if(!store.collab)store.collab={};
+  if(!store.collab.inviteCode)store.collab.inviteCode=generateInviteCode();
+  if(!store.collab.members||!store.collab.members.length){
+    store.collab.members=[{id:"owner",name:"Propriétaire",role:"Propriétaire",online:true,joinedAt:new Date().toISOString()}];
+  }
+  if(!store.collab.votes)store.collab.votes={};
+  if(!store.collab.comments)store.collab.comments=[];
+  if(!store.collab.sharedExpenses)store.collab.sharedExpenses=[];
+  if(!store.collab.activity)store.collab.activity=[];
+  if(!store.collab.cloud)store.collab.cloud={url:"",anon:""};
+}
+const oldLoadDataCollab=loadData;
+loadData=function(id){
+  const d=oldLoadDataCollab(id);
+  if(!d.collab)d.collab={};
+  if(!d.collab.inviteCode)d.collab.inviteCode=generateInviteCode();
+  if(!d.collab.members||!d.collab.members.length)d.collab.members=[{id:"owner",name:"Propriétaire",role:"Propriétaire",online:true,joinedAt:new Date().toISOString()}];
+  if(!d.collab.votes)d.collab.votes={};
+  if(!d.collab.comments)d.collab.comments=[];
+  if(!d.collab.sharedExpenses)d.collab.sharedExpenses=[];
+  if(!d.collab.activity)d.collab.activity=[];
+  if(!d.collab.cloud)d.collab.cloud={url:"",anon:""};
+  return d;
+};
+
+function generateInviteCode(){
+  const cc=(activeTrip?.country||"TRIP").replace(/[^A-Za-z]/g,"").toUpperCase().slice(0,3).padEnd(3,"X");
+  const x=Math.random().toString(36).slice(2,7).toUpperCase();
+  return cc+"-"+x;
+}
+function openCollab(){
+  if(!activeTrip)return toast("Ouvre d’abord un voyage");
+  ensureCollabData();
+  setupCollabChannel();
+  document.getElementById("collabOverlay").classList.add("show");
+  renderCollabAll();
+}
+function showCollabSection(name){
+  ["members","votes","comments","split","activity","cloud"].forEach(s=>document.getElementById("c-"+s).style.display=s===name?"block":"none");
+  document.querySelectorAll(".collabTab").forEach(x=>x.classList.toggle("on",x.dataset.c===name));
+  if(name==="votes")renderVotes();
+  if(name==="comments")renderComments();
+  if(name==="split")renderSharedExpenses();
+  if(name==="activity")renderActivity();
+  if(name==="cloud")renderCloud();
+}
+function renderCollabAll(){
+  ensureCollabData();
+  document.getElementById("inviteCode").textContent=store.collab.inviteCode;
+  renderMembers();renderVotes();renderCommentSpotOptions();renderComments();renderSharedExpenses();renderActivity();renderCloud();
+}
+function addActivity(text,member="Système"){
+  ensureCollabData();
+  store.collab.activity.unshift({id:uid("act"),member,text,date:new Date().toISOString()});
+  store.collab.activity=store.collab.activity.slice(0,100);
+  saveData();broadcastCollab();
+}
+function regenerateInviteCode(){
+  store.collab.inviteCode=generateInviteCode();addActivity("Le code d’invitation a été régénéré.");renderCollabAll();toast("Nouveau code créé")
+}
+async function copyInviteCode(){
+  const code=store.collab.inviteCode;
+  try{await navigator.clipboard.writeText(code);toast("Code copié")}catch(e){toast(code)}
+}
+function joinByCode(){
+  const code=document.getElementById("joinCode").value.trim().toUpperCase();
+  if(!code)return toast("Entre un code");
+  if(code===store.collab.inviteCode){toast("Tu es déjà dans ce voyage");return}
+  const cloud=store.collab.cloud||{};
+  if(cloud.url&&cloud.anon){
+    toast("Configuration Cloud enregistrée. Connexion distante à activer avec le schéma Supabase du pack.");
+  }else{
+    toast("Le mode local ne peut pas retrouver un voyage d’un autre appareil. Active le Cloud.");
+  }
+}
+function addMember(){
+  ensureCollabData();
+  const name=document.getElementById("memberName").value.trim();if(!name)return toast("Prénom requis");
+  const role=document.getElementById("memberRole").value;
+  store.collab.members.push({id:uid("m"),name,role,online:false,joinedAt:new Date().toISOString()});
+  document.getElementById("memberName").value="";
+  addActivity(`${name} a été ajouté au voyage.`);
+  renderMembers();renderSharedSelectors()
+}
+function removeMember(id){
+  const m=store.collab.members.find(x=>x.id===id);if(!m||m.id==="owner")return;
+  store.collab.members=store.collab.members.filter(x=>x.id!==id);addActivity(`${m.name} a été retiré du voyage.`);renderMembers();renderSharedSelectors()
+}
+function renderMembers(){
+  const w=document.getElementById("memberList");if(!w)return;w.innerHTML="";
+  store.collab.members.forEach((m,i)=>{
+    const e=document.createElement("div");e.className="member";
+    e.innerHTML=`<div class="avatar">${escapeHtml((m.name||"?").slice(0,2).toUpperCase())}</div><div><b>${m.online?'<span class="presenceDot"></span>':""}${escapeHtml(m.name)}</b><small>${i===0?"Créateur du voyage":"Membre du voyage"}</small></div><div style="display:flex;gap:6px;align-items:center"><span class="role">${escapeHtml(m.role)}</span>${m.id!=="owner"?`<button class="btn" onclick="removeMember('${m.id}')">✕</button>`:""}</div>`;
+    w.appendChild(e)
+  });
+  renderSharedSelectors();
+}
+function currentMemberId(){return store.collab.members[0]?.id||"owner"}
+
+function voteFor(spotId,value){
+  ensureCollabData();
+  const mid=currentMemberId();
+  if(!store.collab.votes[spotId])store.collab.votes[spotId]={};
+  store.collab.votes[spotId][mid]=value;
+  const p=activeSpots().find(x=>String(spotUid(x))===String(spotId));
+  addActivity(`a voté ${value==="yes"?"👍":value==="maybe"?"🤷":"👎"} pour ${p?.name||"un spot"}`,store.collab.members[0]?.name||"Membre");
+  renderVotes()
+}
+function voteSummary(id){
+  const v=store.collab.votes[id]||{},vals=Object.values(v);
+  return {yes:vals.filter(x=>x==="yes").length,maybe:vals.filter(x=>x==="maybe").length,no:vals.filter(x=>x==="no").length}
+}
+function renderVotes(){
+  const w=document.getElementById("voteList");if(!w)return;w.innerHTML="";
+  activeSpots().forEach(p=>{
+    const id=String(spotUid(p)),me=store.collab.votes[id]?.[currentMemberId()],s=voteSummary(id);
+    const e=document.createElement("div");e.className="voteRow";e.innerHTML=`<i class="dot" style="background:${colorFor(p)}"></i><div><b>${escapeHtml(p.name)}</b><small>👍 ${s.yes} · 🤷 ${s.maybe} · 👎 ${s.no}</small></div><div class="voteBtns"><button class="${me==="yes"?"on":""}" onclick="voteFor('${id}','yes')">👍</button><button class="${me==="maybe"?"on":""}" onclick="voteFor('${id}','maybe')">🤷</button><button class="${me==="no"?"on":""}" onclick="voteFor('${id}','no')">👎</button></div>`;
+    w.appendChild(e)
+  })
+}
+
+function renderCommentSpotOptions(){
+  const s=document.getElementById("commentSpot");if(!s)return;s.innerHTML="";
+  activeSpots().forEach(p=>{const o=document.createElement("option");o.value=String(spotUid(p));o.textContent=p.name;s.appendChild(o)})
+}
+function addComment(){
+  const text=document.getElementById("commentText").value.trim(),spotId=document.getElementById("commentSpot").value;if(!text)return;
+  const m=store.collab.members[0]||{id:"owner",name:"Propriétaire"};
+  store.collab.comments.push({id:uid("com"),spotId,memberId:m.id,memberName:m.name,text,date:new Date().toISOString()});
+  document.getElementById("commentText").value="";
+  const p=activeSpots().find(x=>String(spotUid(x))===spotId);addActivity(`a commenté ${p?.name||"un spot"}`,m.name);renderComments()
+}
+function renderComments(){
+  const w=document.getElementById("commentList");if(!w)return;w.innerHTML="";
+  const spotId=document.getElementById("commentSpot")?.value||"";
+  store.collab.comments.filter(c=>!spotId||c.spotId===spotId).slice().reverse().forEach(c=>{
+    const e=document.createElement("div");e.className="comment";e.innerHTML=`<div class="avatar">${escapeHtml((c.memberName||"?").slice(0,2).toUpperCase())}</div><div><b>${escapeHtml(c.memberName)}</b><small>${new Date(c.date).toLocaleString("fr-FR")}</small><div style="font-size:12px;margin-top:4px">${escapeHtml(c.text)}</div></div><button class="btn" onclick="deleteComment('${c.id}')">✕</button>`;w.appendChild(e)
+  })
+}
+function deleteComment(id){store.collab.comments=store.collab.comments.filter(x=>x.id!==id);saveData();broadcastCollab();renderComments()}
+
+function renderSharedSelectors(){
+  const p=document.getElementById("shPayer"),m=document.getElementById("shParticipants");if(!p||!m)return;p.innerHTML="";m.innerHTML="";
+  store.collab.members.forEach(x=>{const a=document.createElement("option");a.value=x.id;a.textContent=x.name;p.appendChild(a);const b=document.createElement("option");b.value=x.id;b.textContent=x.name;b.selected=true;m.appendChild(b)})
+}
+function addSharedExpense(){
+  const title=document.getElementById("shTitle").value.trim(),amount=Number(document.getElementById("shAmount").value||0),payer=document.getElementById("shPayer").value,participants=[...document.getElementById("shParticipants").selectedOptions].map(o=>o.value);
+  if(!title||!amount||!payer||!participants.length)return toast("Complète la dépense");
+  store.collab.sharedExpenses.push({id:uid("sh"),title,amount,payer,participants,date:new Date().toISOString()});
+  document.getElementById("shTitle").value="";document.getElementById("shAmount").value="";
+  const pn=store.collab.members.find(x=>x.id===payer)?.name||"Membre";addActivity(`${pn} a payé ${money(amount)} pour ${title}.`);
+  renderSharedExpenses()
+}
+function deleteSharedExpense(id){store.collab.sharedExpenses=store.collab.sharedExpenses.filter(x=>x.id!==id);saveData();broadcastCollab();renderSharedExpenses()}
+function computeBalances(){
+  const bal={};store.collab.members.forEach(m=>bal[m.id]=0);
+  store.collab.sharedExpenses.forEach(e=>{
+    const share=e.amount/e.participants.length;
+    bal[e.payer]=(bal[e.payer]||0)+e.amount;
+    e.participants.forEach(id=>bal[id]=(bal[id]||0)-share)
+  });
+  return bal
+}
+function settlements(){
+  const bal=computeBalances(),creditors=[],debtors=[];
+  Object.entries(bal).forEach(([id,v])=>{if(v>0.005)creditors.push([id,v]);else if(v<-0.005)debtors.push([id,-v])});
+  creditors.sort((a,b)=>b[1]-a[1]);debtors.sort((a,b)=>b[1]-a[1]);
+  const out=[];let i=0,j=0;
+  while(i<debtors.length&&j<creditors.length){
+    const amt=Math.min(debtors[i][1],creditors[j][1]);out.push({from:debtors[i][0],to:creditors[j][0],amount:amt});debtors[i][1]-=amt;creditors[j][1]-=amt;if(debtors[i][1]<.005)i++;if(creditors[j][1]<.005)j++
+  }
+  return out
+}
+function renderSharedExpenses(){
+  renderSharedSelectors();
+  const w=document.getElementById("sharedExpenseList");if(!w)return;w.innerHTML="";
+  store.collab.sharedExpenses.slice().reverse().forEach(e=>{
+    const payer=store.collab.members.find(x=>x.id===e.payer)?.name||"?",parts=e.participants.map(id=>store.collab.members.find(x=>x.id===id)?.name||"?").join(", ");
+    const r=document.createElement("div");r.className="record";r.innerHTML=`<div><b>${escapeHtml(e.title)} · ${money(e.amount)}</b><span>Payé par ${escapeHtml(payer)} · ${escapeHtml(parts)}</span></div><div class="recordActions"><button onclick="deleteSharedExpense('${e.id}')">✕</button></div>`;w.appendChild(r)
+  });
+  const bal=computeBalances(),tb=document.getElementById("balanceTable");tb.innerHTML="";
+  store.collab.members.forEach(m=>{const v=bal[m.id]||0,tr=document.createElement("tr");tr.innerHTML=`<td>${escapeHtml(m.name)}</td><td style="color:${v>=0?"#9ff0c5":"#ffadb5"}">${v>=0?"+":""}${money(v)}</td>`;tb.appendChild(tr)});
+  const sw=document.getElementById("settleList");sw.innerHTML="";
+  settlements().forEach(s=>{const a=store.collab.members.find(x=>x.id===s.from)?.name||"?",b=store.collab.members.find(x=>x.id===s.to)?.name||"?";const e=document.createElement("div");e.className="settle";e.innerHTML=`<div class="avatar">↔</div><div><b>${escapeHtml(a)} → ${escapeHtml(b)}</b><small>Remboursement conseillé</small></div><b>${money(s.amount)}</b>`;sw.appendChild(e)})
+}
+
+function renderActivity(){
+  const w=document.getElementById("activityList");if(!w)return;w.innerHTML="";
+  store.collab.activity.slice(0,50).forEach(a=>{const e=document.createElement("div");e.className="activity";e.innerHTML=`<div class="avatar">${escapeHtml((a.member||"S").slice(0,2).toUpperCase())}</div><div><b>${escapeHtml(a.member||"Système")}</b><small>${escapeHtml(a.text)} · ${new Date(a.date).toLocaleString("fr-FR")}</small></div><span></span>`;w.appendChild(e)})
+}
+function saveCloudConfig(){
+  ensureCollabData();store.collab.cloud.url=document.getElementById("sbUrl").value.trim();store.collab.cloud.anon=document.getElementById("sbAnon").value.trim();saveData();renderCloud();toast("Configuration enregistrée")
+}
+function renderCloud(){
+  const c=store.collab.cloud||{};document.getElementById("sbUrl").value=c.url||"";document.getElementById("sbAnon").value=c.anon||"";
+  const configured=!!(c.url&&c.anon),st=document.getElementById("cloudStatus"),badge=document.getElementById("cloudModeBadge");
+  st.textContent=configured?"Configuration enregistrée. Le schéma Supabase du pack permet d’activer la vraie synchro distante.":"Non configuré.";
+  st.className="aiStatus "+(configured?"ok":"warn");badge.textContent=configured?"CLOUD PRÊT":"LOCAL";badge.className="modeBadge "+(configured?"cloud":"local")
+}
+function setupCollabChannel(){
+  if(collabChannel)return;
+  try{
+    collabChannel=new BroadcastChannel(COLLAB_CHANNEL);
+    collabChannel.onmessage=e=>{
+      if(!e.data||e.data.tripId!==activeTripId)return;
+      store=loadData(activeTripId);
+      renderCollabAll();renderList();refreshStats();
+    }
+  }catch(e){}
+}
+function broadcastCollab(){
+  try{collabChannel?.postMessage({tripId:activeTripId,t:Date.now()})}catch(e){}
+}
+const oldSaveDataCollab=saveData;
+saveData=function(){
+  oldSaveDataCollab();
+  broadcastCollab();
+};
+
+function openUltimate(){
+  if(!activeTrip)return toast("Ouvre d’abord un voyage");
+  ensureUltimateData();
+  document.getElementById("ultimateOverlay").classList.add("show");
+  populateOptimizerDays();
+  renderTimeline();
+  renderBookings();renderDocuments();renderEmergency();renderBudgetPlus();
+}
+function showUltimateSection(name){
+  ["day","bookings","docs","emergency","budget"].forEach(s=>document.getElementById("u-"+s).style.display=s===name?"block":"none");
+  document.querySelectorAll(".sectionTab").forEach(x=>x.classList.toggle("on",x.dataset.u===name));
+  if(name==="budget")renderBudgetPlus();
+}
+function populateOptimizerDays(){
+  const sel=document.getElementById("optDay"),dates=allDates();sel.innerHTML="";
+  dates.forEach(d=>{const o=document.createElement("option");o.value=d;o.textContent=prettyDay(d);sel.appendChild(o)});
+  if(currentDay!=="Tous"&&dates.includes(currentDay))sel.value=currentDay;
+  renderTimeline();
+}
+function currentOptDay(){return document.getElementById("optDay")?.value||allDates()[0]||""}
+
+function haversine(a,b){
+  const R=6371,toRad=x=>x*Math.PI/180,dLat=toRad(Number(b.lat)-Number(a.lat)),dLon=toRad(Number(b.lon)-Number(a.lon));
+  const la1=toRad(Number(a.lat)),la2=toRad(Number(b.lat));
+  const h=Math.sin(dLat/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+function optimizerScore(p,phase){
+  let s=0;
+  if(p.top)s+=35;
+  const c=(p.category||"").toLowerCase(),name=(p.name||"").toLowerCase();
+  if(phase==="morning"&&(p.top||name.includes("shrine")||name.includes("temple")||name.includes("park")))s+=18;
+  if(phase==="midday"&&(c==="food"||c==="visite"))s+=10;
+  if(phase==="evening"&&(p.top||name.includes("crossing")||name.includes("tower")||name.includes("station")))s+=18;
+  return s;
+}
+function optimizeDayOrder(arr){
+  if(arr.length<=2)return arr.slice();
+  const remaining=arr.slice();
+  // strongest sunrise candidate first
+  remaining.sort((a,b)=>optimizerScore(b,"morning")-optimizerScore(a,"morning"));
+  let cur=remaining.shift(),ordered=[cur];
+  while(remaining.length){
+    const phase=ordered.length<Math.ceil(arr.length/3)?"morning":ordered.length>Math.floor(arr.length*2/3)?"evening":"midday";
+    remaining.sort((a,b)=>{
+      const da=haversine(cur,a),db=haversine(cur,b);
+      const sa=optimizerScore(a,phase)-da*1.4,sb=optimizerScore(b,phase)-db*1.4;
+      return sb-sa;
+    });
+    cur=remaining.shift();ordered.push(cur);
+  }
+  return ordered;
+}
+function defaultTimesForCount(n){
+  const out=[],start=7*60+30,end=20*60;
+  if(n===1)return["08:00"];
+  const step=(end-start)/(n-1);
+  for(let i=0;i<n;i++){const m=Math.round(start+i*step),hh=String(Math.floor(m/60)).padStart(2,"0"),mm=String(m%60).padStart(2,"0");out.push(hh+":"+mm)}
+  return out;
+}
+function optimizeSelectedDay(){
+  ensureUltimateData();
+  const d=currentOptDay(),arr=activeSpots().filter(p=>p.date===d);
+  if(!arr.length)return toast("Aucun spot ce jour");
+  const ordered=optimizeDayOrder(arr),times=defaultTimesForCount(ordered.length);
+  store.dayPlans[d]=ordered.map((p,i)=>({spotId:String(spotUid(p)),time:times[i]}));
+  saveData();renderTimeline();
+  const s=document.getElementById("optStatus");s.textContent=`Optimisation terminée : ${ordered.length} étapes réordonnées pour limiter les détours et favoriser les meilleurs moments photo.`;s.className="aiStatus ok";
+}
+function plannedItemsForDay(d){
+  ensureUltimateData();
+  const plan=store.dayPlans[d]||[];
+  const byId=new Map(activeSpots().map(p=>[String(spotUid(p)),p]));
+  if(plan.length)return plan.map(x=>({p:byId.get(String(x.spotId)),time:x.time})).filter(x=>x.p);
+  const a=activeSpots().filter(p=>p.date===d),t=defaultTimesForCount(a.length);return a.map((p,i)=>({p,time:t[i]}))
+}
+function renderTimeline(){
+  const w=document.getElementById("dayTimeline");if(!w)return;const d=currentOptDay();w.innerHTML="";
+  plannedItemsForDay(d).forEach((x,i)=>{
+    const r=document.createElement("div");r.className="timeRow";r.innerHTML=`<input type="time" value="${x.time||"08:00"}" onchange="updatePlanTime('${d}',${i},this.value)"><div class="timeInfo"><b>${escapeHtml(x.p.name)}</b><span>${escapeHtml(x.p.city||"")} ${x.p.top?"· ★ TOP":""}</span></div><button onclick="movePlanItem('${d}',${i},-1)">↑</button>`;w.appendChild(r)
+  })
+}
+function updatePlanTime(d,i,v){
+  ensureUltimateData();if(!store.dayPlans[d]){const a=plannedItemsForDay(d);store.dayPlans[d]=a.map(x=>({spotId:String(spotUid(x.p)),time:x.time}))}
+  if(store.dayPlans[d][i])store.dayPlans[d][i].time=v;saveData()
+}
+function movePlanItem(d,i,dir){
+  ensureUltimateData();if(!store.dayPlans[d])optimizeSelectedDay();
+  const a=store.dayPlans[d],j=i+dir;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];saveData();renderTimeline()
+}
+
+async function loadDayForecast(){
+  const d=currentOptDay(),arr=activeSpots().filter(p=>p.date===d),w=document.getElementById("forecastGrid");w.innerHTML="";
+  if(!arr.length)return;
+  const p=arr[0];
+  try{
+    w.innerHTML='<div style="color:#9fa6b0;font-size:11px">Chargement…</div>';
+    const u=`https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&timezone=auto&forecast_days=7`;
+    const j=await (await fetch(u)).json(),dly=j.daily||{},dates=dly.time||[];w.innerHTML="";
+    dates.slice(0,7).forEach((date,i)=>{
+      const e=document.createElement("div");e.className="forecastDay";const rain=dly.precipitation_probability_max?.[i]??0,wind=dly.wind_speed_10m_max?.[i]??0;
+      e.innerHTML=`<small>${new Date(date+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric"})}</small><b>${dly.temperature_2m_max?.[i]??"—"}° / ${dly.temperature_2m_min?.[i]??"—"}°</b><span>Pluie ${rain}% · Vent ${wind} km/h</span>`;w.appendChild(e)
+    })
+  }catch(e){w.innerHTML='<div style="color:#ffb2b8;font-size:11px">Prévision indisponible.</div>'}
+}
+function buildPlanB(){
+  const d=currentOptDay(),arr=activeSpots().filter(p=>p.date===d);
+  if(!arr.length)return;
+  const indoorWords=["market","station","forum","museum","mall","shopping","akihabara","nakano","kuromon","divercity","amemura","den den","golden gai","gion"];
+  const ranked=arr.slice().sort((a,b)=>{
+    const sa=indoorWords.some(w=>(a.name+" "+(a.query||"")).toLowerCase().includes(w))?20:0;
+    const sb=indoorWords.some(w=>(b.name+" "+(b.query||"")).toLowerCase().includes(w))?20:0;
+    return sb-sa+(b.category==="Food"?5:0)-(a.category==="Food"?-5:0)
+  });
+  const s=document.getElementById("planBStatus");
+  s.innerHTML="Plan B proposé : <b>"+ranked.slice(0,Math.min(5,ranked.length)).map(p=>escapeHtml(p.name)).join(" → ")+"</b>. Pour une vraie pluie forte, privilégie les étapes urbaines/couvertes et reporte les TOP paysage.";
+  s.className="aiStatus ok";
+}
+
+function addBooking(){
+  ensureUltimateData();const title=document.getElementById("bkTitle").value.trim();if(!title)return toast("Titre requis");
+  store.bookings.push({id:uid("bk"),type:document.getElementById("bkType").value,title,date:document.getElementById("bkDate").value,ref:document.getElementById("bkRef").value,place:document.getElementById("bkPlace").value,link:document.getElementById("bkLink").value,notes:document.getElementById("bkNotes").value});
+  ["bkTitle","bkDate","bkRef","bkPlace","bkLink","bkNotes"].forEach(id=>document.getElementById(id).value="");saveData();renderBookings();toast("Réservation ajoutée")
+}
+function renderBookings(){
+  const w=document.getElementById("bookingList");if(!w||!store)return;w.innerHTML="";
+  (store.bookings||[]).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).forEach(b=>{const e=document.createElement("div");e.className="record";e.innerHTML=`<div><b>${escapeHtml(b.type)} · ${escapeHtml(b.title)}</b><span>${b.date?new Date(b.date).toLocaleString("fr-FR"):""} ${b.place?"· "+escapeHtml(b.place):""} ${b.ref?"· Réf. "+escapeHtml(b.ref):""}</span></div><div class="recordActions">${b.link?`<button onclick="window.open('${String(b.link).replace(/'/g,"%27")}','_blank')">↗</button>`:""}<button onclick="deleteBooking('${b.id}')">✕</button></div>`;w.appendChild(e)})
+}
+function deleteBooking(id){store.bookings=store.bookings.filter(x=>x.id!==id);saveData();renderBookings()}
+
+function addDocument(){
+  ensureUltimateData();const name=document.getElementById("docName").value.trim();if(!name)return toast("Nom du document requis");
+  store.documents.push({id:uid("doc"),name,expiry:document.getElementById("docExpiry").value,note:document.getElementById("docNote").value});
+  ["docName","docExpiry","docNote"].forEach(id=>document.getElementById(id).value="");saveData();renderDocuments()
+}
+function renderDocuments(){
+  const w=document.getElementById("documentList");if(!w||!store)return;w.innerHTML="";
+  (store.documents||[]).forEach(d=>{let status="";if(d.expiry){const days=Math.ceil((new Date(d.expiry+"T12:00:00")-new Date())/86400000);status=days<0?'<span class="statusPill warn">Expiré</span>':days<90?`<span class="statusPill warn">${days} j</span>`:`<span class="statusPill good">${days} j</span>`}
+    const e=document.createElement("div");e.className="record";e.innerHTML=`<div><b>${escapeHtml(d.name)}</b><span>${d.expiry?"Expire "+formatDate(d.expiry):""} ${d.note?"· "+escapeHtml(d.note):""}</span>${status}</div><div class="recordActions"><button onclick="deleteDocument('${d.id}')">✕</button></div>`;w.appendChild(e)})
+}
+function deleteDocument(id){store.documents=store.documents.filter(x=>x.id!==id);saveData();renderDocuments()}
+
+function addEmergency(){
+  ensureUltimateData();const name=document.getElementById("emName").value.trim();if(!name)return toast("Nom requis");
+  store.emergency.push({id:uid("em"),name,phone:document.getElementById("emPhone").value,note:document.getElementById("emNote").value});
+  ["emName","emPhone","emNote"].forEach(id=>document.getElementById(id).value="");saveData();renderEmergency()
+}
+function renderEmergency(){
+  const w=document.getElementById("emergencyList");if(!w||!store)return;w.innerHTML="";
+  (store.emergency||[]).forEach(c=>{const e=document.createElement("div");e.className="record";e.innerHTML=`<div><b>${escapeHtml(c.name)}</b><span>${escapeHtml(c.phone||"")} ${c.note?"· "+escapeHtml(c.note):""}</span></div><div class="recordActions">${c.phone?`<button onclick="location.href='tel:${String(c.phone).replace(/[^+0-9]/g,"")}'">☎</button>`:""}<button onclick="deleteEmergency('${c.id}')">✕</button></div>`;w.appendChild(e)})
+}
+function deleteEmergency(id){store.emergency=store.emergency.filter(x=>x.id!==id);saveData();renderEmergency()}
+
+function renderBudgetPlus(){
+  if(!store||!activeTrip)return;const spent=(store.expenses||[]).reduce((s,e)=>s+Number(e.amount||0),0),budget=Number(store.budgetTotal||0),remain=budget-spent;
+  document.getElementById("uSpent").textContent=money(spent);
+  const daysTotal=Math.max(1,Math.ceil((new Date(activeTrip.end+"T23:59:59")-new Date(activeTrip.start+"T00:00:00"))/86400000)+1);
+  const today=new Date(),start=new Date(activeTrip.start+"T00:00:00"),end=new Date(activeTrip.end+"T23:59:59"),daysLeft=today<start?daysTotal:today>end?0:Math.max(1,Math.ceil((end-today)/86400000));
+  document.getElementById("uDailyLeft").textContent=budget?money(Math.max(0,remain)/Math.max(1,daysLeft)):"—";
+  const bs=document.getElementById("uBudgetState");bs.textContent=!budget?"Budget non défini":remain>=0?`${money(remain)} restant`:`Dépassement ${money(Math.abs(remain))}`;bs.className="statusPill "+(!budget?"warn":remain>=0?"good":"warn");
+  const ds=document.getElementById("uDailyState");ds.textContent=daysLeft+" jour"+(daysLeft>1?"s":"")+" restant"+(daysLeft>1?"s":"");ds.className="statusPill";
+  const sums={};(store.expenses||[]).forEach(e=>sums[e.cat]=(sums[e.cat]||0)+Number(e.amount||0));const max=Math.max(1,...Object.values(sums)),w=document.getElementById("budgetBars");w.innerHTML="";
+  Object.entries(sums).sort((a,b)=>b[1]-a[1]).forEach(([cat,val])=>{const r=document.createElement("div");r.className="chartRow";r.innerHTML=`<span>${escapeHtml(cat)}</span><div class="barTrack"><div class="barFill" style="width:${Math.round(val/max*100)}%"></div></div><b>${money(val)}</b>`;w.appendChild(r)})
+}
+
+function openAIBuilder(){
+  document.getElementById("aiOverlay").classList.add("show");
+}
+function appendAI(t){
+  const a=document.getElementById("aiRequest");
+  a.value=(a.value.trim()?a.value.trim()+", ":"")+t;
+  a.focus();
+}
+function normalizeDateISO(v){
+  if(!v)return "";
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v))return v;
+  const d=new Date(v);
+  return isNaN(d)?"":d.toISOString().slice(0,10);
+}
+function buildAIPrompt(){
+  const request=document.getElementById("aiRequest").value.trim();
+  if(!request){toast("Décris d’abord ton voyage");return}
+  const currentContext=activeTrip?`\nCONTEXTE DU VOYAGE ACTUEL DANS L'APP:\n- Nom: ${activeTrip.name}\n- Pays: ${activeTrip.country||""}\n- Dates: ${activeTrip.start||"?"} → ${activeTrip.end||"?"}\n- Devise: ${activeTrip.currency||"?"}\n- Spots déjà présents: ${activeSpots().length}\n`:"";
+  const prompt=`Tu es mon travel planner expert et mon assistant de repérage photo.
+
+Je veux que tu construises un voyage COMPLET à partir de cette demande:
+
+"${request}"
+${currentContext}
+OBJECTIF:
+Créer un itinéraire réaliste, pratique, optimisé géographiquement et pensé pour être importé directement dans mon application Travel Photo OS.
+
+RÈGLES:
+- Respecte précisément mes dates, budget, centres d’intérêt, rythme et contraintes.
+- Optimise l'ordre géographique pour éviter les allers-retours inutiles.
+- Pour chaque journée, propose uniquement un nombre réaliste d'étapes.
+- Priorise les expériences fortes plutôt qu'une liste interminable.
+- Pour les spots photo, indique le meilleur moment, la focale conseillée et si c'est un TOP photo.
+- Donne latitude/longitude aussi précises que raisonnablement possible.
+- Les dates doivent être au format YYYY-MM-DD.
+- Les montants ne sont PAS nécessaires dans les spots.
+- Ne crée pas de coordonnées si tu n'es pas suffisamment sûr: dans ce cas, mets lat et lon à null.
+- maps peut être une URL Google Maps si tu en as une, sinon une chaîne vide.
+- image doit rester vide sauf si tu as une URL d'image publique stable.
+- category doit être une des valeurs: Photo, Visite, Transport, Food, Logement, Randonnée, Autre.
+
+IMPORTANT:
+Réponds À LA FIN avec UN SEUL bloc JSON valide, sans commentaires dans le JSON et sans Markdown à l'intérieur du bloc.
+
+SCHÉMA EXACT:
+{
+  "trip": {
+    "name": "Nom du voyage",
+    "country": "Pays",
+    "startCity": "Ville de départ",
+    "start": "YYYY-MM-DD",
+    "end": "YYYY-MM-DD",
+    "currency": "EUR",
+    "emoji": "✈️",
+    "description": "Résumé court du voyage"
+  },
+  "spots": [
+    {
+      "name": "Nom du lieu",
+      "city": "Ville ou zone",
+      "date": "YYYY-MM-DD",
+      "lat": 0.0,
+      "lon": 0.0,
+      "category": "Photo",
+      "top": true,
+      "lens": "24-70 mm",
+      "bestTime": "Lever du soleil",
+      "image": "",
+      "maps": "",
+      "description": "Pourquoi y aller et conseil pratique/photo"
+    }
+  ],
+  "summary": {
+    "style": "résumé du style du voyage",
+    "estimatedPace": "rythme",
+    "keyAdvice": ["conseil 1","conseil 2","conseil 3"]
+  }
+}
+
+Avant le JSON, tu peux expliquer brièvement les choix d'itinéraire. Mais le bloc JSON final doit être complet et directement importable.`;
+
+  document.getElementById("aiPrompt").value=prompt;
+  const s=document.getElementById("aiStatus");s.textContent="Brief prêt. Copie-le ou ouvre ChatGPT.";s.className="aiStatus ok";
+}
+async function copyAIPrompt(){
+  const p=document.getElementById("aiPrompt").value;
+  if(!p)return toast("Génère d’abord le brief");
+  try{await navigator.clipboard.writeText(p);toast("Prompt copié")}catch(e){
+    document.getElementById("aiPrompt").select();document.execCommand("copy");toast("Prompt copié")
+  }
+}
+async function openChatGPT(){
+  const p=document.getElementById("aiPrompt").value;
+  if(!p){buildAIPrompt();if(!document.getElementById("aiPrompt").value)return}
+  await copyAIPrompt();
+  window.open("https://chatgpt.com/","_blank","noopener,noreferrer");
+  const s=document.getElementById("aiStatus");s.textContent="ChatGPT ouvert. Le prompt est copié: colle-le dans la conversation.";s.className="aiStatus ok";
+}
+function extractJSON(raw){
+  raw=raw.trim();
+  if(!raw)throw new Error("Réponse vide");
+  const fenced=raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if(fenced)raw=fenced[1].trim();
+  try{return JSON.parse(raw)}catch(e){}
+  const first=raw.indexOf("{"),last=raw.lastIndexOf("}");
+  if(first>=0&&last>first)return JSON.parse(raw.slice(first,last+1));
+  throw new Error("Aucun JSON valide trouvé");
+}
+function validateAIObject(obj){
+  if(!obj||typeof obj!=="object")throw new Error("Objet JSON invalide");
+  if(!obj.trip||typeof obj.trip!=="object")throw new Error('Champ "trip" manquant');
+  if(!obj.trip.name)throw new Error("Nom du voyage manquant");
+  if(!Array.isArray(obj.spots))throw new Error('Champ "spots" manquant');
+  let valid=0,invalid=0;
+  obj.spots.forEach(s=>{
+    const coords=Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lon));
+    if(s.name&&coords)valid++;else invalid++;
+  });
+  return {valid,invalid,total:obj.spots.length};
+}
+function validateAIImport(){
+  const st=document.getElementById("aiImportStatus");
+  try{
+    const obj=extractJSON(document.getElementById("aiImport").value);
+    const v=validateAIObject(obj);
+    st.textContent=`Réponse valide: ${v.total} spots, dont ${v.valid} importables avec coordonnées${v.invalid?`, ${v.invalid} à corriger`:""}.`;
+    st.className="aiStatus "+(v.invalid?"warn":"ok");
+    return obj;
+  }catch(e){
+    st.textContent="Erreur: "+e.message;
+    st.className="aiStatus warn";
+    return null;
+  }
+}
+function importAITrip(){
+  const obj=validateAIImport();
+  if(!obj)return;
+  const t=obj.trip;
+  const id=uid("trip");
+  const trip={
+    id,
+    name:String(t.name||"Voyage IA"),
+    country:String(t.country||"Voyage"),
+    startCity:String(t.startCity||""),
+    start:normalizeDateISO(t.start),
+    end:normalizeDateISO(t.end),
+    currency:String(t.currency||"EUR").toUpperCase(),
+    emoji:String(t.emoji||"✈️"),
+    description:String(t.description||obj.summary?.style||"Voyage créé avec ChatGPT"),
+    builtIn:false,
+    aiGenerated:true
+  };
+  const data=defaults();
+  const allowed=["Photo","Visite","Transport","Food","Logement","Randonnée","Autre"];
+  data.customSpots=(obj.spots||[]).filter(s=>s.name&&Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lon))).map((s,i)=>({
+    uid:uid("spot"),
+    name:String(s.name),
+    city:String(s.city||""),
+    date:normalizeDateISO(s.date),
+    lat:Number(s.lat),
+    lon:Number(s.lon),
+    category:allowed.includes(s.category)?s.category:"Autre",
+    top:!!s.top,
+    lens:String(s.lens||""),
+    bestTime:String(s.bestTime||""),
+    image:String(s.image||""),
+    maps:String(s.maps||""),
+    description:String(s.description||""),
+    aiGenerated:true,
+    step:i+1
+  }));
+  trips.push(trip);
+  localStorage.setItem(TRIPS_KEY,JSON.stringify(trips));
+  localStorage.setItem(DATA_PREFIX+id,JSON.stringify(data));
+  renderHome();
+  closeOverlay("aiOverlay");
+  toast(`Voyage créé: ${data.customSpots.length} spots importés`);
+  openTrip(id);
+}
+
+
+// ===== REAL MULTI-DEVICE CLOUD / SUPABASE REALTIME =====
+let sbClient=null;
+let sbSessionUser=null;
+let sbLocationChannel=null;
+let sbHeartbeatTimer=null;
+let cloudLiveLocations={};
+
+function cloudConfig(){
+  ensureCollabData();
+  return store?.collab?.cloud || {url:"",anon:""};
+}
+function saveCloudConfig(){
+  ensureCollabData();
+  const url=(document.getElementById("sbUrl")?.value||"").trim();
+  const anon=(document.getElementById("sbAnon")?.value||"").trim();
+  store.collab.cloud={url,anon};
+  localStorage.setItem(DATA_PREFIX+activeTripId,JSON.stringify(store));
+  renderCloud();
+  toast("Configuration Cloud enregistrée");
+}
+async function connectCloud(){
+  ensureCollabData();
+  const cfg=cloudConfig();
+  if(!cfg.url||!cfg.anon){setCloudStatus("Renseigne l’URL Supabase et la clé publique anon.",false,true);return false}
+  try{
+    sbClient=window.supabase.createClient(cfg.url,cfg.anon,{
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}
+    });
+    let {data:{session}}=await sbClient.auth.getSession();
+    if(!session){
+      const {data,error}=await sbClient.auth.signInAnonymously();
+      if(error)throw error;
+      session=data.session;
+    }
+    sbSessionUser=session?.user||null;
+    if(!sbSessionUser)throw new Error("Session utilisateur introuvable");
+    setCloudStatus("Connecté au Cloud. Utilisateur anonyme prêt.",true,false);
+    await ensureCloudSubscription();
+    renderCloud();
+    return true;
+  }catch(e){
+    setCloudStatus("Connexion impossible : "+e.message,false,true);
+    return false;
+  }
+}
+function setCloudStatus(msg,ok=false,warn=false){
+  const e=document.getElementById("cloudStatus");
+  if(e){e.textContent=msg;e.className="cloudStatusBox "+(ok?"ok":warn?"warn":"")}
+  const b=document.getElementById("liveCloudBadge");
+  if(b){b.classList.toggle("connected",ok);b.querySelector("span").textContent=ok?"Connecté":"Non connecté"}
+}
+async function publishTripToCloud(){
+  if(!activeTrip)return toast("Ouvre un voyage");
+  if(!sbClient){const ok=await connectCloud();if(!ok)return}
+  ensureCollabData();
+  try{
+    let cloudTripId=activeTrip.cloudTripId||null;
+    if(!cloudTripId){
+      const payload={
+        local_trip_id:activeTrip.id,
+        start:activeTrip.start||null,
+        end:activeTrip.end||null,
+        currency:activeTrip.currency||null,
+        description:activeTrip.description||null
+      };
+      const {data,error}=await sbClient.from("trips").insert({
+        invite_code:store.collab.inviteCode,
+        name:activeTrip.name,
+        country:activeTrip.country||"",
+        owner_id:sbSessionUser.id,
+        payload
+      }).select("id,invite_code").single();
+      if(error)throw error;
+      cloudTripId=data.id;
+      activeTrip.cloudTripId=cloudTripId;
+      activeTrip.inviteCode=data.invite_code;
+      saveTrips();
+      const displayName=store.collab.members?.[0]?.name||"Propriétaire";
+      const {error:me}=await sbClient.from("trip_members").upsert({
+        trip_id:cloudTripId,user_id:sbSessionUser.id,display_name:displayName,role:"owner"
+      },{onConflict:"trip_id,user_id"});
+      if(me)throw me;
+      addActivity("Le voyage a été activé dans le Cloud.",displayName);
+    }
+    await ensureCloudSubscription();
+    renderCloud();
+    toast("Voyage Cloud actif");
+  }catch(e){
+    const s=document.getElementById("cloudTripStatus");
+    if(s){s.textContent="Erreur : "+e.message;s.className="cloudStatusBox warn"}
+  }
+}
+async function joinByCode(){
+  const code=(document.getElementById("joinCode")?.value||"").trim().toUpperCase();
+  if(!code)return toast("Entre un code");
+  if(!sbClient){const ok=await connectCloud();if(!ok)return}
+  try{
+    const displayName=(store?.collab?.members?.[0]?.name||prompt("Ton prénom / pseudo ?")||"Voyageur").trim();
+    const {data,error}=await sbClient.rpc("join_trip_by_code",{p_invite_code:code,p_display_name:displayName});
+    if(error)throw error;
+    const row=Array.isArray(data)?data[0]:data;
+    if(!row?.trip_id)throw new Error("Voyage introuvable");
+    let local=trips.find(t=>t.cloudTripId===row.trip_id);
+    if(!local){
+      const id=uid("trip");
+      local={id,name:row.trip_name||"Voyage partagé",country:row.country||"",start:"",end:"",currency:"EUR",emoji:"👥",description:"Voyage collaboratif rejoint par code",builtIn:false,cloudTripId:row.trip_id,inviteCode:code};
+      trips.push(local);saveTrips();
+      localStorage.setItem(DATA_PREFIX+id,JSON.stringify(defaults()));
+    }
+    openTrip(local.id);
+    ensureCollabData();
+    // Replace local "owner" label with the current member name when joining.
+    if(store.collab.members?.[0]?.id==="owner" && store.collab.members[0].name==="Propriétaire"){
+      store.collab.members[0].name=displayName;
+      store.collab.members[0].role="Éditeur";
+      saveData();
+    }
+    await ensureCloudSubscription();
+    toast("Voyage rejoint");
+    closeOverlay("collabOverlay");
+  }catch(e){
+    toast("Impossible de rejoindre : "+e.message)
+  }
+}
+async function ensureCloudSubscription(){
+  if(!sbClient||!sbSessionUser||!activeTrip?.cloudTripId)return;
+  const tripId=activeTrip.cloudTripId;
+
+  if(sbLocationChannel){
+    try{await sbClient.removeChannel(sbLocationChannel)}catch(e){}
+    sbLocationChannel=null;
+  }
+
+  await fetchCloudLocations();
+
+  sbLocationChannel=sbClient.channel("trip-live-"+tripId)
+    .on("postgres_changes",{event:"*",schema:"public",table:"live_locations",filter:"trip_id=eq."+tripId},payload=>{
+      if(payload.eventType==="DELETE"){
+        const old=payload.old||{};
+        if(old.user_id)delete cloudLiveLocations[old.user_id];
+      }else{
+        const row=payload.new;
+        if(row?.user_id)cloudLiveLocations[row.user_id]=row;
+      }
+      renderCloudLocations();
+      updateLiveLocationSource();
+    })
+    .on("postgres_changes",{event:"*",schema:"public",table:"trip_members",filter:"trip_id=eq."+tripId},async ()=>{
+      await fetchCloudLocations();
+    })
+    .subscribe(status=>{
+      if(status==="SUBSCRIBED")setCloudStatus("Cloud connecté · temps réel actif.",true,false);
+    });
+
+  clearInterval(sbHeartbeatTimer);
+  sbHeartbeatTimer=setInterval(()=>{
+    if(geoSharing&&myGeo)publishCloudLocation();
+    pruneCloudLocations();
+  },5000);
+}
+async function fetchCloudLocations(){
+  if(!sbClient||!activeTrip?.cloudTripId)return;
+  try{
+    const {data,error}=await sbClient.from("live_locations")
+      .select("trip_id,user_id,display_name,lat,lon,accuracy,heading,speed,sharing,updated_at")
+      .eq("trip_id",activeTrip.cloudTripId)
+      .eq("sharing",true);
+    if(error)throw error;
+    cloudLiveLocations={};
+    (data||[]).forEach(r=>cloudLiveLocations[r.user_id]=r);
+    pruneCloudLocations();
+    renderCloudLocations();
+    updateLiveLocationSource();
+  }catch(e){}
+}
+function pruneCloudLocations(){
+  const limit=Date.now()-2*60*1000;
+  Object.entries(cloudLiveLocations).forEach(([id,r])=>{
+    if(!r.updated_at||new Date(r.updated_at).getTime()<limit)delete cloudLiveLocations[id];
+  });
+  renderCloudLocations();
+  updateLiveLocationSource();
+}
+async function publishCloudLocation(){
+  if(!geoSharing||!myGeo)return;
+  if(!sbClient||!sbSessionUser||!activeTrip?.cloudTripId)return;
+  const displayName=store.collab?.members?.[0]?.name||"Voyageur";
+  try{
+    const {error}=await sbClient.from("live_locations").upsert({
+      trip_id:activeTrip.cloudTripId,
+      user_id:sbSessionUser.id,
+      display_name:displayName,
+      lat:myGeo.lat,
+      lon:myGeo.lon,
+      accuracy:myGeo.accuracy||null,
+      heading:Number.isFinite(Number(myGeo.heading))?Number(myGeo.heading):null,
+      speed:Number.isFinite(Number(myGeo.speed))?Number(myGeo.speed):null,
+      sharing:true,
+      updated_at:new Date().toISOString()
+    },{onConflict:"trip_id,user_id"});
+    if(error)throw error;
+  }catch(e){
+    const s=document.getElementById("shareGeoStatus");
+    if(s){s.textContent="Erreur Cloud : "+e.message;s.className="geoStatus warn"}
+  }
+}
+async function removeCloudLocation(){
+  if(!sbClient||!sbSessionUser||!activeTrip?.cloudTripId)return;
+  try{
+    await sbClient.from("live_locations")
+      .delete()
+      .eq("trip_id",activeTrip.cloudTripId)
+      .eq("user_id",sbSessionUser.id);
+  }catch(e){}
+}
+function renderCloudLocations(){
+  const rows=Object.values(cloudLiveLocations);
+  const w=document.getElementById("cloudLiveMemberList");
+  if(w){
+    w.innerHTML="";
+    if(!rows.length)w.innerHTML='<div style="font-size:11px;color:#9098a4">Aucun membre ne partage actuellement sa position.</div>';
+    rows.forEach(r=>{
+      const age=Math.max(0,Math.round((Date.now()-new Date(r.updated_at).getTime())/1000));
+      const e=document.createElement("div");e.className="geoMember";
+      e.innerHTML=`<div class="geoPulse"></div><div><b>${escapeHtml(r.display_name||"Voyageur")}</b><small>${Number(r.lat).toFixed(5)}, ${Number(r.lon).toFixed(5)} · ${age}s</small></div><button class="btn" onclick="flyToCloudMember('${r.user_id}')">Voir</button>`;
+      w.appendChild(e);
+    });
+  }
+  const bar=document.getElementById("liveUsersBar"),faces=document.getElementById("liveUsersFaces"),count=document.getElementById("liveUsersCount");
+  if(bar&&faces&&count){
+    faces.innerHTML="";
+    rows.slice(0,5).forEach(r=>{
+      const s=document.createElement("span");s.textContent=(r.display_name||"?").slice(0,2).toUpperCase();faces.appendChild(s)
+    });
+    count.textContent=rows.length+" voyageur"+(rows.length>1?"s":"");
+    bar.classList.toggle("show",rows.length>0);
+  }
+}
+function flyToCloudMember(userId){
+  const r=cloudLiveLocations[userId];if(!r)return;
+  closeOverlay("collabOverlay");
+  map.flyTo({center:[Number(r.lon),Number(r.lat)],zoom:17,pitch:55,duration:1200,essential:true});
+}
+function updateLiveLocationSource(){
+  if(!geoMarkerSourceReady||!map?.getSource("live-user-location"))return;
+  ensureGeoData();
+  const feats=[];
+  if(myGeo)feats.push({type:"Feature",geometry:{type:"Point",coordinates:[myGeo.lon,myGeo.lat]},properties:{kind:"me",label:"Moi",accuracy:myGeo.accuracy||0}});
+  // Local shared positions
+  const myLocalId=store.collab?.members?.[0]?.id||"owner";
+  Object.values(store.geo.sharedMembers||{}).forEach(x=>{
+    if(x.memberId===myLocalId&&myGeo)return;
+    if(x.shareUntil&&Date.now()>x.shareUntil)return;
+    if(Date.now()-new Date(x.updatedAt).getTime()>15*60*1000)return;
+    feats.push({type:"Feature",geometry:{type:"Point",coordinates:[Number(x.lon),Number(x.lat)]},properties:{kind:"member",label:x.name||"Voyageur"}})
+  });
+  // Cloud positions
+  Object.values(cloudLiveLocations).forEach(r=>{
+    if(sbSessionUser&&r.user_id===sbSessionUser.id&&myGeo)return;
+    if(Date.now()-new Date(r.updated_at).getTime()>2*60*1000)return;
+    feats.push({type:"Feature",geometry:{type:"Point",coordinates:[Number(r.lon),Number(r.lat)]},properties:{kind:"member",label:r.display_name||"Voyageur"}})
+  });
+  map.getSource("live-user-location").setData({type:"FeatureCollection",features:feats});
+}
+function renderCloud(){
+  ensureCollabData();
+  const c=store.collab.cloud||{};
+  const u=document.getElementById("sbUrl"),a=document.getElementById("sbAnon");
+  if(u)u.value=c.url||"";
+  if(a)a.value=c.anon||"";
+  const code=document.getElementById("cloudInviteCode");
+  if(code)code.textContent=store.collab.inviteCode||"—";
+  const t=document.getElementById("cloudTripStatus");
+  if(t){
+    t.textContent=activeTrip?.cloudTripId?"Voyage publié · ID Cloud actif.":"Voyage non publié.";
+    t.className="cloudStatusBox "+(activeTrip?.cloudTripId?"ok":"warn");
+  }
+  if(sbClient&&sbSessionUser)setCloudStatus("Cloud connecté · utilisateur prêt.",true,false);
+  else if(c.url&&c.anon)setCloudStatus("Configuration enregistrée. Clique sur Connecter.",false,false);
+  else setCloudStatus("Non configuré.",false,true);
+  renderCloudLocations();
+}
+async function copyCloudInvite(){
+  const c=store?.collab?.inviteCode||"";
+  if(!c)return;
+  try{await navigator.clipboard.writeText(c);toast("Code Cloud copié")}catch(e){toast(c)}
+}
+
+// Extend local geo publication to cloud.
+const _publishMyLocationLocal=publishMyLocation;
+publishMyLocation=function(){
+  _publishMyLocationLocal();
+  if(sbClient&&activeTrip?.cloudTripId)publishCloudLocation();
+}
+const _removeMySharedLocationLocal=removeMySharedLocation;
+removeMySharedLocation=function(){
+  _removeMySharedLocationLocal();
+  if(sbClient&&activeTrip?.cloudTripId)removeCloudLocation();
+}
+
+// On trip open, reconnect subscription when possible.
+const _openTripCloud=openTrip;
+openTrip=function(id){
+  _openTripCloud(id);
+  setTimeout(async()=>{
+    const c=store?.collab?.cloud||{};
+    if(c.url&&c.anon){
+      const ok=await connectCloud();
+      if(ok&&activeTrip?.cloudTripId)await ensureCloudSubscription();
+    }
+  },200);
+}
+
+initMap();
+renderHome();
+if("serviceWorker" in navigator && location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
+</script>
+</body>
+</html>
