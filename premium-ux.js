@@ -2,7 +2,7 @@
 (function(){
   let baseOpenTrip,baseShowHome,baseSelectPlace,baseSaveData,baseSetMode,baseCloseDetail;
 
-  const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const esc=s=>String(s??'').replace(/[&<>'\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[c]));
   const homeVisible=()=>{const h=document.querySelector('.home');return !!h&&!h.classList.contains('hide')};
   const mobile=()=>window.matchMedia('(max-width:760px)').matches;
 
@@ -56,7 +56,7 @@
     if(!document.getElementById('uxNav')){
       const nav=document.createElement('nav');nav.id='uxNav';nav.className='uxNav uxOff';nav.setAttribute('aria-label','Navigation principale');
       nav.innerHTML=[
-        ['map','⌖','Carte'],['day','◷','Journée'],['spots','●','Spots'],['photo','✦','Photo'],['trip','•••','Voyage']
+        ['map','⌖','Carte'],['day','◷','Journée'],['spots','●','Spots'],['photo','✦','Photo'],['nav','🧭','Navigation'],['trip','•••','Voyage']
       ].map(([id,ic,tx])=>`<button data-ux="${id}"><span class="uxIcon">${ic}</span><span class="uxLabel">${tx}</span></button>`).join('');
       document.body.appendChild(nav);
       nav.addEventListener('click',e=>{const b=e.target.closest('button[data-ux]');if(!b)return;navAction(b.dataset.ux)});
@@ -78,6 +78,9 @@
     }else if(id==='photo'){
       try{if(typeof setMode==='function')setMode('photo');if(typeof toggleLeft==='function')toggleLeft(true)}catch(e){}
       setNavOn('photo');
+    }else if(id==='nav'){
+      try{if(typeof openNavigationV2==='function')openNavigationV2();else if(typeof openNavigationMode==='function')openNavigationMode()}catch(e){}
+      setNavOn('nav');
     }else if(id==='trip'){
       try{if(typeof showHome==='function')showHome()}catch(e){}
       setNavOn('trip');
