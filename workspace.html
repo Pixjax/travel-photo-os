@@ -12,9 +12,9 @@
 <script>
 (async()=>{
   try{
-    let html=await (await fetch('./app-base.html?v=workspace1',{cache:'no-store'})).text();
+    let html=await (await fetch('./app-base.html?v=workspace2',{cache:'no-store'})).text();
     html=html.replace('<title>Travel Photo OS — PRO MAX</title>','<title>Travel Photo OS — Workspace</title>');
-    html=html.replace('</head>','<link rel="stylesheet" href="./mobile-ux.css?v=workspace1"><link rel="stylesheet" href="./workspace-windows.css?v=workspace1"></head>');
+    html=html.replace('</head>','<link rel="stylesheet" href="./mobile-ux.css?v=workspace2"><link rel="stylesheet" href="./workspace-windows.css?v=workspace2"></head>');
     const menu=`<button class="mobileActionBtn" id="mobileActionBtn" onclick="toggleMobileActions()" aria-label="Ouvrir les actions">☰</button>
 <div class="mobileActionMenu" id="mobileActionMenu">
   <div class="mobileActionTitle"><span>Actions</span><button class="btn icon" style="width:34px;min-height:34px" onclick="toggleMobileActions(false)">✕</button></div>
@@ -37,7 +37,7 @@
   </div>
 </div>`;
     html=html.replace('<div class="top">',menu+'\n<div class="top">');
-    const scripts='<script src="./mobile-ux.js?v=workspace1"></scr'+'ipt><script src="./workspace-windows.js?v=workspace1"></scr'+'ipt>';
+    const scripts='<script src="./mobile-ux.js?v=workspace2"></scr'+'ipt><script src="./workspace-windows.js?v=workspace2"></scr'+'ipt>';
     html=html.replace('</body>',scripts+'</body>');
     document.open();document.write(html);document.close();
   }catch(e){document.body.innerHTML='<div class="boot"><div><b>Impossible de charger le Workspace</b><span>'+String(e.message||e)+'</span></div></div>'}
