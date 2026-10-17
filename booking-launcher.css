@@ -1,0 +1,7 @@
+/* Travel Photo OS — booking launcher */
+.uxBookingLauncher{margin-top:12px;padding:14px;border-radius:20px;background:linear-gradient(145deg,rgba(24,29,38,.97),rgba(15,19,25,.97));border:1px solid rgba(255,255,255,.085)}
+.uxBookingHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.uxBookingHead h3{margin:0;font-size:14px}.uxBookingHead span{font-size:9px;color:#7f8995;text-align:right;line-height:1.35}
+.uxBookingForm{display:grid;gap:7px;margin-top:11px}.uxBookingGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.uxBookingForm input,.uxBookingForm select{width:100%;min-height:42px;padding:9px 10px;border-radius:12px;background:rgba(255,255,255,.055);color:#fff;border:1px solid rgba(255,255,255,.075);outline:none}.uxBookingForm select option{color:#111}
+.uxBookingProviders{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.uxBookingProvider{min-height:46px;padding:8px;border-radius:13px;background:rgba(255,255,255,.065);color:#fff;border:1px solid rgba(255,255,255,.06);font-size:10px;font-weight:900}.uxBookingProvider.primary{background:#fff;color:#111}.uxBookingHint{display:block;margin-top:9px;color:#77818d;font-size:8px;line-height:1.45}
+@media(max-width:760px){.uxBookingLauncher{margin-top:12px}.uxBookingProviders{grid-template-columns:1fr 1fr}.uxBookingProvider{min-height:48px}.uxBookingGrid{grid-template-columns:1fr 1fr}}
+@media(min-width:761px){.uxBookingLauncher{max-width:980px}.uxBookingProviders{grid-template-columns:repeat(4,1fr)}}
