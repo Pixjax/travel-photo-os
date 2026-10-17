@@ -1,7 +1,9 @@
-// MOBILE UX ACTION MENU
+// MOBILE UX ACTION MENU V4
 function toggleMobileActions(force){const m=document.getElementById('mobileActionMenu'),b=document.getElementById('mobileActionBtn');if(!m||!b)return;const show=typeof force==='boolean'?force:!m.classList.contains('show');m.classList.toggle('show',show);b.classList.toggle('on',show);b.textContent=show?'✕':'☰';if(show)refreshMobileToggles()}
 function mobileDo(fn){toggleMobileActions(false);if(typeof fn==='function')setTimeout(()=>fn(),60)}
-function refreshMobileToggles(){const sat=document.getElementById('mSatState'),ter=document.getElementById('mTerrainState'),bui=document.getElementById('mBuildState');if(sat)sat.textContent=satellite?'Satellite activé':'Carte standard';if(ter)ter.textContent=terrainOn?'Activé':'Désactivé';if(bui)bui.textContent=buildingsOn?'Activés':'Désactivés'}
-document.addEventListener('click',e=>{if(window.innerWidth>760)return;const menu=document.getElementById('mobileActionMenu'),btn=document.getElementById('mobileActionBtn');if(menu?.classList.contains('show')&&!menu.contains(e.target)&&!btn?.contains(e.target))toggleMobileActions(false)});
-window.addEventListener('orientationchange',()=>setTimeout(()=>{toggleMobileActions(false);try{map?.resize()}catch(e){}},250));
-window.addEventListener('resize',()=>{if(window.innerWidth>760)toggleMobileActions(false);try{map?.resize()}catch(e){}});
+function refreshMobileToggles(){const sat=document.getElementById('mSatState'),ter=document.getElementById('mTerrainState'),bui=document.getElementById('mBuildState');if(sat)sat.textContent=typeof satellite!=='undefined'&&satellite?'Satellite activé':'Carte standard';if(ter)ter.textContent=typeof terrainOn!=='undefined'&&terrainOn?'Activé':'Désactivé';if(bui)bui.textContent=typeof buildingsOn!=='undefined'&&buildingsOn?'Activés':'Désactivés'}
+function cleanupLegacyControls(){document.querySelectorAll('.top .tools button').forEach(btn=>{if((btn.getAttribute('onclick')||'').includes('toggleLeft')){btn.style.display='none';btn.setAttribute('aria-hidden','true');btn.tabIndex=-1}})}
+document.addEventListener('click',e=>{if(window.innerWidth>1180)return;const menu=document.getElementById('mobileActionMenu'),btn=document.getElementById('mobileActionBtn');if(menu?.classList.contains('show')&&!menu.contains(e.target)&&!btn?.contains(e.target))toggleMobileActions(false)});
+window.addEventListener('orientationchange',()=>setTimeout(()=>{toggleMobileActions(false);cleanupLegacyControls();try{map?.resize()}catch(e){}},250));
+window.addEventListener('resize',()=>{if(window.innerWidth>1180)toggleMobileActions(false);cleanupLegacyControls();try{map?.resize()}catch(e){}});
+setTimeout(cleanupLegacyControls,50);setTimeout(cleanupLegacyControls,500);
