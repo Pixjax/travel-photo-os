@@ -12,9 +12,9 @@
 <script>
 (async()=>{
   try{
-    let html=await (await fetch('./app-base.html?v=index-full-20261018b',{cache:'no-store'})).text();
+    let html=await (await fetch('./app-base.html?v=index-full-20261018c',{cache:'no-store'})).text();
     html=html.replace('<title>Travel Photo OS — PRO MAX</title>','<title>Travel Photo OS</title>');
-    html=html.replace('</head>','<link rel="stylesheet" href="./mobile-ux.css?v=index-full-20261018b"><link rel="stylesheet" href="./workspace-windows.css?v=index-full-20261018b"><link rel="stylesheet" href="./simple-collab.css?v=index-full-20261018b"></head>');
+    html=html.replace('</head>','<link rel="stylesheet" href="./mobile-ux.css?v=index-full-20261018c"><link rel="stylesheet" href="./workspace-windows.css?v=index-full-20261018c"><link rel="stylesheet" href="./simple-collab.css?v=index-full-20261018c"></head>');
     const menu=`<button class="mobileActionBtn" id="mobileActionBtn" onclick="toggleMobileActions()" aria-label="Ouvrir les actions">☰</button>
 <div class="mobileActionMenu" id="mobileActionMenu">
   <div class="mobileActionTitle"><span>Actions</span><button class="btn icon" style="width:34px;min-height:34px" onclick="toggleMobileActions(false)">✕</button></div>
@@ -37,7 +37,8 @@
   </div>
 </div>`;
     html=html.replace('<div class="top">',menu+'\n<div class="top">');
-    const scripts='<script src="./cloud-config.js?v=index-full-20261018b"></scr'+'ipt><script src="./mobile-ux.js?v=index-full-20261018b"></scr'+'ipt><script src="./workspace-windows.js?v=index-full-20261018b"></scr'+'ipt><script src="./simple-collab.js?v=index-full-20261018b"></scr'+'ipt>';
+    const cloudInline='<script>window.TRAVEL_PHOTO_CLOUD_CONFIG={url:"https://svfknuvlpxikzqvpksux.supabase.co",anon:"sb_publishable_pm5NiLhMirB8zD0yiYFWXg_6a6R8U1D"};</scr'+'ipt>';
+    const scripts=cloudInline+'<script src="./cloud-config.js?v=index-full-20261018c"></scr'+'ipt><script src="./mobile-ux.js?v=index-full-20261018c"></scr'+'ipt><script src="./workspace-windows.js?v=index-full-20261018c"></scr'+'ipt><script src="./simple-collab.js?v=index-full-20261018c"></scr'+'ipt>';
     html=html.replace('</body>',scripts+'</body>');
     document.open();document.write(html);document.close();
   }catch(e){document.body.innerHTML='<div class="boot"><div><b>Impossible de charger Travel Photo OS</b><span>'+String(e.message||e)+'</span></div></div>'}
