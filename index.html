@@ -12,9 +12,9 @@
 <script>
 (async()=>{
   try{
-    let html=await (await fetch('./app-base.html?v=20261018',{cache:'no-store'})).text();
+    let html=await (await fetch('./app-base.html?v=20261018b',{cache:'no-store'})).text();
     html=html.replace('<title>Travel Photo OS — PRO MAX</title>','<title>Travel Photo OS — MOBILE UX</title>');
-    html=html.replace('</head>','<link rel="stylesheet" href="./mobile-ux.css?v=20261018"></head>');
+    html=html.replace('</head>','<link rel="stylesheet" href="./mobile-ux.css?v=20261018b"></head>');
     const menu=`<button class="mobileActionBtn" id="mobileActionBtn" onclick="toggleMobileActions()" aria-label="Ouvrir les actions">☰</button>
 <div class="mobileActionMenu" id="mobileActionMenu">
   <div class="mobileActionTitle"><span>Actions</span><button class="btn icon" style="width:34px;min-height:34px" onclick="toggleMobileActions(false)">✕</button></div>
@@ -37,7 +37,8 @@
   </div>
 </div>`;
     html=html.replace('<div class="top">',menu+'\n<div class="top">');
-    html=html.replace('</body>','<script src="./mobile-ux.js?v=20261018"><\\/script></body>');
+    const mobileScript='<script src="./mobile-ux.js?v=20261018b"></scr'+'ipt>';
+    html=html.replace('</body>',mobileScript+'</body>');
     document.open();document.write(html);document.close();
   }catch(e){document.body.innerHTML='<div class="boot"><div><b>Impossible de charger Travel Photo OS</b><span>'+String(e.message||e)+'</span></div></div>'}
 })();
