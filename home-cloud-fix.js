@@ -83,6 +83,14 @@
     }
   }
 
-  function install(){window.simpleJoinFromHome=joinFromHome}
+  function loadCloudSync(){
+    if(document.querySelector('script[data-cloud-sync]'))return;
+    const s=document.createElement('script');
+    s.src='./cloud-sync.js?v=20261018-sync1';
+    s.dataset.cloudSync='1';
+    document.body.appendChild(s);
+  }
+
+  function install(){window.simpleJoinFromHome=joinFromHome;loadCloudSync()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
