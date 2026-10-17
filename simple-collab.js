@@ -88,11 +88,13 @@
     const row=Array.isArray(data)?data[0]:data;
     if(!row?.trip_id)throw new Error('Voyage introuvable');
 
-    const {data:remote,error:readError}=await sbClient.from('trips')
-      .select('id,invite_code,name,country,payload')
-      .eq('id',row.trip_id)
-      .single();
-    if(readError)throw readError;
+    const remote={
+      id:row.trip_id,
+      invite_code:row.invite_code||code.toUpperCase(),
+      name:row.trip_name||'Voyage partagé',
+      country:row.country||'',
+      payload:row.payload||null
+    };
 
     let local=trips.find(t=>t.cloudTripId===row.trip_id);
     if(!local){
@@ -100,15 +102,15 @@
       const meta=remote?.payload?.trip||{};
       local={
         id,
-        name:meta.name||remote?.name||row.trip_name||'Voyage partagé',
-        country:meta.country||remote?.country||row.country||'',
+        name:meta.name||remote.name||'Voyage partagé',
+        country:meta.country||remote.country||'',
         start:meta.start||'',end:meta.end||'',currency:meta.currency||'EUR',
         emoji:meta.emoji||'👥',description:meta.description||'Voyage collaboratif',
-        builtIn:false,cloudTripId:row.trip_id,inviteCode:remote?.invite_code||code.toUpperCase()
+        builtIn:false,cloudTripId:row.trip_id,inviteCode:remote.invite_code
       };
       trips.push(local);
     }else{
-      local.inviteCode=remote?.invite_code||code.toUpperCase();
+      local.inviteCode=remote.invite_code;
     }
 
     if(remote?.payload?.store){
@@ -148,7 +150,10 @@
       if(!ok)throw new Error('Connexion Cloud impossible');
       await joinCloudTrip(code);
       try{toast('Voyage rejoint')}catch(e){}
-    }catch(e){try{toast('Code invalide ou accès impossible')}catch(_){} }
+    }catch(e){
+      console.warn('Join from home failed',e);
+      try{toast('Erreur : '+(e?.message||String(e)))}catch(_){}
+    }
   };
 
   function addHomeJoinCard(){
