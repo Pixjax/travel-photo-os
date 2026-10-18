@@ -6,11 +6,11 @@
 <script>
 (()=>{'use strict';const frame=document.getElementById('app'),status=document.getElementById('status');let count=0;
 function inject(){try{const doc=frame.contentDocument;if(!doc||!doc.body)throw Error('Document indisponible');if(!doc.getElementById('nomia-simple-preview-style')){const link=doc.createElement('link');link.id='nomia-simple-preview-style';link.rel='stylesheet';link.href=new URL('./nomia-simple-nav.css?v=preview-20261018-v1',location.href).href;doc.head.append(link)}
-if(!doc.getElementById('nomia-simple-preview-script')){const script=doc.createElement('script');script.id='nomia-simple-preview-script';script.src=new URL('./nomia-simple-nav.js?v=preview-20261018-v1',location.href).href;doc.body.append(script)}
+if(!doc.getElementById('nomia-simple-preview-script')){const script=doc.createElement('script');script.id='nomia-simple-preview-script';script.src=new URL('./nomia-simple-nav.js?v=preview-20261018-stable-v2',location.href).href;doc.body.append(script)}
 if(!doc.getElementById('nomia-windows-plus-style')){const link=doc.createElement('link');link.id='nomia-windows-plus-style';link.rel='stylesheet';link.href=new URL('./nomia-windows-plus.css?v=preview-20261018-desktop-v5',location.href).href;doc.head.append(link)}
-if(!doc.getElementById('nomia-windows-plus-script')){const script=doc.createElement('script');script.id='nomia-windows-plus-script';script.src=new URL('./nomia-windows-plus.js?v=preview-20261018-windows-v2',location.href).href;doc.body.append(script)}
+if(!doc.getElementById('nomia-windows-plus-script')){const script=doc.createElement('script');script.id='nomia-windows-plus-script';script.src=new URL('./nomia-windows-plus.js?v=preview-20261018-stable-v3',location.href).href;doc.body.append(script)}
 if(!doc.getElementById('nomia-window-dock-style')){const link=doc.createElement('link');link.id='nomia-window-dock-style';link.rel='stylesheet';link.href=new URL('./nomia-window-dock.css?v=dock-iphone-v2',location.href).href;doc.head.append(link)}
-if(!doc.getElementById('nomia-window-dock-script')){const script=doc.createElement('script');script.id='nomia-window-dock-script';script.src=new URL('./nomia-window-dock.js?v=dock-v2',location.href).href;doc.body.append(script)}
+if(!doc.getElementById('nomia-window-dock-script')){const script=doc.createElement('script');script.id='nomia-window-dock-script';script.src=new URL('./nomia-window-dock.js?v=stable-v3',location.href).href;doc.body.append(script)}
 if(!doc.getElementById('nomia-ui-cleanup-style')){const link=doc.createElement('link');link.id='nomia-ui-cleanup-style';link.rel='stylesheet';link.href=new URL('./nomia-ui-cleanup.css?v=cleanup-20261018-v1',location.href).href;doc.head.append(link)}
 status.hidden=true;
 }catch(err){status.textContent='Chargement de l’aperçu…';if(++count<8)setTimeout(inject,700)}}
