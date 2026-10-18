@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080a0f">
-<title>Travel Photo OS</title>
+<title>NØMIA</title>
 <style>html,body{margin:0;width:100%;height:100%;background:#080a0e;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.boot{position:fixed;inset:0;display:grid;place-items:center}.boot div{text-align:center}.boot b{display:block;font-size:18px}.boot span{display:block;margin-top:8px;color:#9ca4af;font-size:12px;max-width:320px;line-height:1.45}</style>
 </head>
 <body>
-<div class="boot"><div><b>Travel Photo OS</b><span id="bootMsg">Chargement de la version complète…</span></div></div>
+<div class="boot"><div><b>NØMIA</b><span id="bootMsg">Chargement de la version complète…</span></div></div>
 <script>
 (async()=>{
-  const VERSION='index-full-20261018ar';
+  const VERSION='index-full-20261018as';
   const setBoot=t=>{const e=document.getElementById('bootMsg');if(e)e.textContent=t};
 
   async function prepareOffline(){
@@ -44,7 +44,7 @@
   try{
     if(!navigator.onLine)setBoot('Mode hors ligne · ouverture depuis le cache…');
     let html=await getBase();
-    html=html.replace('<title>Travel Photo OS — PRO MAX</title>','<title>Travel Photo OS</title>');
+    html=html.replace(/<title>[^<]*<\/title>/,'<title>NØMIA</title>');
     html=html.replace('</head>','<link rel="stylesheet" href="./mobile-ux.css?v='+VERSION+'"><link rel="stylesheet" href="./workspace-windows.css?v='+VERSION+'"><link rel="stylesheet" href="./simple-collab.css?v='+VERSION+'"><link rel="stylesheet" href="./premium-ux.css?v='+VERSION+'"><link rel="stylesheet" href="./day-experience.css?v='+VERSION+'"><link rel="stylesheet" href="./photo-experience.css?v='+VERSION+'"><link rel="stylesheet" href="./voyage-experience.css?v='+VERSION+'"><link rel="stylesheet" href="./booking-launcher.css?v='+VERSION+'"><link rel="stylesheet" href="./booking-native.css?v='+VERSION+'"><link rel="stylesheet" href="./desktop-voyage-fab.css?v='+VERSION+'"><link rel="stylesheet" href="./offline-mode.css?v='+VERSION+'"><link rel="stylesheet" href="./navigation-v2.css?v='+VERSION+'"><link rel="stylesheet" href="./celestial-ar.css?v='+VERSION+'"><link rel="stylesheet" href="./photo-pro-suite.css?v='+VERSION+'"><link rel="stylesheet" href="./photo-ar-field.css?v='+VERSION+'"><link rel="stylesheet" href="./sky-atlas.css?v='+VERSION+'"></head>');
     const menu=`<button class="mobileActionBtn" id="mobileActionBtn" onclick="toggleMobileActions()" aria-label="Ouvrir les actions">☰</button>
 <div class="mobileActionMenu" id="mobileActionMenu">
@@ -73,7 +73,7 @@
     html=html.replace('</body>',scripts+'</body>');
     document.open();document.write(html);document.close();
   }catch(e){
-    document.body.innerHTML='<div class="boot"><div><b>Travel Photo OS indisponible hors ligne</b><span>'+String(e.message||e)+'</span></div></div>';
+    document.body.innerHTML='<div class="boot"><div><b>NØMIA indisponible hors ligne</b><span>'+String(e.message||e)+'</span></div></div>';
   }
 })();
 </script>
