@@ -138,7 +138,11 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
        const i=await caches.match('./index.html',{ignoreSearch:true});
        return !!(r&&i);
      },null,{timeout:25000});
+     const cached=await offlinePage.evaluate(async()=>({controller:navigator.serviceWorker.controller?.scriptURL,caches:await caches.keys(),index:!!(await caches.match('./index.html',{ignoreSearch:true})),base:!!(await caches.match('./app-base.html',{ignoreSearch:true}))}));
+     console.log('OFFLINE before disconnect:',JSON.stringify(cached));
      await offlineContext.setOffline(true);
+     const fetchState=await offlinePage.evaluate(async()=>{try{const r=await fetch('./index.html');return {ok:r.ok,status:r.status,type:r.type}}catch(e){return {error:String(e)}}});
+     console.log('OFFLINE fetch check:',JSON.stringify(fetchState));
      await offlinePage.reload({waitUntil:'domcontentloaded',timeout:20000});
      await offlinePage.waitForSelector('#home',{state:'attached',timeout:20000});
      assert((await offlinePage.title()).includes('NØMIA'),'Titre ou page absent hors ligne');
