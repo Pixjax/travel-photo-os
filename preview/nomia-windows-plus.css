@@ -15,3 +15,6 @@
 /* Preview cleanup: keep bottom-most Voyage launcher (desktop-voyage-fab), hide duplicates. */
 body #uxDesktopVoyageFab{display:none!important}
 body .navFab{display:none!important}
+
+/* Remove remaining right-side Voyage launcher; main five-tab navigation owns Voyage. */
+body #uxVoyageFab,body #uxDesktopVoyageFab,body .uxVoyageFab,body .uxDesktopVoyageFab{display:none!important;visibility:hidden!important;pointer-events:none!important}
