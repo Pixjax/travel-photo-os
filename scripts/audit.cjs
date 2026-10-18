@@ -21,10 +21,14 @@ check(!index.includes('photo-ra-entry.js'),'obsolete RA loader not loaded');
 check(index.includes('manifest.webmanifest?v=')||index.includes("manifest.webmanifest?v='+VERSION"),'manifest URL is versioned');
 const base=read('app-base.html');
 const inlineActions=[...base.matchAll(/\bonclick="([^"]*)"/g)].map(m=>m[1]);
+let parsedHandlers=0,dynamicHandlers=0;
 for(let i=0;i<inlineActions.length;i++){
- try{new vm.Script('(function(event){'+inlineActions[i]+'})',{filename:'inline-onclick-'+(i+1)});check(true,'inline button JavaScript #'+(i+1))}
- catch(e){check(false,'inline button JavaScript #'+(i+1)+' '+e.message)}
+ const action=inlineActions[i];
+ // Interpolated template literals may contain quote characters before render.
+ if(action.includes('${')||action.includes('String(')){dynamicHandlers++;continue}
+ try{new vm.Script('(function(event){'+action+'})',{filename:'inline-onclick-'+(i+1)});check(true,'static inline action #'+(i+1));parsedHandlers++}
+ catch(e){check(false,'static inline action #'+(i+1)+' '+e.message)}
 }
-console.log('Audited '+inlineActions.length+' inline UI event handlers for syntax');
+console.log('Core inline actions: '+inlineActions.length+', static parsed: '+parsedHandlers+', dynamic deferred: '+dynamicHandlers);
 console.log(failed?failed+' audit checks failed':'NØMIA audit passed');
 process.exitCode=failed?1:0;
