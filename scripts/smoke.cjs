@@ -42,12 +42,14 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
    const bad=await page.locator('button[onclick]').evaluateAll(btns=>btns.filter(b=>!b.getAttribute('onclick')?.trim()).map(b=>b.outerHTML));
    assert(bad.length===0,'onclick vides: '+bad.length);
  });
- await run('Ouverture et fermeture Nouveau voyage',async()=>{
+ await run('Ouverture et fermeture Nouveau voyage depuis accueil',async()=>{
+   await page.evaluate(()=>showHome());
    await page.locator('button[onclick="openTripEditor()"]').first().click({timeout:12000});
-   await page.waitForTimeout(250);
-   assert(await page.locator('#tripOverlay.show').count()>0,'éditeur voyage non visible');
-   await page.evaluate(()=>window.closeOverlay('tripOverlay'));
-   assert(await page.locator('#tripOverlay.show').count()===0,'éditeur voyage ne se ferme pas');
+   await page.waitForTimeout(200);
+   assert(await page.locator('#tripOverlay.show').count()===1,'Éditeur voyage non visible');
+   await page.evaluate(()=>closeOverlay('tripOverlay'));
+   assert(await page.locator('#tripOverlay.show').count()===0,'Éditeur voyage ne se ferme pas');
+   await page.evaluate(()=>openTrip('nomia-qa-local'));
  });
  await run('Menu Photo et planétarium',async()=>{
    await page.evaluate(()=>{if(typeof window.setMode==='function')window.setMode('photo');});
@@ -61,13 +63,13 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
    assert(await page.locator('#skyAtlas.show').count()===0,'Planétarium ne se ferme pas');
  });
 
- await run('Navigation : ouverture et fermeture',async()=>{
-   await page.evaluate(()=>window.openNavigationMode?.());
-   await page.waitForTimeout(350);
-   assert(await page.locator('#navOverlay.show').count()===1,'Navigation non visible');
-   assert(await page.locator('#navOverlay button').count()>=2,'Contrôles navigation absents');
-   await page.evaluate(()=>window.closeOverlay('navOverlay'));
-   assert(await page.locator('#navOverlay.show').count()===0,'Navigation ne se ferme pas');
+ await run('Navigation v2 iPhone : HUD et fermeture',async()=>{
+   await page.evaluate(()=>openNavigationMode());
+   await page.waitForTimeout(500);
+   assert(await page.locator('#nav2Hud.show').count()===1,'HUD Navigation v2 non visible');
+   assert(await page.locator('#nav2Hud button').count()>=3,'Commandes Navigation v2 absentes');
+   await page.locator('#nav2Hud [data-nav2-close]').click({timeout:8000});
+   assert(await page.locator('#nav2Hud.show').count()===0,'HUD Navigation v2 ne se ferme pas');
  });
  await run('Dépenses : ouverture de planning',async()=>{
    await page.evaluate(()=>window.openPlanner?.());
