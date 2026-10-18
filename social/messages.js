@@ -17,12 +17,14 @@ if(row.status==='pending'&&!incoming)$('dmPending').textContent='Demande envoyé
 await loadMessages();
 if(row.status==='accepted'){await client.rpc('social_dm_read',{p_thread:row.id});subscribe(row.id)}refreshList().catch(()=>{})}
 async function loadMessages(){if(!current)return;const key=current.id;const r=await client.from('social_dm_messages').select('id,body,sender_id,media_path,post_id,created_at').eq('thread_id',key).order('created_at',{ascending:false}).limit(80);if(r.error){notice(r.error.message);return}if(!current||current.id!==key)return;
+const readResult=await client.from('social_dm_reads').select('user_id,read_at').eq('thread_id',key);
+const otherRead=(readResult.data||[]).find(x=>x.user_id!==me.id)?.read_at||null;
 messages.textContent='';const fragment=document.createDocumentFragment();
 for(const msg of (r.data||[]).reverse()){const item=document.createElement('div');item.className='dm-bubble'+(msg.sender_id===me.id?' mine':'');if(msg.body){const p=document.createElement('p');p.textContent=msg.body;item.append(p)}
 if(msg.media_path){const link=button('Ouvrir la photo',async()=>{const u=await client.storage.from('nomia-messages').createSignedUrl(msg.media_path,90);if(u.error)notice(u.error.message);else window.open(u.data.signedUrl,'_blank','noopener')});item.append(link)}
 if(msg.post_id){const a=document.createElement('a');a.href='./?post='+encodeURIComponent(msg.post_id);a.textContent='Voir la publication ↗';item.append(a)}
 if(msg.sender_id===me.id)item.append(button('Supprimer',async()=>{if(!confirm('Supprimer ce message ?'))return;const r=await client.rpc('social_dm_delete',{p_message:msg.id});if(r.error)notice(r.error.message);else loadMessages()}));
-const time=document.createElement('small');time.textContent=new Date(msg.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});item.append(time);fragment.append(item)}messages.append(fragment);messages.scrollTop=messages.scrollHeight}
+const time=document.createElement('small');time.textContent=new Date(msg.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+(msg.sender_id===me.id?(otherRead&&new Date(otherRead)>=new Date(msg.created_at)?' · Lu':' · Envoyé'):'');item.append(time);fragment.append(item)}messages.append(fragment);messages.scrollTop=messages.scrollHeight}
 function subscribe(id){clearSubscription();sub=client.channel('nomia-dm-'+id).on('postgres_changes',{event:'INSERT',schema:'public',table:'social_dm_messages',filter:'thread_id=eq.'+id},()=>{loadMessages();client.rpc('social_dm_read',{p_thread:id});refreshList()}).subscribe();
 tick=setInterval(()=>{if(document.visibilityState==='visible'){loadMessages();refreshList()}},12000)}
 async function start(id){if(!me)return;const r=await client.rpc('social_dm_start',{other_user:id});if(r.error){notice(r.error.message);return}await refreshList();const t=await client.from('social_dm_threads').select('*').eq('id',r.data).single();if(t.error)return notice(t.error.message);const p=await client.from('social_profiles').select('id,username,display_name').eq('id',id).single();await open(t.data,p.data);$('dmScreen').hidden=false}
