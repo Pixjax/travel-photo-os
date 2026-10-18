@@ -1,41 +1,51 @@
-/* NØMIA Photo Search prototype — preview only. Commons + Openverse. */
+/* NØMIA Photo Search — preview only. Real geolocated Wikipedia places, photo gallery. */
 (()=>{'use strict';if(window.__nomiaPhotoSearch)return;window.__nomiaPhotoSearch=true;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let request=0,controller=null;
-const validUrl=s=>{try{const u=new URL(s);return u.protocol==='https:'?u.href:''}catch(_){return ''}};
-function show(){let modal=document.getElementById('nomiaPhotoSearch');if(!modal){modal=document.createElement('section');modal.id='nomiaPhotoSearch';modal.hidden=true;modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','Rechercher des photographies de destinations');
-modal.innerHTML='<div class="nps-panel"><header><div><b>Explore Photos</b><small>Photos de paysages et spots · recherche ciblée</small></div><button type="button" data-close aria-label="Fermer">✕</button></header><form id="npsForm"><input id="npsQuery" type="search" placeholder="Ex. Mont Fuji, Japon" required minlength="2" maxlength="110" aria-label="Destination ou spot"><button type="submit">Rechercher</button></form><p class="nps-status" id="npsStatus">Recherche de photographies par lieu. Sources et licences visibles sur chaque résultat.</p><div class="nps-grid" id="npsGrid"></div></div>';
-document.body.appendChild(modal);modal.querySelector('[data-close]').onclick=()=>{modal.hidden=true;request++;controller?.abort()};modal.addEventListener('click',e=>{if(e.target===modal){modal.hidden=true;controller?.abort()}});modal.querySelector('form').onsubmit=e=>{e.preventDefault();search(modal.querySelector('#npsQuery').value.trim())};}
-modal.hidden=false;modal.querySelector('#npsQuery').focus();}
-async function commons(q,signal){const u=new URL('https://commons.wikimedia.org/w/api.php');for(const [k,v] of Object.entries({action:'query',format:'json',origin:'*',generator:'search',gsrsearch:q,gsrnamespace:'6',gsrlimit:'28',prop:'imageinfo',iiprop:'url|extmetadata|mime',iiurlwidth:'440',iiextmetadatafilter:'Artist|LicenseShortName|LicenseUrl'}))u.searchParams.set(k,v);
-const r=await fetch(u,{signal});if(!r.ok)throw Error('Commons '+r.status);const j=await r.json();return Object.values(j.query?.pages||{}).map(p=>{const info=p.imageinfo?.[0],meta=info?.extmetadata||{};return {id:'commons-'+p.pageid,title:p.title.replace(/^File:/,''),src:validUrl(info?.thumburl||''),url:validUrl(info?.descriptionurl||''),source:'Wikimedia Commons',author:meta.Artist?.value?.replace(/<[^>]*>/g,'').slice(0,100)||'Auteur sur la source',license:meta.LicenseShortName?.value||'Voir licence',licenseUrl:validUrl(meta.LicenseUrl?.value||'')}}).filter(x=>x.src&&x.url&&/\.(jpg|jpeg|png|webp)\b/i.test(x.title))};
-async function openverse(q,signal){const u=new URL('https://api.openverse.org/v1/images/');u.searchParams.set('q',q);u.searchParams.set('page_size','24');const r=await fetch(u,{signal});if(!r.ok)throw Error('Openverse '+r.status);const j=await r.json();return(j.results||[]).map(p=>({id:'ov-'+p.id,title:p.title||'Photographie',src:validUrl(p.thumbnail||''),url:validUrl(p.foreign_landing_url||p.detail_url||''),source:'Openverse · '+(p.source||''),author:p.creator||'Auteur sur la source',license:(p.license||'Licence à vérifier').toUpperCase(),licenseUrl:validUrl(p.license_url||'')})).filter(x=>x.src&&x.url)};
-async function wikipedia(q,lang,signal){const u=new URL('https://'+lang+'.wikipedia.org/w/api.php');for(const [k,v] of Object.entries({action:'query',format:'json',origin:'*',generator:'search',gsrsearch:q,gsrnamespace:'0',gsrlimit:'20',prop:'pageimages|info',piprop:'thumbnail|original',pithumbsize:'480',inprop:'url'}))u.searchParams.set(k,v);
-const r=await fetch(u,{signal});if(!r.ok)throw Error('Wikipedia '+r.status);const j=await r.json();
-return Object.values(j.query?.pages||{}).map(p=>({id:'wiki-'+lang+'-'+p.pageid,title:p.title,src:validUrl(p.thumbnail?.source||''),url:validUrl(p.fullurl||''),source:'Wikipédia '+lang.toUpperCase(),author:'Crédit photo et licence sur la page source',license:'Voir crédits'})).filter(x=>x.src&&x.url);
+const safe=s=>{try{const u=new URL(s);return u.protocol==='https:'?u.href:''}catch(_){return ''}};
+const bad=/\b(map|locator|location map|coat.of.arms|flag|seal|logo|diagram|chart|portrait|signature|emblem|svg|person|politician|footballer|actor|actress|cairn terrier)\b/i;
+let seq=0,abort=null;
+function api(lang,params){const u=new URL('https://'+lang+'.wikipedia.org/w/api.php');Object.entries({action:'query',format:'json',origin:'*',...params}).forEach(([k,v])=>u.searchParams.set(k,String(v)));return u}
+async function get(url,signal){const r=await fetch(url,{signal});if(!r.ok)throw Error('Source indisponible ('+r.status+')');return r.json()}
+function spot(p,lang){const co=p.coordinates?.[0],src=safe(p.thumbnail?.source),url=safe(p.fullurl);if(!co||!src||!url||!Number.isFinite(co.lat)||!Number.isFinite(co.lon))return null;
+if(bad.test(p.title)||bad.test(src))return null;
+return {id:lang+':'+p.pageid,name:p.title,lat:co.lat,lon:co.lon,src,url,lang};}
+async function destination(q,lang,signal){
+ const data=await get(api(lang,{generator:'search',gsrsearch:q,gsrnamespace:0,gsrlimit:15,prop:'coordinates|pageimages|info',piprop:'thumbnail',pithumbsize:520,inprop:'url'}),signal);
+ const pages=Object.values(data.query?.pages||{});
+ const k=q.toLocaleLowerCase().split(',')[0].trim();
+ const ordered=pages.filter(p=>p.coordinates?.length).sort((a,b)=>Number(b.title.toLocaleLowerCase()===k)-Number(a.title.toLocaleLowerCase()===k));
+ return ordered[0]||null;
 }
-/* Only show landscape/location photography. Keyword filtering is conservative, not image recognition. */
-const banned=/\b(portrait|selfie|headshot|family|actor|actress|soldier|politician|biography|footballer|football|terrier|puppy|dog|cat|bird|animal|species|logo|coat of arms|flag|map|diagram|chart|graph|signature|poster|advert|illustration|drawing|cartoon|icon|seal|emblem|cairn terrier|hugh cairns|leah cairns|cairn rouge|cour[t]? cairn)\b/i;
-const scenic=/\b(beach|coast|coastal|ocean|sea|reef|waterfall|falls|mountain|peak|view|lookout|panorama|landscape|sunrise|sunset|island|lake|river|forest|rainforest|gorge|national park|temple|pagoda|bridge|skyline|cityscape|harbour|harbor|bay|garden|trail|scenic|nature|plage|cascade|paysage|montagne|lac|île|foret|forêt|parc|panoramique|point de vue|lever de soleil|coucher de soleil|quai|port)\b/i;
-const cleanTitle=t=>String(t||'').replace(/\.(jpe?g|png|webp)$/i,'').replace(/[_-]+/g,' ').replace(/\s*\([^)]*\d{4}[^)]*\)/g,' ').trim();
-function relevant(x,q){const title=cleanTitle(x.title),key=q.toLowerCase().split(/[,，]/)[0].trim();if(banned.test(title))return false;if(!key||!title.toLowerCase().includes(key))return false;return scenic.test(title)||x.searchHint==='scenic'}
-async function search(q){if(q.length<2)return;const id=++request;controller?.abort();controller=new AbortController();const status=document.getElementById('npsStatus'),grid=document.getElementById('npsGrid');grid.replaceChildren();status.textContent='Recherche de paysages et lieux photo…';
-const key=q.split(',')[0].trim();
-const tasks=[
-commons(q+' landscape',controller.signal),
-commons(q+' beach',controller.signal),
-commons(q+' waterfall',controller.signal),
-openverse(q+' landscape photography',controller.signal),
-openverse(q+' scenic travel photography',controller.signal)
-];
-const results=await Promise.allSettled(tasks);if(id!==request)return;
-let list=[];for(let i=0;i<results.length;i++){if(results[i].status==='fulfilled')list.push(...results[i].value)}
-const seen=new Set();list=list.filter(x=>{const title=cleanTitle(x.title);if(banned.test(title))return false;const lower=title.toLowerCase(),term=key.toLowerCase();if(!lower.includes(term))return false;const k=(x.src.split('?')[0]||x.url).toLowerCase();if(seen.has(k))return false;seen.add(k);return true}).sort((a,b)=>Number(scenic.test(b.title))-Number(scenic.test(a.title))).slice(0,70);
-if(!list.length){status.textContent='Aucun paysage identifiable pour cette recherche. Essaie un lieu précis (ex. « Palm Cove » ou « Barron Falls »).';return}
-status.textContent=list.length+' photographies de lieux · filtres paysages et nature · résultat indicatif, sans garantie de géolocalisation.';
-const frag=document.createDocumentFragment();for(const x of list){const item=document.createElement('article');item.className='nps-card';const img=document.createElement('img');img.src=x.src;img.loading='lazy';img.decoding='async';img.alt=x.title;item.append(img);const info=document.createElement('div');info.innerHTML='<b>'+esc(cleanTitle(x.title))+'</b>';const a=document.createElement('a');a.href=x.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Voir le lieu et les crédits ↗';info.append(a);item.append(info);frag.append(item)}grid.append(frag)}
-
-function mount(){if(document.getElementById('nomiaPhotoSearchLauncher'))return;const panel=document.getElementById('uxPhotoPanel');if(!panel)return;const btn=document.createElement('button');btn.id='nomiaPhotoSearchLauncher';btn.type='button';btn.textContent='⌕ Explorer des photos de spots';btn.onclick=show;const bar=panel.querySelector('.nomia-winbar');if(bar)bar.after(btn);else panel.prepend(btn)}
+async function nearby(lat,lon,lang,signal){
+ const coords=lat+'|'+lon;
+ const data=await get(api(lang,{generator:'geosearch',ggscoord:coords,ggsradius:10000,ggslimit:50,ggsnamespace:0,prop:'coordinates|pageimages|info',piprop:'thumbnail',pithumbsize:520,inprop:'url'}),signal);
+ return Object.values(data.query?.pages||{}).map(p=>spot(p,lang)).filter(Boolean);
+}
+function render(items,query){const grid=document.getElementById('npsGrid'),status=document.getElementById('npsStatus');grid.replaceChildren();
+ if(!items.length){status.textContent='Aucun spot avec photo et coordonnées confirmé pour « '+query+' ». Essaie une destination plus précise.';return;}
+ status.textContent=items.length+' spots avec photos et coordonnées · rayon approximatif de 10 km · images Wikipédia.';
+ const frag=document.createDocumentFragment();
+ for(const x of items){const card=document.createElement('article');card.className='nps-card';
+ const img=document.createElement('img');img.src=x.src;img.alt='Photo du lieu : '+x.name;img.loading='lazy';img.decoding='async';card.appendChild(img);
+ const info=document.createElement('div');const title=document.createElement('b');title.textContent=x.name;info.append(title);
+ const location=document.createElement('small');location.textContent=x.lat.toFixed(5)+', '+x.lon.toFixed(5);info.append(location);
+ const link=document.createElement('a');link.href=x.url;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Voir la photo et ses crédits ↗';info.append(link);
+ const maps=document.createElement('a');maps.href='https://www.openstreetmap.org/?mlat='+encodeURIComponent(x.lat)+'&mlon='+encodeURIComponent(x.lon)+'#map=15/'+encodeURIComponent(x.lat)+'/'+encodeURIComponent(x.lon);maps.target='_blank';maps.rel='noopener noreferrer';maps.textContent='Localiser le spot ↗';info.append(maps);
+ card.append(info);frag.append(card)}
+ grid.append(frag);
+}
+async function search(q){if(q.length<2)return;const run=++seq;abort?.abort();abort=new AbortController();const signal=abort.signal;document.getElementById('npsGrid').replaceChildren();const status=document.getElementById('npsStatus');status.textContent='Recherche des lieux géolocalisés autour de « '+q+' »…';
+ try{let center;for(const lang of ['fr','en']){try{center=await destination(q,lang,signal);if(center)break}catch(e){if(signal.aborted)return}}
+ if(run!==seq)return;if(!center){status.textContent='Destination introuvable avec coordonnées. Essaie « Cairns, Australia » ou le nom d’une ville.';return}
+ const batches=await Promise.allSettled(['en','fr'].map(lang=>nearby(center.coordinates[0].lat,center.coordinates[0].lon,lang,signal)));
+ if(run!==seq)return;
+ const seen=new Set(),items=[];for(const b of batches){if(b.status!=='fulfilled')continue;for(const item of b.value){const key=item.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()+'|'+item.lat.toFixed(3)+'|'+item.lon.toFixed(3);if(seen.has(key))continue;seen.add(key);items.push(item)}}
+ const own=spot(center,'fr');if(own&&!items.some(x=>x.url===own.url))items.unshift(own);
+ items.sort((a,b)=>{const d=x=>Math.hypot((x.lat-center.coordinates[0].lat)*111,(x.lon-center.coordinates[0].lon)*111*Math.cos(center.coordinates[0].lat*Math.PI/180));return d(a)-d(b)});
+ render(items.slice(0,70),q);
+ }catch(err){if(!signal.aborted&&run===seq)status.textContent='Impossible de charger les lieux pour le moment. Réessaie plus tard.';console.warn('NØMIA Photo Search',err)}}
+function show(){let modal=document.getElementById('nomiaPhotoSearch');if(!modal){modal=document.createElement('section');modal.id='nomiaPhotoSearch';modal.hidden=true;modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-label','Recherche de spots photo géolocalisés');modal.innerHTML='<div class="nps-panel"><header><div><b>Explore Photos</b><small>Vrais lieux · photos · coordonnées GPS</small></div><button type="button" data-close aria-label="Fermer">✕</button></header><form id="npsForm"><input id="npsQuery" type="search" placeholder="Ex. Cairns, Australia" required minlength="2" maxlength="110" aria-label="Destination"><button type="submit">Rechercher</button></form><p class="nps-status" id="npsStatus">Saisis une destination pour découvrir ses spots géolocalisés.</p><div class="nps-grid" id="npsGrid"></div></div>';document.body.append(modal);const close=()=>{modal.hidden=true;seq++;abort?.abort()};modal.querySelector('[data-close]').onclick=close;modal.addEventListener('click',e=>{if(e.target===modal)close()});modal.querySelector('form').onsubmit=e=>{e.preventDefault();search(modal.querySelector('#npsQuery').value.trim())}}modal.hidden=false;modal.querySelector('#npsQuery').focus()}
+function mount(){if(document.getElementById('nomiaPhotoSearchLauncher'))return;const p=document.getElementById('uxPhotoPanel');if(!p)return;const b=document.createElement('button');b.id='nomiaPhotoSearchLauncher';b.type='button';b.textContent='⌕ Explorer des photos de spots';b.onclick=show;const bar=p.querySelector('.nomia-winbar');if(bar)bar.after(b);else p.prepend(b)}
+function init(){mount();new MutationObserver(m=>{if(m.some(x=>[...x.addedNodes].some(n=>n.nodeType===1&&(n.id==='uxPhotoPanel'||n.querySelector?.('#uxPhotoPanel')))))mount()}).observe(document.body,{childList:true,subtree:true});document.addEventListener('keydown',e=>{if(e.key==='Escape'){const m=document.getElementById('nomiaPhotoSearch');if(m&&!m.hidden){m.hidden=true;seq++;abort?.abort()}}})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-function init(){mount();const observer=new MutationObserver(()=>{if(!document.getElementById('nomiaPhotoSearchLauncher'))mount()});observer.observe(document.body,{childList:true,subtree:true});document.addEventListener('keydown',e=>{if(e.key==='Escape'){const m=document.getElementById('nomiaPhotoSearch');if(m&&!m.hidden){m.hidden=true;request++;controller?.abort()}}})}
 })();
