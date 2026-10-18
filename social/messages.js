@@ -1,0 +1,33 @@
+(()=>{'use strict';
+const $=id=>document.getElementById(id);let client=null,me=null,current=null,sub=null,tick=null;
+const list=$('dmList'),messages=$('dmMessages'),title=$('dmTitle'),pane=$('dmPane'),composer=$('dmComposer'),status=$('dmStatus');
+function notice(s){status.textContent=s||''}
+function button(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=fn;return b}
+function clearSubscription(){if(sub&&client)client.removeChannel(sub);sub=null;if(tick)clearInterval(tick);tick=null}
+async function peers(){const r=await client.from('social_dm_threads').select('id,user_low,user_high,initiated_by,status,last_activity').order('last_activity',{ascending:false}).limit(100);if(r.error)throw r.error;return r.data||[]}
+async function refreshList(){if(!me)return;const rows=await peers();list.textContent='';if(!rows.length){list.textContent='Aucune conversation pour le moment.';return}
+const ids=[...new Set(rows.map(t=>t.user_low===me.id?t.user_high:t.user_low))];const result=await client.from('social_profiles').select('id,username,display_name').in('id',ids);const map=new Map((result.data||[]).map(p=>[p.id,p]));
+for(const row of rows){const other=row.user_low===me.id?row.user_high:row.user_low,p=map.get(other);const b=button((p?.display_name||p?.username||'Membre')+(row.status==='pending'?' · Demande':''),()=>open(row,p));b.className='dm-thread'+(current?.id===row.id?' selected':'');list.append(b)}}
+async function open(row,person){clearSubscription();current=row;title.textContent=person?.display_name||person?.username||'Conversation';pane.hidden=false;list.parentElement.classList.add('dm-mobile-open');notice('');
+const incoming=row.status==='pending'&&row.initiated_by!==me.id;
+$('dmRequest').hidden=!incoming;$('dmPending').hidden=row.status!=='pending'||incoming;composer.hidden=row.status!=='accepted';
+if(row.status==='pending'&&!incoming)$('dmPending').textContent='Demande envoyée. Les messages seront disponibles après acceptation.';
+await loadMessages();
+if(row.status==='accepted'){await client.rpc('social_dm_read',{p_thread:row.id});subscribe(row.id)}refreshList().catch(()=>{})}
+async function loadMessages(){if(!current)return;const key=current.id;const r=await client.from('social_dm_messages').select('id,body,sender_id,media_path,post_id,created_at').eq('thread_id',key).order('created_at',{ascending:false}).limit(80);if(r.error){notice(r.error.message);return}if(!current||current.id!==key)return;
+messages.textContent='';const fragment=document.createDocumentFragment();
+for(const msg of (r.data||[]).reverse()){const item=document.createElement('div');item.className='dm-bubble'+(msg.sender_id===me.id?' mine':'');if(msg.body){const p=document.createElement('p');p.textContent=msg.body;item.append(p)}
+if(msg.media_path){const link=button('Ouvrir la photo',async()=>{const u=await client.storage.from('nomia-messages').createSignedUrl(msg.media_path,90);if(u.error)notice(u.error.message);else window.open(u.data.signedUrl,'_blank','noopener')});item.append(link)}
+if(msg.post_id){const a=document.createElement('a');a.href='./?post='+encodeURIComponent(msg.post_id);a.textContent='Voir la publication ↗';item.append(a)}
+const time=document.createElement('small');time.textContent=new Date(msg.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});item.append(time);fragment.append(item)}messages.append(fragment);messages.scrollTop=messages.scrollHeight}
+function subscribe(id){clearSubscription();sub=client.channel('nomia-dm-'+id).on('postgres_changes',{event:'INSERT',schema:'public',table:'social_dm_messages',filter:'thread_id=eq.'+id},()=>{loadMessages();client.rpc('social_dm_read',{p_thread:id});refreshList()}).subscribe();
+tick=setInterval(()=>{if(document.visibilityState==='visible'){loadMessages();refreshList()}},12000)}
+async function start(id){if(!me)return;const r=await client.rpc('social_dm_start',{other_user:id});if(r.error){notice(r.error.message);return}await refreshList();const t=await client.from('social_dm_threads').select('*').eq('id',r.data).single();if(t.error)return notice(t.error.message);const p=await client.from('social_profiles').select('id,username,display_name').eq('id',id).single();await open(t.data,p.data);$('dmScreen').hidden=false}
+async function send(e){e.preventDefault();if(!current)return;const field=$('dmText'),text=field.value.trim();if(!text)return;const submit=$('dmSend');submit.disabled=true;const r=await client.rpc('social_dm_send',{p_thread:current.id,p_body:text});submit.disabled=false;if(r.error){notice(r.error.message);return}field.value='';notice('');await loadMessages();refreshList()}
+async function respond(accept){if(!current)return;const r=await client.rpc('social_dm_respond',{p_thread:current.id,p_accept:accept});if(r.error)return notice(r.error.message);const t=await client.from('social_dm_threads').select('*').eq('id',current.id).single();if(t.data)await open(t.data,null)}
+async function find(){const query=$('dmSearch').value.trim();const results=$('dmResults');results.textContent='';if(query.length<2)return;const r=await client.from('social_profiles').select('id,display_name,username').ilike('username','%'+query.replace(/[%_]/g,'')+'%').limit(12);if(r.error)return notice(r.error.message);for(const p of r.data||[]){if(p.id===me.id)continue;results.append(button('@'+p.username+' · '+p.display_name,()=>start(p.id)))}}
+document.addEventListener('click',e=>{if(e.target.closest('#dmAccept'))respond(true);if(e.target.closest('#dmDecline'))respond(false);if(e.target.closest('#dmBack'))list.parentElement.classList.remove('dm-mobile-open')});
+$('dmForm').onsubmit=send;$('dmSearch').oninput=()=>{find().catch(e=>notice(e.message))};
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&me){refreshList();loadMessages()}});
+window.NomiaMessages={mount:async(c,user)=>{client=c;me=user;await refreshList()},start,show:()=>{$('dmScreen').hidden=false;refreshList()},dispose:()=>{clearSubscription();me=null;current=null;$('dmScreen').hidden=true}};
+})();
