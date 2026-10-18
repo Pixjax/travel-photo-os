@@ -2,12 +2,12 @@
 if(window.openSkyAtlas)return;
 const d=Math.PI/180,rad=180/Math.PI,wrap=x=>(x%360+360)%360,clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const stars=[['Sirius',101.287,-16.716,-1.46],['Canopus',95.988,-52.696,-.74],['Arcturus',213.915,19.182,-.05],['Vega',279.234,38.784,.03],['Capella',79.172,45.998,.08],['Rigel',78.634,-8.202,.13],['Procyon',114.825,5.225,.34],['Betelgeuse',88.793,7.407,.42],['Achernar',24.429,-57.237,.46],['Hadar',210.956,-60.373,.61],['Acrux',186.650,-63.099,.76],['Altair',297.696,8.868,.77],['Aldebaran',68.980,16.509,.85],['Spica',201.298,-11.161,.97],['Antares',247.352,-26.432,1.06],['Pollux',116.329,28.026,1.14],['Fomalhaut',344.412,-29.622,1.16],['Deneb',310.358,45.280,1.25],['Mimosa',191.930,-59.689,1.25],['Regulus',152.093,11.967,1.35],['Adhara',104.656,-28.972,1.50],['Castor',113.650,31.888,1.58],['Gacrux',187.792,-57.113,1.63],['Bellatrix',81.283,6.350,1.64],['Elnath',81.573,28.608,1.65],['Alnair',332.058,-46.961,1.73],['Alioth',193.507,55.960,1.76],['Dubhe',165.932,61.751,1.79],['Merak',165.461,56.382,2.37],['Mizar',200.981,54.925,2.23],['Alkaid',206.885,49.313,1.86],['Polaris',37.955,89.264,1.98],['Alnitak',85.189,-1.943,1.74],['Alnilam',84.053,-1.202,1.69],['Mintaka',83.002,-.299,2.25],['Saiph',86.939,-9.670,2.07],['Sadr',305.557,40.257,2.23],['Albireo',292.680,27.960,3.05],['Kaus Australis',276.043,-34.384,1.79],['Shaula',263.402,-37.104,1.62],['Nunki',283.816,-26.297,2.05],['Dschubba',240.083,-22.622,2.29],['Rasalhague',263.734,12.560,2.08],['Mirfak',51.081,49.861,1.79],['Algol',47.042,40.955,2.12],['Alpheratz',2.097,29.091,2.06],['Markab',346.190,15.205,2.49],['Rigil Kentaurus',219.902,-60.834,-.01]];
-let root,canvas,ctx,video,stream,shown=false,lat=-16.92,lon=145.77,heading=180,elevation=20,fov=90,offset=0,date=new Date(),live=true,frame=0,drag=null,cam=false,sensorGood=false,sensorAccuracy=null,sensorUpdated=0,calibrationReference=null,orientationLabel='Capteurs non prêts',yawCorrection=null,goodCompassSamples=0,lastGoodHeading=null;
+let root,canvas,ctx,video,stream,shown=false,lat=-16.92,lon=145.77,heading=180,elevation=20,fov=90,offset=0,date=new Date(),live=true,frame=0,drag=null,cam=false,sensorGood=false,sensorAccuracy=null,sensorUpdated=0,calibrationReference=null,orientationLabel='Capteurs non prêts',yawCorrection=null,goodCompassSamples=0,lastGoodHeading=null,skyPitchOffset=0,calibrationState=null,calibratedAt=0;
 function jd(t){return t.getTime()/86400000+2440587.5}
 function lst(t){let j=jd(t),T=(j-2451545)/36525;return wrap(280.46061837+360.98564736629*(j-2451545)+.000387933*T*T-T*T*T/38710000+lon)}
 function equ(ra,dec){let H=(wrap(lst(date)-ra+180)-180)*d,p=lat*d,de=dec*d,h=Math.asin(Math.sin(p)*Math.sin(de)+Math.cos(p)*Math.cos(de)*Math.cos(H));return {az:wrap((Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(p)-Math.tan(de)*Math.cos(p))+Math.PI)*rad),alt:h*rad}}
 function gal(l){let x=Math.cos(l*d),y=Math.sin(l*d),xx=-.0548755604*x-.8734370902*y,yy=.4941094279*x-.4448296300*y,zz=-.8676661490*x-.1980763734*y;return equ(wrap(Math.atan2(yy,xx)*rad),Math.asin(zz)*rad)}
-function projection(p,w,h){let A=(p.az-heading-offset)*d,E=p.alt*d,e=elevation*d,z=Math.sin(E)*Math.sin(e)+Math.cos(E)*Math.cos(e)*Math.cos(A);if(z<=.02)return null;let k=(w/2)/Math.tan(fov*d/2);return {x:w/2+k*Math.cos(E)*Math.sin(A)/z,y:h/2-k*(Math.sin(E)*Math.cos(e)-Math.cos(E)*Math.cos(A)*Math.sin(e))/z}}
+function projection(p,w,h){let A=(p.az-heading-offset)*d,E=p.alt*d,e=(elevation+skyPitchOffset)*d,z=Math.sin(E)*Math.sin(e)+Math.cos(E)*Math.cos(e)*Math.cos(A);if(z<=.02)return null;let k=(w/2)/Math.tan(fov*d/2);return {x:w/2+k*Math.cos(E)*Math.sin(A)/z,y:h/2-k*(Math.sin(E)*Math.cos(e)-Math.cos(E)*Math.cos(A)*Math.sin(e))/z}}
 function line(points,w,h){ctx.beginPath();let prev=null;for(const p of points){let q=projection(p,w,h);if(!q||q.x<-w||q.x>2*w||q.y<-h||q.y>2*h){prev=null;continue}if(!prev)ctx.moveTo(q.x,q.y);else ctx.lineTo(q.x,q.y);prev=q}ctx.stroke()}
 function draw(){if(!shown)return;if(live)date=new Date();const z=devicePixelRatio||1,w=innerWidth,h=innerHeight;canvas.width=Math.round(w*z);canvas.height=Math.round(h*z);ctx.setTransform(z,0,0,z,0,0);ctx.clearRect(0,0,w,h);
 ctx.lineWidth=1;ctx.strokeStyle='#65758aa0';line(Array.from({length:181},(_,i)=>({az:2*i,alt:0})),w,h);
@@ -17,7 +17,7 @@ for(let A=0;A<360;A+=45){const q=projection({az:A,alt:0},w,h);if(q){ctx.fillStyl
 for(const s of stars){let p=equ(s[1],s[2]);if(p.alt<-7)continue;let q=projection(p,w,h);if(!q||q.x<0||q.x>w||q.y<0||q.y>h)continue;ctx.fillStyle='#f7f7ff';ctx.beginPath();ctx.arc(q.x,q.y,clamp(3-s[3]*.55,1,3.8),0,7);ctx.fill();if(s[3]<1.3){ctx.font='11px system-ui';ctx.fillText(s[0],q.x+7,q.y-7)}}
 const gc=gal(0),g=projection(gc,w,h);if(g){ctx.strokeStyle='#f2a9ff';ctx.strokeRect(g.x-10,g.y-10,20,20);ctx.fillStyle='#f2d9ff';ctx.font='12px system-ui';ctx.fillText('Centre galactique',g.x+15,g.y)}
 if(window.SunCalc)for(const [name,p,color]of [['Soleil',SunCalc.getPosition(date,lat,lon),'#ffd772'],['Lune',SunCalc.getMoonPosition(date,lat,lon),'#d8e5ff']]){const q=projection({az:wrap(p.azimuth*rad+180),alt:p.altitude*rad},w,h);if(q){ctx.fillStyle=color;ctx.beginPath();ctx.arc(q.x,q.y,7,0,7);ctx.fill();ctx.fillText(name,q.x+10,q.y-8)}}
-root.querySelector('#skyStatus').textContent=Math.round(wrap(heading+offset))+'° / '+Math.round(elevation)+'° • '+date.toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})+(cam?' · '+(Date.now()-sensorUpdated>2500?'Capteurs inactifs':orientationLabel)+(sensorAccuracy!=null?' ±'+Math.round(sensorAccuracy)+'°':''):'');root.classList.toggle('skyUnreliable',cam&&(!sensorGood||Date.now()-sensorUpdated>2500));
+root.querySelector('#skyStatus').textContent=Math.round(wrap(heading+offset))+'° / '+Math.round(elevation)+'° • '+date.toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})+(cam?' · '+(Date.now()-sensorUpdated>2500?'Capteurs inactifs':orientationLabel)+(sensorAccuracy!=null?' · boussole ±'+Math.round(sensorAccuracy)+'°':'')+(calibratedAt?' · alignement visuel':''):'');root.classList.toggle('skyUnreliable',cam&&(!sensorGood||Date.now()-sensorUpdated>2500));
 frame=requestAnimationFrame(draw)}
 function localDateValue(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')}
 function localTimeValue(t){return String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')}
@@ -46,15 +46,37 @@ function build(){
  root.querySelector('#skyCamera').onclick=toggleCam;
  root.querySelector('#skyGps').onclick=()=>{if(!navigator.geolocation){alert('GPS indisponible');return}navigator.geolocation.getCurrentPosition(p=>{lat=p.coords.latitude;lon=p.coords.longitude;},()=>alert('Localisation indisponible : vérifie les autorisations iPhone.'),{enableHighAccuracy:true,timeout:12000})};
  root.querySelector('#skyRecalibrate').onclick=()=>{
-   yawCorrection=null;goodCompassSamples=0;sensorGood=false;sensorUpdated=0;
-   orientationLabel='Recalibrage en cours';
-   alert('Éloigne l’iPhone des objets métalliques et aimantés, puis oriente-le lentement dans plusieurs directions. Si la boussole reste imprécise, la RA ne peut pas garantir le nord.');
+   if(!cam){alert('Active d’abord RA caméra.');return}
+   if(!sensorGood||Date.now()-sensorUpdated>1500){alert('Boussole insuffisamment stable. Éloigne le téléphone des objets métalliques et réessaie dehors.');return}
+   live=true;date=new Date();refresh();
+   const type=confirm('Aligner sur la Lune ?\nOK = Lune (recommandé)\nAnnuler = Soleil (ne regarde jamais directement le Soleil).')?'moon':'sun';
+   const pos=window.SunCalc&&(type==='moon'?SunCalc.getMoonPosition(date,lat,lon):SunCalc.getPosition(date,lat,lon));
+   if(!pos||pos.altitude*rad<5){alert('Cet astre est sous l’horizon ou trop bas. Essaie l’autre astre ou plus tard.');return}
+   calibrationState={type,az:wrap(pos.azimuth*rad+180),alt:pos.altitude*rad};
+   root.classList.add('calibrating');
+   alert('Sur la caméra, touche maintenant le CENTRE de la Lune ou du disque solaire visible. Évite toute observation directe du Soleil. Si l’astre est caché, ferme et réessaie ailleurs. Une calibration par un seul astre corrige seulement l’alignement local.');
  };
  root.querySelector('#skyDate').addEventListener('change',pickTime);
  root.querySelector('#skyTime').addEventListener('change',pickTime);
  canvas.style.touchAction='none';
  // No manual sky drag. The same real-world direction stays fixed while the phone rotates.
- canvas.onpointerdown=()=>{};canvas.onpointermove=()=>{};canvas.onpointerup=()=>{};
+ canvas.onpointerdown=e=>{
+   if(!calibrationState)return;
+   if(!cam||!sensorGood){calibrationState=null;root.classList.remove('calibrating');return}
+   const q=projection(calibrationState,innerWidth,innerHeight);
+   if(!q){alert('Astre hors champ théorique. Tourne légèrement le téléphone ou réinitialise la boussole.');return}
+   const deltaX=q.x-e.clientX,deltaY=e.clientY-q.y;
+   const maxShift=innerWidth*.42;
+   if(Math.abs(deltaX)>maxShift||Math.abs(deltaY)>innerHeight*.4){alert('Écart trop important pour une calibration sûre. Vérifie le GPS et le champ caméra.');calibrationState=null;root.classList.remove('calibrating');return}
+   const scale=2*Math.tan(fov*d/2)/innerWidth;
+   const correctionAz=Math.atan(deltaX*scale)*rad;
+   const correctionAlt=Math.atan(deltaY*scale)*rad;
+   offset=clamp(offset+correctionAz,-30,30);
+   skyPitchOffset=clamp(skyPitchOffset+correctionAlt,-25,25);
+   calibratedAt=Date.now();calibrationState=null;root.classList.remove('calibrating');
+   alert('Alignement visuel enregistré. Le ± de la boussole reste une mesure du capteur : un seul point ne garantit pas une précision de ±5° sur tout le ciel.');
+ };
+ canvas.onpointermove=()=>{};canvas.onpointerup=()=>{};
 }
 async function toggleCam(){if(cam){stopCam();return}try{const permission=(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function')?DeviceOrientationEvent.requestPermission():Promise.resolve('granted');const camera=navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});const [permissionResult,media]=await Promise.allSettled([permission,camera]);if(media.status!=='fulfilled')throw media.reason;stream=media.value;video.srcObject=stream;await video.play();cam=true;sensorGood=false;sensorUpdated=0;yawCorrection=null;goodCompassSamples=0;root.classList.add('camera');root.querySelector('#skyCamera').textContent='Carte du ciel';if(permissionResult.status==='fulfilled'&&permissionResult.value==='granted')window.addEventListener('deviceorientation',orient,true);else alert('Caméra active, mais orientation refusée. Utilise le mode carte ou autorise les capteurs.')}catch(e){alert('Caméra indisponible : '+e.message)}}
 // Device Euler angles (intrinsic Z-X'-Y' rotations): derive camera -Z
@@ -110,8 +132,8 @@ function orient(e){
  lastGoodHeading=heading;sensorGood=true;
  orientationLabel='Nord géographique suivi';
 }
-function stopCam(){if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;cam=false;sensorGood=false;video.srcObject=null;root.classList.remove('camera');root.querySelector('#skyCamera').textContent='📷 RA caméra';window.removeEventListener('deviceorientation',orient,true)}
-function open(){build();offset=0;try{if(typeof myGeo!=='undefined'&&myGeo&&Number.isFinite(+myGeo.lat)){lat=+myGeo.lat;lon=+myGeo.lon}else if(typeof selected!=='undefined'&&selected&&Number.isFinite(+selected.lat)){lat=+selected.lat;lon=+selected.lon}}catch(e){}date=new Date();live=true;refresh();shown=true;root.classList.add('show');cancelAnimationFrame(frame);draw()}
+function stopCam(){calibrationState=null;root?.classList.remove('calibrating');if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;cam=false;sensorGood=false;video.srcObject=null;root.classList.remove('camera');root.querySelector('#skyCamera').textContent='📷 RA caméra';window.removeEventListener('deviceorientation',orient,true)}
+function open(){build();offset=0;skyPitchOffset=0;calibratedAt=0;try{if(typeof myGeo!=='undefined'&&myGeo&&Number.isFinite(+myGeo.lat)){lat=+myGeo.lat;lon=+myGeo.lon}else if(typeof selected!=='undefined'&&selected&&Number.isFinite(+selected.lat)){lat=+selected.lat;lon=+selected.lon}}catch(e){}date=new Date();live=true;refresh();shown=true;root.classList.add('show');cancelAnimationFrame(frame);draw()}
 function close(){shown=false;cancelAnimationFrame(frame);stopCam();root.classList.remove('show')}
 window.openSkyAtlas=open;
 })();
