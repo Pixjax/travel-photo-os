@@ -11,7 +11,7 @@ const menu=document.createElement('section');menu.id='nomiaSimpleMore';menu.hidd
 document.body.appendChild(menu);
 const close=()=>{menu.hidden=true;wrap.querySelector('[data-ns="more"]')?.setAttribute('aria-expanded','false')};
 wrap.addEventListener('click',e=>{const b=e.target.closest('[data-ns]');if(!b)return;const id=b.dataset.ns;if(id==='more'){menu.hidden=!menu.hidden;b.setAttribute('aria-expanded',String(!menu.hidden));return}close();safe(id)});
-menu.addEventListener('click',e=>{if(e.target.closest('[data-ns-close]')){close();return}const b=e.target.closest('[data-ns-extra]');if(!b)return;close();const a=b.dataset.nsExtra;try{if(a==='favs')window.setMode?.('favs');if(a==='gps')window.openGeo?.();if(a==='nav')window.openNavigationMode?.();if(a==='collab')window.openCollab?.();if(a==='ultimate')window.openUltimate?.();if(a==='builder')window.openAIBuilder?.();if(a==='windows')window.resetWindowLayout?.()}catch(err){console.warn(err)}});
+menu.addEventListener('click',e=>{if(e.target.closest('[data-ns-close]')){close();return}const b=e.target.closest('[data-ns-extra]');if(!b)return;close();const a=b.dataset.nsExtra;try{if(a==='favs')window.setMode?.('favs');if(a==='gps')window.openGeo?.();if(a==='nav')window.openNavigationMode?.();if(a==='collab')window.openCollab?.();if(a==='ultimate')window.openUltimate?.();if(a==='builder')window.openAIBuilder?.();if(a==='windows'){if(typeof window.nomiaResetAllWindows==='function')window.nomiaResetAllWindows();else window.resetWindowLayout?.()}}catch(err){console.warn(err)}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
