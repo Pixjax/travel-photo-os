@@ -100,7 +100,7 @@ Tout cela reste **non validé de bout en bout**, car les migrations SQL n'ont pa
 
 ### Migrations appliquées sur Supabase
 
-`004_messages.sql`, `005_dm_realtime.sql`, `006_dm_privacy.sql`, `007_dm_thread_events.sql`, `008_dm_media_integrity.sql`.
+`004_messages.sql`, `005_dm_realtime.sql`, `006_dm_privacy.sql`, `007_dm_thread_events.sql`, `008_dm_media_integrity.sql`, `009_dm_reports.sql`.
 
 **Vérifications structurelles réalisées :** les quatre tables de messagerie ont RLS actif ; toutes les fonctions RPC de messagerie refusent `anon` et acceptent `authenticated` ; les médias sont dans le bucket privé `nomia-messages` (10 Mo) ; `social_dm_messages` et `social_dm_threads` sont dans `supabase_realtime`. Les tables Voyage n'ont pas été modifiées.
 
@@ -121,7 +121,7 @@ Script : `npm run test:messages`. Nécessite `SOCIAL_URL`, `SOCIAL_ANON_KEY` et 
 
 ### Restant à réaliser
 
-- Modération centralisée des messages et traitement administratif des signalements.
+- Les utilisateurs peuvent signaler les messages privés ; le traitement administratif centralisé des signalements reste à développer.
 - Anti-spam/rate limiting plus avancés, suppression RGPD complète et nettoyage systématique des médias orphelins.
 - Tests E2E Safari/iPhone sur deux appareils (non effectués ici).
 - Notifications push système (non implémentées), appels, voix, groupes, réactions et « écrit… » (non implémentés).
