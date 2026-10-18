@@ -24,6 +24,19 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
    await page.waitForFunction(()=>document.querySelectorAll('#tripGrid .tripCard').length>0,null,{timeout:30000});
    assert((await page.title()).includes('NØMIA'),'titre NØMIA manquant');
  });
+ await run('NØMIA premium dashboard: hero, cards, links, mobile navigation',async()=>{
+   await page.waitForSelector('#nomiaDashboard .nd-hero',{timeout:10000});
+   const state=await page.evaluate(()=>({
+     home:document.querySelector('#home')?.classList.contains('nomia-home'),
+     hero:!!document.querySelector('#nomiaDashboard .nd-hero'),
+     plan:!!document.querySelector('#nomiaDashboard .nd-timeline'),
+     bookings:!!document.querySelector('#nomiaDashboard .nd-res'),
+     budget:!!document.querySelector('#nomiaDashboard .nd-budgetmain'),
+     nav:getComputedStyle(document.querySelector('#nomiaDashboard .nd-mobilebar')).display,
+     buttons:document.querySelectorAll('#nomiaDashboard button[data-go]').length
+   }));
+   assert(state.home&&state.hero&&state.plan&&state.bookings&&state.budget&&state.nav!=='none'&&state.buttons>=8,'Dashboard incomplete: '+JSON.stringify(state));
+ });
  await run('Entrée dans un voyage de test local isolé',async()=>{
    await page.waitForTimeout(400);
    const state=await page.evaluate(()=>{
