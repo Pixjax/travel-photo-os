@@ -5,7 +5,7 @@ const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'t
 const server=http.createServer((req,res)=>{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);const dest=path.resolve(root,'.'+pathname);if(!dest.startsWith(root+path.sep)&&dest!==root){res.writeHead(403);return res.end()}fs.readFile(dest,(err,b)=>{if(err){res.writeHead(404);return res.end('Missing '+pathname)}res.writeHead(200,{'Content-Type':mime[path.extname(dest)]||'application/octet-stream','Cache-Control':'no-store'});res.end(b)})});
 const assert=(ok,msg)=>{if(!ok)throw Error(msg)};
 let failures=[];
-async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){console.error('FAIL',name,err.message);failures.push(name+': '+err.message)}}
+async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){console.error('FAIL',name,err.message);failures.push(name+': '+err.message);try{if(typeof page!=='undefined'&&!page.isClosed()){fs.mkdirSync(path.join(root,'qa-screenshots'),{recursive:true});await page.screenshot({path:path.join(root,'qa-screenshots',String(failures.length).padStart(2,'0')+'-failed.png'),fullPage:true})}}catch(_){}}}
 (async()=>{
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const base='http://127.0.0.1:'+server.address().port;
