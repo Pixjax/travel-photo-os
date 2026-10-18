@@ -11,6 +11,8 @@ function mount({mode,frame,status,onReady}){
    const w=frame.contentWindow,d=frame.contentDocument;
    if(!w||!d?.getElementById('map')||typeof w[required]!=='function')throw Error('not ready');
    clear();ready=true;status.hidden=true;
+   // The outer app header already links to NØMIA. Hide the duplicated in-frame shortcut.
+   if(!d.getElementById('nomia-hide-inframe-return')){const style=d.createElement('style');style.id='nomia-hide-inframe-return';style.textContent='#nomiaReturnHub{display:none!important}';d.head.append(style)}
    if(typeof onReady==='function')onReady({window:w,document:d});
    frame.dispatchEvent(new CustomEvent('nomia-module-ready'));
   }catch(e){
