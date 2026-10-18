@@ -20,7 +20,7 @@ check(!index.includes('photo-ra-direct.js'),'obsolete RA entry not loaded');
 check(!index.includes('photo-ra-entry.js'),'obsolete RA loader not loaded');
 check(index.includes('manifest.webmanifest?v=')||index.includes("manifest.webmanifest?v='+VERSION"),'manifest URL is versioned');
 const base=read('app-base.html');
-const inlineActions=[...base.matchAll(/\\bonclick="([^"]*)"/g)].map(m=>m[1]);
+const inlineActions=[...base.matchAll(/\bonclick="([^"]*)"/g)].map(m=>m[1]);
 for(let i=0;i<inlineActions.length;i++){
  try{new vm.Script('(function(event){'+inlineActions[i]+'})',{filename:'inline-onclick-'+(i+1)});check(true,'inline button JavaScript #'+(i+1))}
  catch(e){check(false,'inline button JavaScript #'+(i+1)+' '+e.message)}
