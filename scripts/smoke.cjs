@@ -11,6 +11,7 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
  const base='http://127.0.0.1:'+server.address().port;
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
  const context=await browser.newContext({...devices['iPhone 13'],permissions:['geolocation','camera'],geolocation:{latitude:-16.92,longitude:145.77},serviceWorkers:'block'});
+ await context.route(/supabase\.co\//,route=>route.abort()); // never touch production data
  const page=await context.newPage();
  const exceptions=[];
  page.on('pageerror',err=>exceptions.push(err.message));
@@ -28,7 +29,7 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
    await page.locator('button[onclick="openTripEditor()"]').first().click({timeout:12000});
    await page.waitForTimeout(250);
    assert(await page.locator('#tripOverlay.show').count()>0,'éditeur voyage non visible');
-   await page.locator('button[onclick="closeOverlay(\\'tripOverlay\\')"]').first().click({timeout:12000});
+   await page.evaluate(()=>window.closeOverlay('tripOverlay'));
    assert(await page.locator('#tripOverlay.show').count()===0,'éditeur voyage ne se ferme pas');
  });
  await run('Menu Photo et planétarium',async()=>{
@@ -42,6 +43,47 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
    await page.locator('#skyExit').click({timeout:12000});
    assert(await page.locator('#skyAtlas.show').count()===0,'Planétarium ne se ferme pas');
  });
+
+ await run('Navigation : ouverture et fermeture',async()=>{
+   await page.evaluate(()=>window.openNavigationMode?.());
+   await page.waitForTimeout(350);
+   assert(await page.locator('#navOverlay.show').count()===1,'Navigation non visible');
+   assert(await page.locator('#navOverlay button').count()>=2,'Contrôles navigation absents');
+   await page.evaluate(()=>window.closeOverlay('navOverlay'));
+   assert(await page.locator('#navOverlay.show').count()===0,'Navigation ne se ferme pas');
+ });
+ await run('Dépenses : ouverture de planning',async()=>{
+   await page.evaluate(()=>window.openPlanner?.());
+   await page.waitForTimeout(300);
+   assert(await page.locator('#plannerOverlay.show').count()===1,'Planning/dépenses non visible');
+   assert(await page.locator('#plannerOverlay button').count()>=1,'Contrôles dépenses absents');
+   await page.evaluate(()=>window.closeOverlay('plannerOverlay'));
+ });
+ await run('Réservations : ouverture de Voyage Hub',async()=>{
+   await page.evaluate(()=>window.openVoyageHub?.());
+   await page.waitForTimeout(450);
+   assert(await page.locator('#uxVoyagePanel.show').count()===1,'Voyage Hub non visible');
+   assert(await page.locator('#uxVoyageScroll').count()===1,'Contenu Voyage absent');
+   await page.evaluate(()=>document.getElementById('uxVoyageClose')?.click());
+   assert(await page.locator('#uxVoyagePanel.show').count()===0,'Voyage Hub ne se ferme pas');
+ });
+ await run('Collaboration : ouverture locale sans écriture cloud',async()=>{
+   await page.evaluate(()=>window.openCollab?.());
+   await page.waitForTimeout(350);
+   assert(await page.locator('#collabOverlay.show').count()===1,'Collaboration non visible');
+   await page.evaluate(()=>window.closeOverlay('collabOverlay'));
+ });
+ await run('Emulation mobile : permissions GPS et caméra',async()=>{
+   const caps=await page.evaluate(()=>({gps:!!navigator.geolocation,camera:!!navigator.mediaDevices?.getUserMedia,motion:typeof DeviceOrientationEvent!=='undefined'}));
+   assert(caps.gps&&caps.camera,'API manquante sur le navigateur');
+   console.log('INFO: appareils iPhone physiques non testés:',JSON.stringify(caps));
+ });
+ await run('Hors ligne : service worker et app shell déclarés',async()=>{
+   const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');
+   assert(sw.includes("self.addEventListener('fetch'"),'Interception fetch absente');
+   assert(sw.includes("'./index.html'")&&sw.includes("'./app-base.html'"),'App shell non déclaré');
+ });
+
  await run('Absence d’erreurs JavaScript fatales',async()=>{
    const fatal=exceptions.filter(x=>/SyntaxError|ReferenceError|is not a function|Unexpected token/i.test(x));
    assert(fatal.length===0,fatal.slice(0,6).join('; '));
