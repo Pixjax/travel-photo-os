@@ -1,0 +1,46 @@
+/* NØMIA cinematic dual-panel design / voyage & photo / additive styling */
+@media(min-width:761px){
+body .uxVoyagePanel,body .uxPhotoPanel{right:20px!important;top:110px!important;bottom:20px!important;width:min(595px,39vw)!important;max-width:none!important;border-radius:25px!important;z-index:91!important;background:linear-gradient(153deg,rgba(3,16,30,.98),rgba(6,21,38,.97))!important;border:1px solid rgba(236,196,122,.72)!important;box-shadow:0 0 0 1px #6085a52a,0 24px 80px #010611cf!important;backdrop-filter:blur(24px)}
+body .uxVoyagePanel .uxVoyageHead,body .uxPhotoPanel .uxPhotoHead{background:linear-gradient(90deg,#071b32,#07172a)!important;padding:18px 21px 15px!important;border-bottom:1px solid #d3a86753!important}
+body .uxVoyagePanel .uxVoyageKicker,body .uxPhotoPanel .uxPhotoKicker{font-size:10px!important;letter-spacing:2.8px!important;color:#eaca91!important}
+body .uxVoyagePanel .uxVoyageHead h2,body .uxPhotoPanel .uxPhotoHead h2{font:normal clamp(26px,2.2vw,36px)/1.1 Georgia,serif!important;color:#fff!important;margin-top:6px!important}
+body .uxVoyagePanel .uxVoyageClose,body .uxPhotoPanel .uxPhotoClose{background:#152b42!important;border:1px solid #87a3bc66!important;border-radius:12px;color:#fff}
+body .uxVoyagePanel .uxVoyageScroll,body .uxPhotoPanel .uxPhotoScroll{padding:14px 16px 28px!important;scrollbar-width:thin;scrollbar-color:#536f8e transparent}
+body .uxVoyagePanel .uxVoyageHero,body .uxVoyagePanel .uxVoyageSection,body .uxPhotoPanel .uxPhotoHero,body .uxPhotoPanel .uxPhotoSection,body .uxPhotoPanel .ppsLaunch{border:1px solid #7498b063!important;border-radius:17px!important;background:linear-gradient(125deg,#0d273fdb,#06172ce8)!important;box-shadow:inset 0 1px #ffffff0a!important;margin:0 0 11px!important;padding:15px!important}
+body .uxVoyagePanel .uxVoyageHero{border-color:#ddb77685!important}
+body .uxVoyagePanel .uxVoyageHeroTop{gap:10px;align-items:center}
+body .uxVoyagePanel .uxVoyageHeroTop:before{content:'';flex:0 0 106px;height:112px;border-radius:11px;background:url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=330&q=75') center/cover;border:1px solid #cda36970}
+body .uxVoyagePanel .uxVoyageHeroTop b{font:normal 21px Georgia,serif!important}
+body .uxVoyagePanel .uxVoyageHeroTop span{font-size:10px!important;line-height:1.5}
+body .uxVoyagePanel .uxVoyageCloud{border:1px solid #55aa9760;color:#75e0b7!important;padding:7px;border-radius:999px}
+body .uxVoyagePanel .uxVoyageStats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px!important;margin-top:12px!important}
+body .uxVoyagePanel .uxVoyageStat{min-width:0!important;border:1px solid #65849b50!important;background:#102840!important;border-radius:12px!important;padding:11px 7px!important;text-align:center}
+body .uxVoyagePanel .uxVoyageStat small{font-size:8px!important;color:#b0c4d4!important}
+body .uxVoyagePanel .uxVoyageStat b{font-size:20px!important;color:#f1d39b!important}
+body .uxVoyagePanel .uxDepartureStart{background:linear-gradient(155deg,#ffe7b0,#d9a758)!important;color:#152337!important;border-radius:13px!important;border:1px solid #ffe5ad!important;min-height:47px!important;margin-top:12px!important}
+body .uxVoyagePanel .uxVoyageSectionHead h3,body .uxPhotoPanel .uxPhotoSectionHead h3{font:normal 19px Georgia,serif!important}
+body .uxVoyagePanel .uxVoyageProgress{height:9px!important;background:#273c50!important;border-radius:99px}
+body .uxVoyagePanel .uxVoyageProgress i{background:linear-gradient(90deg,#d8a75e,#ffe4ac)!important}
+body .uxVoyagePanel .uxVoyageActions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important}
+body .uxVoyagePanel .uxVoyageAction{display:flex!important;flex-direction:column;justify-content:center;min-height:77px!important;background:linear-gradient(155deg,#132e48,#081a2e)!important;border:1px solid #6e93ae5e!important;border-radius:13px!important;text-align:center!important;padding:10px 5px!important;color:#e8f1fb!important}
+body .uxVoyagePanel .uxVoyageAction.primary{border-color:#e1bb75!important;box-shadow:0 0 16px #d8ad5f26;background:#25344a!important}
+body .uxVoyagePanel .uxVoyageAction b{font-size:12px!important;color:#faf2e7!important}
+body .uxVoyagePanel .uxVoyageAction span{font-size:9px!important;color:#acbbcd!important;line-height:1.4;margin-top:5px}
+body .uxVoyagePanel .uxVoyageRow{background:#112b43ad;border:1px solid #5c809c52;border-radius:12px!important;padding:11px}
+body .uxVoyagePanel input,body .uxVoyagePanel select{background:#0d2238!important;color:#f2f5fb!important;border-color:#7594af65!important}
+body .uxVoyagePanel .uxVoyageAdd{background:#e6c283!important;color:#102036!important;border-radius:10px!important}
+body .uxPhotoPanel .uxPhotoHeroTop:before{background-image:url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=350&q=75')!important}
+body .uxPhotoPanel .uxPhotoSpotList{gap:9px}
+body .uxPhotoPanel .uxPhotoSpot{border-color:#6989a277!important;background:#102740!important}
+body .uxPhotoPanel .ppsLaunch{border-color:#d3ae6d83!important}
+body .uxPhotoPanel .ppsLaunchGrid button{border-color:#789cb85e!important}
+body .uxPhotoPanel .uxPhotoSection:has(.uxPhotoLightGrid){border-color:#d6b47686!important}
+body .uxPhotoPanel .uxPhotoSection:has(.uxPhotoWeather){border-color:#698ca778!important}
+body .uxVoyagePanel .uxVoyageSectionHead span{color:#c5cfdb!important;font-size:10px!important}
+body .uxVoyagePanel .nf-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+body .uxVoyagePanel .nf-shortcuts button{padding:12px 10px;text-align:left;border:1px solid #7b99b25a;border-radius:13px;background:#112b42;color:#eef4fc;font-size:11px;font-weight:700}
+body .uxVoyagePanel .nf-shortcuts button:before{color:#eac782;font-size:18px;margin-right:8px}
+body .uxVoyagePanel .nf-shortcuts button:hover{border-color:#eac782}
+}
+@media(min-width:761px) and (max-width:1280px){body .uxVoyagePanel,body .uxPhotoPanel{width:min(530px,47vw)!important}body .uxVoyagePanel .uxVoyageHeroTop:before{width:68px;flex-basis:68px;height:78px}body .uxVoyagePanel .uxVoyageActions{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:760px){body .uxVoyagePanel{background:linear-gradient(145deg,#071e35,#030f21)!important}body .uxVoyagePanel .uxVoyageHead{background:#081c33!important}body .uxVoyagePanel .uxVoyageKicker{color:#e6c283!important}body .uxVoyagePanel h2{font-family:Georgia,serif!important}body .uxVoyagePanel .uxVoyageHero,body .uxVoyagePanel .uxVoyageSection{background:#0e2841!important;border:1px solid #d0ad7663!important}body .uxVoyagePanel .uxVoyageAction.primary,body .uxVoyagePanel .uxDepartureStart{background:linear-gradient(145deg,#fce6b6,#d5a75f)!important;color:#15243a!important}body .uxVoyagePanel .nf-shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}body .uxVoyagePanel .nf-shortcuts button{border-radius:12px;background:#173551;color:#fff;padding:10px;font-size:10px}}
