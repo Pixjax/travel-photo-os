@@ -28,7 +28,7 @@ function tool(name){
   enter();
  }catch(e){notice('Cet outil ne peut pas encore être ouvert.')}
 }
-frame.addEventListener('nomia-module-ready',()=>{ready=true;const {d}=getEngine();if(d){const style=d.createElement('style');style.id='nomia-photo-studio-focus';style.textContent='#nomiaReturnHub{display:none!important}';d.head?.append(style)}});
+frame.addEventListener('nomia-module-ready',()=>{ready=true;const {d}=getEngine();});
 if(window.NomiaPhotoEngine?.ready)frame.dispatchEvent(new CustomEvent('nomia-module-ready'));
 frame.addEventListener('load',()=>{ready=false;reveal()});
 stage.addEventListener('click',e=>{const b=e.target.closest('[data-photo-tool]');if(b)tool(b.dataset.photoTool)});
