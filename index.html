@@ -11,7 +11,7 @@
 <div class="boot"><div><b>NØMIA</b><span id="bootMsg">Chargement de la version complète…</span></div></div>
 <script>
 (async()=>{
-  const VERSION='index-full-20261018as';
+  const VERSION='index-full-20261018at';
   const setBoot=t=>{const e=document.getElementById('bootMsg');if(e)e.textContent=t};
 
   async function prepareOffline(){
@@ -45,6 +45,8 @@
     if(!navigator.onLine)setBoot('Mode hors ligne · ouverture depuis le cache…');
     let html=await getBase();
     html=html.replace(/<title>[^<]*<\/title>/,'<title>NØMIA</title>');
+    html=html.replace('href="manifest.webmanifest"','href="manifest.webmanifest?v='+VERSION+'"').replace('href="apple-touch-icon.png"','href="apple-touch-icon.png?v='+VERSION+'"');
+    html=html.replace('</head>','<link rel="icon" type="image/png" href="./icon-192.png?v='+VERSION+'"></head>');
     html=html.replace('</head>','<link rel="stylesheet" href="./mobile-ux.css?v='+VERSION+'"><link rel="stylesheet" href="./workspace-windows.css?v='+VERSION+'"><link rel="stylesheet" href="./simple-collab.css?v='+VERSION+'"><link rel="stylesheet" href="./premium-ux.css?v='+VERSION+'"><link rel="stylesheet" href="./day-experience.css?v='+VERSION+'"><link rel="stylesheet" href="./photo-experience.css?v='+VERSION+'"><link rel="stylesheet" href="./voyage-experience.css?v='+VERSION+'"><link rel="stylesheet" href="./booking-launcher.css?v='+VERSION+'"><link rel="stylesheet" href="./booking-native.css?v='+VERSION+'"><link rel="stylesheet" href="./desktop-voyage-fab.css?v='+VERSION+'"><link rel="stylesheet" href="./offline-mode.css?v='+VERSION+'"><link rel="stylesheet" href="./navigation-v2.css?v='+VERSION+'"><link rel="stylesheet" href="./celestial-ar.css?v='+VERSION+'"><link rel="stylesheet" href="./photo-pro-suite.css?v='+VERSION+'"><link rel="stylesheet" href="./photo-ar-field.css?v='+VERSION+'"><link rel="stylesheet" href="./sky-atlas.css?v='+VERSION+'"></head>');
     const menu=`<button class="mobileActionBtn" id="mobileActionBtn" onclick="toggleMobileActions()" aria-label="Ouvrir les actions">☰</button>
 <div class="mobileActionMenu" id="mobileActionMenu">
