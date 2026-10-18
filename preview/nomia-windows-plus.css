@@ -1,0 +1,13 @@
+/* NØMIA preview floating panels: easy grab, touch resize, adjustable layout */
+.nomia-managed{box-sizing:border-box!important;overflow:hidden!important;min-width:0!important;transition:none!important}
+.nomia-managed.show{display:flex!important;flex-direction:column!important}
+.nomia-winbar{height:37px;flex:0 0 37px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg,#0c2944,#071c32);border-bottom:1px solid #ccaa6b66;color:#ffdf9b;padding:0 8px 0 13px;z-index:3;user-select:none}
+.nomia-grip{flex:1;height:100%;display:flex;gap:8px;align-items:center;cursor:grab;touch-action:none;font-size:20px}.nomia-grip b{font-size:11px;font-weight:600;letter-spacing:.5px}
+.nomia-grip:active{cursor:grabbing}.nomia-winbuttons{display:flex;gap:5px}.nomia-winbuttons button{border:1px solid #ad96696e;color:#efd8ae;background:#112f49;border-radius:9px;min-width:29px;height:28px;font-size:16px}
+.nomia-managed.nomia-minimized{height:38px!important;min-height:38px!important;max-height:38px!important;overflow:hidden!important}
+.nomia-managed.nomia-minimized>*:not(.nomia-winbar){display:none!important}
+.nomia-managed.nomia-maximized{border-radius:16px!important}
+.nomia-resizer{position:absolute;right:0;bottom:0;width:32px;height:32px;z-index:4;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 55%,#e4c487 56%,#e4c487 60%,transparent 61%,transparent 72%,#e4c487 73%,#e4c487 78%,transparent 79%);border-bottom-right-radius:20px}
+.nomia-moving{user-select:none!important}
+#nomiaWinReset{position:fixed;right:15px;bottom:95px;z-index:195;background:#0a2845eb;border:1px solid #d1ad6d;border-radius:999px;color:#ffdd99;padding:8px 12px;font-size:11px}
+@media(max-width:760px){.nomia-managed{padding:0!important}.nomia-managed .uxPhotoScroll,.nomia-managed .uxVoyageScroll,.nomia-managed .uxDepartureScroll{min-height:0!important}.nomia-managed .uxPhotoHead,.nomia-managed .uxVoyageHead,.nomia-managed .uxDepartureHead{padding:10px 12px!important}#nomiaWinReset{bottom:calc(env(safe-area-inset-bottom) + 79px);right:8px}body.uxPhotoOpen #nomiaSimpleNav,body.uxVoyageOpen #nomiaSimpleNav{display:flex!important}}
