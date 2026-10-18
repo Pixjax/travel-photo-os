@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07182d"><title>NØMIA · Aperçu simplifié</title>
+<style>html,body{margin:0;height:100%;background:#07182d;color:#fff;font-family:system-ui}#app{position:fixed;inset:0;width:100%;height:100%;border:0}#status{position:fixed;z-index:9;top:12px;left:50%;transform:translateX(-50%);padding:11px 18px;border:1px solid #b89a65;border-radius:16px;background:#07182df2;color:#ffe0a1;font-size:12px}#status[hidden]{display:none}</style>
+</head><body><div id="status" role="status">Chargement de l’aperçu NØMIA…</div><iframe id="app" title="NØMIA — version simplifiée" src="../?nomia-preview=1" allow="geolocation; camera"></iframe>
+<script>
+(()=>{'use strict';const frame=document.getElementById('app'),status=document.getElementById('status');let count=0;
+function inject(){try{const doc=frame.contentDocument;if(!doc||!doc.body)throw Error('Document indisponible');if(!doc.getElementById('nomia-simple-preview-style')){const link=doc.createElement('link');link.id='nomia-simple-preview-style';link.rel='stylesheet';link.href=new URL('./nomia-simple-nav.css?v=preview-20261018-v1',location.href).href;doc.head.append(link)}
+if(!doc.getElementById('nomia-simple-preview-script')){const script=doc.createElement('script');script.id='nomia-simple-preview-script';script.src=new URL('./nomia-simple-nav.js?v=preview-20261018-v1',location.href).href;doc.body.append(script)}
+status.hidden=true;
+}catch(err){status.textContent='Chargement de l’aperçu…';if(++count<8)setTimeout(inject,700)}}
+frame.addEventListener('load',()=>{count=0;setTimeout(inject,150)});
+setTimeout(inject,4000);
+})();
+</script></body></html>
