@@ -11,9 +11,9 @@ function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className
 function btn(label,click,pressed){const b=el('button','',label);b.type='button';b.onclick=click;if(pressed!==undefined)b.setAttribute('aria-pressed',String(pressed));return b}
 function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.close())}
 function openView(name){view=name;show('feedView',name==='feed');show('exploreView',name==='explore');show('profileView',name==='profile');document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===name));$('viewTitle').textContent={feed:'Explorer le monde.',explore:'Découvrir.',profile:'Mon profil.'}[name];if(name==='feed')loadFeed(true);if(name==='profile')loadProfile();if(name==='explore')search()}
-function signedIn(){show('auth',!user);show('app',!!user);$('account').textContent=user?'Déconnexion':'Connexion';if(user)openView('feed')}
+function signedIn(){show('auth',!user||!profile);show('app',!!user&&!!profile);$('account').textContent=user?'Déconnexion':'Connexion';if(user&&profile)openView('feed')}
 async function ensureProfile(){if(!user)return;let q=await S.from('social_profiles').select('*').eq('id',user.id).maybeSingle();if(q.error)throw q.error;profile=q.data;if(!profile){show('auth',true);show('app',false);$('usernameField').hidden=false;note('Choisis un identifiant pour terminer ton profil.');$('signup').textContent='Créer mon profil'}else $('usernameField').hidden=true}
-async function signin(e){e.preventDefault();if(!S){note('Service de connexion indisponible.');return}const email=$('email').value.trim(),password=$('password').value;const r=await S.auth.signInWithPassword({email,password});if(r.error)return fail(r.error);user=r.data.user;await ensureProfile();signedIn()}
+async function signin(e){e.preventDefault();if(!S){note('Service de connexion indisponible.');return}const email=$('email').value.trim(),password=$('password').value;const r=await S.auth.signInWithPassword({email,password});if(r.error)return fail(r.error);user=r.data.user;try{await ensureProfile()}catch(e){return fail(e)}signedIn()}
 async function register(){if(!S)return note('Connexion indisponible');const username=$('username').value.trim().toLowerCase(),email=$('email').value.trim(),password=$('password').value;
 if(!username){$('usernameField').hidden=false;$('username').required=true;note('Choisis ton identifiant puis clique à nouveau sur Créer un compte.');return}
 if(!/^[a-z0-9_]{3,24}$/.test(username))return note('Identifiant de 3 à 24 lettres minuscules, chiffres ou _');
@@ -21,7 +21,7 @@ let result;if(!user){result=await S.auth.signUp({email,password,options:{emailRe
 const check=await S.from('social_profiles').insert({id:user.id,username,display_name:username}).select().single();if(check.error)return fail(check.error);profile=check.data;signedIn()}
 async function reset(){const email=$('email').value.trim();if(!email)return note('Indique ton adresse e-mail.');const r=await S.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(r.error)fail(r.error);else note('E-mail de récupération demandé.')}
 async function getSignedUrl(path){const r=await S.storage.from('nomia-social').createSignedUrl(path,3600);return r.data?.signedUrl||null}
-async function loadFeed(reset=false){if(!user||busy)return;if(reset){offset=0;more=true;$('feed').textContent=''}if(!more)return;busy=true;$('more').disabled=true;try{
+async function loadFeed(reset=false){if(!user||!profile||busy)return;if(reset){offset=0;more=true;$('feed').textContent=''}if(!more)return;busy=true;$('more').disabled=true;try{
 const {data,error}=await S.from('social_posts').select('id,author_id,image_path,caption,place_name,created_at,visibility,social_profiles!social_posts_author_id_fkey(username,display_name)').order('created_at',{ascending:false}).range(offset,offset+9);
 if(error)throw error;more=(data||[]).length===10;offset+=(data||[]).length;
 if(reset&&!data?.length)$('feed').append(empty('Aucune publication pour le moment. Sois le premier à partager une photographie.'));
