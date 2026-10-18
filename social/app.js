@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id), supa=window.supabase;
 const URL='https://svfknuvlpxikzqvpksux.supabase.co', KEY='sb_publishable_pm5NiLhMirB8zD0yiYFWXg_6a6R8U1D';
 const S=supa?.createClient?.(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let user=null,profile=null,view='feed',offset=0,activePost=null,busy=false,more=true,feedMode='global';
+let user=null,profile=null,view='feed',offset=0,activePost=null,busy=false,more=true,feedMode='global',backendReady=false;
 const show=(id,yes)=>$(id).hidden=!yes;
 function note(message){$('banner').textContent=message;$('banner').hidden=false;setTimeout(()=>$('banner').hidden=true,5500)}
 function fail(error){note(error?.message||String(error||'Une erreur est survenue'))}
@@ -13,8 +13,8 @@ function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.c
 function openView(name){view=name;show('feedView',name==='feed');show('exploreView',name==='explore');show('profileView',name==='profile');show('notificationsView',name==='notifications');document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===name));$('viewTitle').textContent={feed:'Explorer le monde.',explore:'Découvrir.',profile:'Mon profil.',notifications:'Notifications.'}[name];if(name==='feed')loadFeed(true);if(name==='profile')loadProfile();if(name==='notifications')loadNotifications();if(name==='explore')search()}
 function signedIn(){show('auth',!user||!profile);show('app',!!user&&!!profile);$('account').textContent=user?'Déconnexion':'Connexion';if(user&&profile)openView('feed')}
 async function ensureProfile(){if(!user)return;let q=await S.from('social_profiles').select('*').eq('id',user.id).maybeSingle();if(q.error)throw q.error;profile=q.data;if(!profile){show('auth',true);show('app',false);$('usernameField').hidden=false;note('Choisis un identifiant pour terminer ton profil.');$('signup').textContent='Créer mon profil'}else $('usernameField').hidden=true}
-async function signin(e){e.preventDefault();if(!S){note('Service de connexion indisponible.');return}const email=$('email').value.trim(),password=$('password').value;const r=await S.auth.signInWithPassword({email,password});if(r.error)return fail(r.error);user=r.data.user;try{await ensureProfile()}catch(e){return fail(e)}signedIn()}
-async function register(){if(!S)return note('Connexion indisponible');const username=$('username').value.trim().toLowerCase(),email=$('email').value.trim(),password=$('password').value;
+async function signin(e){e.preventDefault();if(!backendReady)return note('La base Social n’est pas encore configurée.');if(!S){note('Service de connexion indisponible.');return}const email=$('email').value.trim(),password=$('password').value;const r=await S.auth.signInWithPassword({email,password});if(r.error)return fail(r.error);user=r.data.user;try{await ensureProfile()}catch(e){return fail(e)}signedIn()}
+async function register(){if(!S||!backendReady)return note('La base Social n’est pas encore configurée.');const username=$('username').value.trim().toLowerCase(),email=$('email').value.trim(),password=$('password').value;
 if(!username){$('usernameField').hidden=false;$('username').required=true;note('Choisis ton identifiant puis clique à nouveau sur Créer un compte.');return}
 if(!/^[a-z0-9_]{3,24}$/.test(username))return note('Identifiant de 3 à 24 lettres minuscules, chiffres ou _');
 let result;if(!user){result=await S.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});if(result.error)return fail(result.error);user=result.data.user;if(!result.data.session){note('Consulte ton e-mail pour confirmer ton compte, puis connecte-toi.');return}}
@@ -33,7 +33,12 @@ if(feedMode==='following'){
 const {data,error}=await query.range(offset,offset+9);
 if(error)throw error;more=(data||[]).length===10;offset+=(data||[]).length;
 if(reset&&!data?.length)$('feed').append(empty(feedMode==='following'?'Aucune publication de tes abonnements pour le moment.':'Aucune publication pour le moment. Sois le premier à partager une photographie.'));
-for(const post of data||[])await addPost(post);
+const deepId=new URLSearchParams(location.search).get('post');
+if(reset&&deepId&&/^[a-f0-9-]{36}$/i.test(deepId)){
+ const target=await S.from('social_posts').select('id,author_id,image_path,caption,place_name,created_at,visibility,social_profiles!social_posts_author_id_fkey(username,display_name)').eq('id',deepId).maybeSingle();
+ if(target.data)await addPost(target.data);
+}
+for(const post of data||[]){if(reset&&deepId===post.id)continue;await addPost(post)}
 $('more').hidden=!more
 }catch(e){fail(e)}finally{busy=false;$('more').disabled=false}}
 async function addPost(post){const card=el('article','post');const header=el('div','post-head');const left=el('div');const name=el('b','',post.social_profiles?.display_name||post.social_profiles?.username||'Photographe');const meta=el('div','subline',(post.place_name?post.place_name+' · ':'')+new Date(post.created_at).toLocaleDateString('fr-FR'));left.append(name,meta);header.append(left);if(post.author_id!==user.id)header.append(btn('Suivre',()=>follow(post.author_id)));
@@ -76,7 +81,11 @@ const result=await S.storage.from('nomia-social').upload(path,file,{contentType:
 const post=await S.from('social_posts').insert({author_id:user.id,image_path:path,caption:$('caption').value.trim(),place_name:$('place').value.trim()||null,visibility:$('visibility').value}).select().single();if(post.error)throw post.error;
 $('postForm').reset();closeDialogs();openView('feed');note('Publication créée.');
 }catch(error){if(path)await S.storage.from('nomia-social').remove([path]);fail(error)}finally{$('publish').disabled=false}}
-async function init(){if(!S){note('Impossible de charger le service.');return}const session=await S.auth.getSession();if(session.error)fail(session.error);user=session.data.session?.user||null;if(user)try{await ensureProfile()}catch(e){fail(e)}signedIn();S.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){user=null;profile=null;signedIn()}})}
+async function init(){if(!S){note('Impossible de charger le service.');$('authForm').hidden=true;return}
+const check=await S.from('social_profiles').select('id').limit(1);
+if(check.error){$('authForm').hidden=true;note('NØMIA Social est en cours de configuration. Les inscriptions ne sont pas encore ouvertes.');return}
+backendReady=true;
+const session=await S.auth.getSession();if(session.error)fail(session.error);user=session.data.session?.user||null;if(user)try{await ensureProfile()}catch(e){fail(e)}signedIn();S.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){user=null;profile=null;signedIn()}})}
 $('authForm').addEventListener('submit',signin);$('signup').onclick=register;$('reset').onclick=reset;
 $('account').onclick=async()=>{if(user){await S.auth.signOut();user=null;profile=null;signedIn()}else show('auth',true)};
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{if(user)openView(b.dataset.view)});
