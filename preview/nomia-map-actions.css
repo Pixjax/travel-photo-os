@@ -1,0 +1,6 @@
+/* NØMIA quick map toolbar — isolated preview only */
+#nomiaMapQuickActions{position:fixed;top:clamp(290px,43vh,520px);right:12px;z-index:172;display:flex;flex-direction:column;gap:7px;padding:7px;border:1px solid #c8a76d80;border-radius:17px;background:#071b31ed;backdrop-filter:blur(16px);box-shadow:0 14px 36px #0007}
+#nomiaMapQuickActions button{min-width:98px;min-height:42px;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #8bacc044;border-radius:11px;background:#142b43;color:#f5d79a;font-size:21px;cursor:pointer}
+#nomiaMapQuickActions button span{font-size:10px;color:#eaf1fa;white-space:nowrap}
+#nomiaMapQuickActions button:hover,#nomiaMapQuickActions button:focus-visible{background:#264561;outline:1px solid #e3c17c}
+@media(max-width:760px){#nomiaMapQuickActions{top:310px;right:9px;gap:5px;padding:5px;border-radius:14px}#nomiaMapQuickActions button{min-width:42px;width:42px;min-height:42px;justify-content:center;padding:6px;font-size:22px}#nomiaMapQuickActions button span{display:none}}
