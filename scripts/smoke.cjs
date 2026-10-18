@@ -12,6 +12,8 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
  const browser=await chromium.launch({headless:true,args:['--no-sandbox','--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']});
  const context=await browser.newContext({...devices['iPhone 13'],permissions:['geolocation','camera'],geolocation:{latitude:-16.92,longitude:145.77},serviceWorkers:'block'});
  await context.route(/supabase\.co\//,route=>route.abort()); // never touch production data
+ await context.grantPermissions(['geolocation','camera'],{origin:base});
+ await context.setGeolocation({latitude:-16.92,longitude:145.77,accuracy:10});
  const page=await context.newPage();
  const exceptions=[];
  page.on('pageerror',err=>exceptions.push(err.message));
@@ -110,7 +112,7 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
  });
  await run('Émulation mobile : GPS et caméra simulés',async()=>{
    const caps=await page.evaluate(async()=>{
-     const geo=await new Promise(resolve=>navigator.geolocation.getCurrentPosition(p=>resolve({lat:p.coords.latitude,lon:p.coords.longitude}),()=>resolve(null),{timeout:6000}));
+     const permission=await navigator.permissions.query({name:'geolocation'}).then(x=>x.state).catch(e=>String(e));const geo=await new Promise(resolve=>navigator.geolocation.getCurrentPosition(p=>resolve({lat:p.coords.latitude,lon:p.coords.longitude,permission}),e=>resolve({error:{code:e.code,message:e.message},permission}),{enableHighAccuracy:true,timeout:12000,maximumAge:0}));
      let camera=false,err='';
      try{const stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});camera=stream.getVideoTracks().length>0;stream.getTracks().forEach(t=>t.stop())}catch(e){err=String(e)}
      return {geo,camera,err};
