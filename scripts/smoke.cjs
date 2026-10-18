@@ -59,6 +59,7 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
  });
  await run('Ouverture et fermeture Nouveau voyage depuis accueil',async()=>{
    await page.evaluate(()=>showHome());
+   await page.locator('#nomiaDashboard [data-go="trips"]').first().click();
    await page.locator('button[onclick="openTripEditor()"]').first().click({timeout:12000});
    await page.waitForTimeout(200);
    assert(await page.locator('#tripOverlay.show').count()===1,'Éditeur voyage non visible');
