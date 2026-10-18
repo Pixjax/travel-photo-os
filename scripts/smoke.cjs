@@ -21,6 +21,11 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
    await page.waitForSelector('#home',{state:'attached',timeout:30000});
    assert((await page.title()).includes('NØMIA'),'titre NØMIA manquant');
  });
+ await run('Entrée dans le voyage local de démonstration',async()=>{
+   await page.evaluate(()=>{if(!trips?.some(t=>t.id==='japan-2026'))throw Error('Voyage de démo absent');openTrip('japan-2026')});
+   await page.waitForTimeout(500);
+   assert(await page.locator('#home.hide').count()===1,'Voyage non ouvert');
+ });
  await run('Boutons visibles sans erreur de syntaxe d’attribut',async()=>{
    const bad=await page.locator('button[onclick]').evaluateAll(btns=>btns.filter(b=>!b.getAttribute('onclick')?.trim()).map(b=>b.outerHTML));
    assert(bad.length===0,'onclick vides: '+bad.length);
