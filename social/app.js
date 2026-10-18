@@ -11,8 +11,8 @@ function empty(text){const e=document.createElement('div');e.className='empty';e
 function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
 function btn(label,click,pressed){const b=el('button','',label);b.type='button';b.onclick=click;if(pressed!==undefined)b.setAttribute('aria-pressed',String(pressed));return b}
 function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.close())}
-function openView(name){view=name;show('feedView',name==='feed');show('exploreView',name==='explore');show('profileView',name==='profile');show('notificationsView',name==='notifications');document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===name));$('viewTitle').textContent={feed:'Explorer le monde.',explore:'Découvrir.',profile:'Mon profil.',notifications:'Notifications.'}[name];if(name==='feed')loadFeed(true);if(name==='profile')loadProfile();if(name==='notifications')loadNotifications();if(name==='explore')search()}
-function signedIn(){show('auth',!user||!profile);show('app',!!user&&!!profile);$('account').textContent=user?'Déconnexion':'Connexion';if(user&&profile)openView('feed')}
+function openView(name){view=name;show('feedView',name==='feed');show('exploreView',name==='explore');show('profileView',name==='profile');show('notificationsView',name==='notifications');show('dmScreen',name==='messages');document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===name));$('viewTitle').textContent={feed:'Explorer le monde.',explore:'Découvrir.',profile:'Mon profil.',notifications:'Notifications.',messages:'Messages privés.'}[name];if(name==='feed')loadFeed(true);if(name==='profile')loadProfile();if(name==='notifications')loadNotifications();if(name==='messages')window.NomiaMessages?.show();if(name==='explore')search()}
+function signedIn(){show('auth',!user||!profile);show('app',!!user&&!!profile);$('account').textContent=user?'Déconnexion':'Connexion';if(user&&profile){window.NomiaMessages?.mount(S,user).catch(fail);openView('feed')}}
 async function ensureProfile(){if(!user)return;let q=await S.from('social_profiles').select('*').eq('id',user.id).maybeSingle();if(q.error)throw q.error;profile=q.data;if(!profile){show('auth',true);show('app',false);$('usernameField').hidden=false;$('username').required=true;note('Choisis un identifiant et clique sur Créer un compte pour terminer ton profil.');$('signup').textContent='Terminer mon profil'}else $('usernameField').hidden=true}
 async function signin(e){e.preventDefault();if(!backendReady)return note('La base Social n’est pas encore configurée.');if(!S){note('Service de connexion indisponible.');return}const email=$('email').value.trim(),password=$('password').value;const r=await S.auth.signInWithPassword({email,password});if(r.error)return fail(r.error);user=r.data.user;try{await ensureProfile()}catch(e){return fail(e)}signedIn()}
 async function register(){if(!REGISTRATION_OPEN)return note('Les inscriptions publiques ne sont pas encore ouvertes.');if(!S||!backendReady)return note('La base Social n’est pas encore configurée.');const username=$('username').value.trim().toLowerCase(),email=$('email').value.trim(),password=$('password').value;
@@ -84,7 +84,7 @@ async function openMemberProfile(id){
  if(!r.data){root.append(empty('Ce profil est indisponible.'));return}
  const p=r.data,card=el('div','profile');
  card.append(el('div','eyebrow','@'+p.username),el('h2','',p.display_name),el('p','',p.bio||''));
- card.append(btn('Suivre / ne plus suivre',()=>follow(p.id)));
+ card.append(btn('Suivre / ne plus suivre',()=>follow(p.id)));card.append(btn('Message',()=>{openView('messages');window.NomiaMessages?.start(p.id)}));
  root.append(card);
  const posts=await S.from('social_posts').select('image_path,caption').eq('author_id',id).order('created_at',{ascending:false}).limit(36);
  if(posts.error)return fail(posts.error);
@@ -135,7 +135,7 @@ $('postForm').reset();closeDialogs();openView('feed');note('Publication créée.
 }catch(error){if(path)await S.storage.from('nomia-social').remove([path]);fail(error)}finally{$('publish').disabled=false}}
 async function init(){if(!S){note('Impossible de charger le service.');$('authForm').hidden=true;return}
 backendReady=true; // Anonymous SQL access is deliberately revoked. Schema is validated separately.
-const session=await S.auth.getSession();if(session.error)fail(session.error);user=session.data.session?.user||null;if(user)try{await ensureProfile()}catch(e){fail(e)}signedIn();S.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){user=null;profile=null;signedIn()}else if(event==='PASSWORD_RECOVERY'){$('passwordDialog').showModal()}})}
+const session=await S.auth.getSession();if(session.error)fail(session.error);user=session.data.session?.user||null;if(user)try{await ensureProfile()}catch(e){fail(e)}signedIn();S.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){window.NomiaMessages?.dispose();user=null;profile=null;signedIn()}else if(event==='PASSWORD_RECOVERY'){$('passwordDialog').showModal()}})}
 $('passwordForm').addEventListener('submit',async event=>{
  event.preventDefault();
  const password=$('newPassword').value;
