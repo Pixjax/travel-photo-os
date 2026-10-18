@@ -1,0 +1,61 @@
+/* NØMIA MAP PREMIUM — design layer only, preserves real map and native controls */
+@media (min-width: 761px) {
+:root{--panel:rgba(4,19,36,.88);--panel2:rgba(5,22,40,.96);--line:rgba(148,190,225,.28);--line2:rgba(148,190,225,.13);--txt:#f4f7ff;--muted:#c4d1e0;--soft:#9aacbf;--accent:#f3d190;--shadow:0 22px 65px rgba(0,6,17,.46)}
+body{color:var(--txt)}
+body .glass{background:linear-gradient(145deg,rgba(7,27,49,.94),rgba(4,16,32,.94))!important;border:1px solid rgba(129,180,218,.35)!important;box-shadow:inset 0 1px rgba(255,255,255,.055),0 19px 52px rgba(0,6,17,.46)!important;backdrop-filter:blur(23px) saturate(145%)!important}
+body .top{top:18px;left:20px;right:20px;gap:18px}
+body .top .brand{width:410px;min-width:0;border-radius:22px;padding:18px 20px;min-height:105px;position:relative}
+body .top .brand small{color:#eacb8b;letter-spacing:2.2px;font-size:9px}
+body .top .brand strong{font-family:Georgia,serif;font-size:30px;font-weight:400;letter-spacing:-.6px}
+body .top .brand span{font-size:12px;color:#c6d5e8;line-height:1.5}
+body .top .tools{max-width:calc(100vw - 470px);align-content:center;border-radius:23px;padding:9px;gap:7px;min-height:66px}
+body .left{left:20px;top:137px;bottom:22px;width:410px;gap:11px}
+body .left .dash,body .left .workspace{border-radius:21px}
+body .left .dash{padding:13px}
+body .heroStats{grid-template-columns:1fr 1fr}
+body .stat,body .big{border-color:rgba(132,169,204,.17);background:linear-gradient(135deg,rgba(27,51,78,.7),rgba(9,26,46,.7));border-radius:14px;min-height:68px}
+body .big b{font-family:Georgia,serif;font-weight:400;font-size:29px;color:#f7d89b}
+body .stat b{color:#f5f7fa;font-size:19px}
+body .big small,body .stat small{color:#a8bdd4;letter-spacing:1.1px}
+body .progress{background:#2a4058}body .progress i{background:linear-gradient(90deg,#c99c50,#ffe7b1)}
+body .workspace{overflow:hidden}
+body .tabs{gap:4px;padding:12px 12px 4px}
+body .tab{min-height:44px;display:grid;place-items:center;border-radius:12px;color:#c3d2e2;background:transparent;font-size:11px}
+body .tab.on{color:#f5d594!important;background:linear-gradient(145deg,rgba(210,169,95,.25),rgba(206,157,67,.08))!important;border:1px solid rgba(238,203,133,.5);box-shadow:0 0 17px rgba(215,165,77,.11)}
+body .search{padding:12px}
+body .search input{background:rgba(21,42,65,.82);border:1px solid rgba(136,173,207,.28);border-radius:14px;min-height:45px;color:#fff}
+body .search input:focus{border-color:#f4cd83;box-shadow:0 0 0 2px rgba(243,209,144,.13)}
+body .chip,body .day{border-radius:999px!important;background:rgba(19,40,63,.92)!important;border:1px solid rgba(135,171,209,.23)!important;color:#cfd9e6!important;padding:8px 12px!important}
+body .chip.on,body .day.on{color:#192131!important;background:linear-gradient(155deg,#ffe6af,#d9a958)!important;border-color:#efc77f!important}
+body .workspaceFoot{background:rgba(3,16,31,.91);border-top:1px solid rgba(133,176,207,.15)}
+body .btn{background:rgba(27,48,74,.88);border:1px solid rgba(149,183,218,.2);border-radius:12px;color:#eaf2fb;min-height:35px}
+body .btn.primary,body .btn.on{background:linear-gradient(145deg,#ffe9b7,#dbae64)!important;color:#142235!important;border-color:#f8d99e!important}
+body .btn:hover{border-color:rgba(246,210,146,.65);background:rgba(39,64,91,.94)}
+body .right{right:20px;top:138px;width:400px;bottom:22px}
+body .brief{padding:18px 20px;border-radius:22px}
+body .brief h3{font:normal 25px Georgia,serif;color:#fff}
+body .brief p{color:#c3d2e3;font-size:12px;line-height:1.6}
+body .briefBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+body .briefBtns .btn{min-height:43px;text-align:left;padding:10px}
+body .navFab,body .geoFab,body .collabFab,body .ultimateFab,body .aiFab{border:1px solid rgba(136,183,216,.45)!important;background:linear-gradient(145deg,rgba(8,27,50,.95),rgba(5,19,36,.96))!important;color:#f2f6ff!important;border-radius:999px!important;backdrop-filter:blur(22px)!important;box-shadow:0 12px 30px #010c1ca8!important}
+body .aiFab{border-color:#e5c27d!important;box-shadow:0 0 18px #e8bb6c33,0 12px 30px #010c1ca8!important}
+body .layoutResetBtn{border-color:rgba(229,193,124,.45);background:rgba(5,21,38,.94);color:#f1d6a2}
+body .dragGrip,body .winControls button{background:#071e35;color:#f4d393;border-color:rgba(225,190,120,.45)}
+body .maplibregl-ctrl-group{background:rgba(5,21,39,.93)!important;border-color:rgba(145,183,219,.35)!important}
+body .maplibregl-ctrl-group button{filter:invert(1) sepia(.25);opacity:.95}
+}
+@media (min-width:761px) and (max-width:1200px){
+body .top .brand{width:300px}body .top .tools{max-width:calc(100vw - 345px)}body .left{width:330px}body .right{width:325px}
+}
+@media(max-width:760px){
+:root{--panel:rgba(5,21,39,.95);--panel2:rgba(6,23,42,.97);--line:rgba(148,190,225,.25)}
+body .glass{background:linear-gradient(150deg,rgba(8,30,51,.97),rgba(4,18,34,.97))!important;border:1px solid rgba(142,185,221,.28)!important;backdrop-filter:blur(23px)!important}
+body .brand{border-color:rgba(231,197,134,.35)!important}body .brand small{color:#f0cd83!important}
+body .uxNav{background:rgba(3,17,33,.97)!important;border-color:rgba(171,195,220,.28)!important}
+body .uxNav button.on{background:rgba(237,195,119,.17)!important;color:#f9d58e!important}
+body .uxNav button.on:after{background:#f6d18b}
+body .uxTodayCard,body .right .detail{background:linear-gradient(150deg,#09243c,#061426)!important;border-color:rgba(149,185,214,.3)!important}
+body .uxGo,body .uxSpotCTA button:first-child,body .mobileAction.primary{background:linear-gradient(145deg,#ffe3a8,#d7a75c)!important;color:#122037!important}
+body .mobileActionMenu{background:rgba(5,20,38,.98)!important;border-color:rgba(229,188,114,.28)!important}
+body .mobileActionBtn{background:#061d36;color:#f7d18c;border-color:rgba(223,190,125,.4)}
+}
