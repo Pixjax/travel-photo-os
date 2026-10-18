@@ -83,6 +83,13 @@ self.addEventListener('fetch',e=>{
       return;
     }
     e.respondWith((async()=>{
+      // Versioned application assets must be refreshed before reusing an older cache.
+      if(url.searchParams.has('v')){
+        try{
+          const net=await fetch(e.request,{cache:'no-store'});
+          if(net&&net.ok){const c=await caches.open(CACHE);await c.put(normalizedSameOrigin(e.request),net.clone());return net}
+        }catch(e){}
+      }
       const normalized=normalizedSameOrigin(e.request);
       const cached=await caches.match(normalized,{ignoreSearch:true})||await caches.match(url.pathname.replace(/^\/travel-photo-os\//,'./'),{ignoreSearch:true});
       if(cached){
