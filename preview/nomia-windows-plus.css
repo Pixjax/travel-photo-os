@@ -13,5 +13,5 @@
 @media(max-width:760px){.nomia-managed{padding:0!important}.nomia-managed .uxPhotoScroll,.nomia-managed .uxVoyageScroll,.nomia-managed .uxDepartureScroll{min-height:0!important}.nomia-managed .uxPhotoHead,.nomia-managed .uxVoyageHead,.nomia-managed .uxDepartureHead{padding:10px 12px!important}#nomiaWinReset{bottom:calc(env(safe-area-inset-bottom) + 79px);right:8px}body.uxPhotoOpen #nomiaSimpleNav,body.uxVoyageOpen #nomiaSimpleNav{display:flex!important}}
 
 /* Preview cleanup: keep bottom-most Voyage launcher (desktop-voyage-fab), hide duplicates. */
-body #uxVoyageFab{display:none!important}
+body #uxDesktopVoyageFab{display:none!important}
 body .navFab{display:none!important}
