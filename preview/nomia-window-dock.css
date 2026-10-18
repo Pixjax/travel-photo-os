@@ -1,0 +1,11 @@
+/* NØMIA floating-window dock — preview only */
+#nomiaWindowDock{position:fixed;left:50%;bottom:101px;transform:translateX(-50%);z-index:190;display:flex;align-items:center;gap:7px;max-width:calc(100vw - 30px);padding:7px 10px;border:1px solid #cda66899;background:linear-gradient(135deg,#071b33f5,#0d2c46f5);box-shadow:0 13px 43px #0009;border-radius:17px;backdrop-filter:blur(20px)}
+#nomiaWindowDock[hidden],#nomiaWindowDock button[hidden]{display:none!important}
+.nomia-dock-title{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#dfc58e;margin:0 5px}
+#nomiaWindowDock button{display:flex;gap:8px;align-items:center;justify-content:center;padding:9px 12px;border-radius:11px;background:#1b3b58;color:#eef4fc;border:1px solid #7b9eb75e;white-space:nowrap;font-size:11px;cursor:pointer}
+#nomiaWindowDock button.minimized{border-color:#dfb86f;color:#ffdfa0;background:#3c3540}
+#nomiaWindowDock button:focus-visible{outline:2px solid #ffe09b;outline-offset:2px}
+.nomia-dock-symbol{color:#ffdc97;font-size:18px}.nomia-dock-state{font-size:9px;color:#7dd5b0}
+#nomiaWindowDock button.minimized .nomia-dock-state{color:#ffe09b}
+@media(max-width:760px){#nomiaWindowDock{bottom:calc(env(safe-area-inset-bottom) + 77px);left:8px;right:8px;transform:none;overflow-x:auto;justify-content:flex-start;padding:6px;max-width:none;border-radius:13px}#nomiaWindowDock button{padding:8px 9px;font-size:10px}.nomia-dock-title{display:none}#nomiaWinReset{bottom:calc(env(safe-area-inset-bottom) + 135px)!important}}
+@media(min-width:761px){#nomiaWindowDock{bottom:94px}#nomiaWinReset{bottom:94px}}
