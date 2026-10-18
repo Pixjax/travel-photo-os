@@ -57,7 +57,7 @@ const likeButton=btn('♡ '+likeCount,async()=>{
  likeButton.setAttribute('aria-pressed',String(liked));likeButton.textContent=(liked?'♥ ':'♡ ')+likeCount;
 },liked);
 const saveButton=btn('Enregistrer',async()=>{const r=savedOn?await S.from('social_saved').delete().eq('post_id',post.id).eq('user_id',user.id):await S.from('social_saved').insert({post_id:post.id,user_id:user.id});if(r.error)return fail(r.error);savedOn=!savedOn;saveButton.setAttribute('aria-pressed',String(savedOn));saveButton.textContent=savedOn?'Enregistré':'Enregistrer'},savedOn);
-controls.append(likeButton,btn('Commenter',()=>comments(post.id)),saveButton,btn('Partager',()=>share(post.id)));
+controls.append(likeButton,btn('Commenter',()=>comments(post.id)),saveButton,btn('Partager le lien',()=>share(post.id)),btn('Envoyer en message',()=>{openView('messages');window.NomiaMessages?.share(post.id)}));
 if(post.author_id===user.id)controls.append(btn('Supprimer',()=>remove(post)));else {controls.append(btn('Signaler',()=>report(post)));controls.append(btn('Bloquer',()=>blockUser(post.author_id)))}
 foot.append(controls);if(post.caption)foot.append(el('p','caption',post.caption));card.append(header,img,foot);$('feed').append(card)}
 async function follow(target){const check=await S.from('social_follows').select('following_id').eq('follower_id',user.id).eq('following_id',target).maybeSingle();if(check.error)return fail(check.error);const r=check.data?await S.from('social_follows').delete().eq('follower_id',user.id).eq('following_id',target):await S.from('social_follows').insert({follower_id:user.id,following_id:target});if(r.error)fail(r.error);else note(check.data?'Abonnement retiré':'Abonnement enregistré')}
