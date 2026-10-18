@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id), supa=window.supabase;
 const URL='https://svfknuvlpxikzqvpksux.supabase.co', KEY='sb_publishable_pm5NiLhMirB8zD0yiYFWXg_6a6R8U1D';
 const S=supa?.createClient?.(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-const REGISTRATION_OPEN=false; // Enable only after two-account permission tests and moderation readiness.
+const REGISTRATION_OPEN=true; // Enable only after two-account permission tests and moderation readiness.
 let user=null,profile=null,view='feed',offset=0,activePost=null,activeParent=null,busy=false,more=true,feedMode='global',backendReady=false;
 const show=(id,yes)=>$(id).hidden=!yes;
 function note(message){$('banner').textContent=message;$('banner').hidden=false;setTimeout(()=>$('banner').hidden=true,5500)}
@@ -13,7 +13,7 @@ function btn(label,click,pressed){const b=el('button','',label);b.type='button';
 function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.close())}
 function openView(name){view=name;show('feedView',name==='feed');show('exploreView',name==='explore');show('profileView',name==='profile');show('notificationsView',name==='notifications');document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===name));$('viewTitle').textContent={feed:'Explorer le monde.',explore:'Découvrir.',profile:'Mon profil.',notifications:'Notifications.'}[name];if(name==='feed')loadFeed(true);if(name==='profile')loadProfile();if(name==='notifications')loadNotifications();if(name==='explore')search()}
 function signedIn(){show('auth',!user||!profile);show('app',!!user&&!!profile);$('account').textContent=user?'Déconnexion':'Connexion';if(user&&profile)openView('feed')}
-async function ensureProfile(){if(!user)return;let q=await S.from('social_profiles').select('*').eq('id',user.id).maybeSingle();if(q.error)throw q.error;profile=q.data;if(!profile){show('auth',true);show('app',false);$('usernameField').hidden=false;note('Choisis un identifiant pour terminer ton profil.');$('signup').textContent='Créer mon profil'}else $('usernameField').hidden=true}
+async function ensureProfile(){if(!user)return;let q=await S.from('social_profiles').select('*').eq('id',user.id).maybeSingle();if(q.error)throw q.error;profile=q.data;if(!profile){show('auth',true);show('app',false);$('usernameField').hidden=false;$('username').required=true;note('Choisis un identifiant et clique sur Créer un compte pour terminer ton profil.');$('signup').textContent='Terminer mon profil'}else $('usernameField').hidden=true}
 async function signin(e){e.preventDefault();if(!backendReady)return note('La base Social n’est pas encore configurée.');if(!S){note('Service de connexion indisponible.');return}const email=$('email').value.trim(),password=$('password').value;const r=await S.auth.signInWithPassword({email,password});if(r.error)return fail(r.error);user=r.data.user;try{await ensureProfile()}catch(e){return fail(e)}signedIn()}
 async function register(){if(!REGISTRATION_OPEN)return note('Les inscriptions publiques ne sont pas encore ouvertes.');if(!S||!backendReady)return note('La base Social n’est pas encore configurée.');const username=$('username').value.trim().toLowerCase(),email=$('email').value.trim(),password=$('password').value;
 if(!username){$('usernameField').hidden=false;$('username').required=true;note('Choisis ton identifiant puis clique à nouveau sur Créer un compte.');return}
@@ -134,9 +134,7 @@ const post=await S.from('social_posts').insert({author_id:user.id,image_path:pat
 $('postForm').reset();closeDialogs();openView('feed');note('Publication créée.');
 }catch(error){if(path)await S.storage.from('nomia-social').remove([path]);fail(error)}finally{$('publish').disabled=false}}
 async function init(){if(!S){note('Impossible de charger le service.');$('authForm').hidden=true;return}
-const check=await S.from('social_profiles').select('id').limit(1);
-if(check.error){$('authForm').hidden=true;note('NØMIA Social est en cours de configuration. Les inscriptions ne sont pas encore ouvertes.');return}
-backendReady=true;
+backendReady=true; // Anonymous SQL access is deliberately revoked. Schema is validated separately.
 const session=await S.auth.getSession();if(session.error)fail(session.error);user=session.data.session?.user||null;if(user)try{await ensureProfile()}catch(e){fail(e)}signedIn();S.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){user=null;profile=null;signedIn()}else if(event==='PASSWORD_RECOVERY'){$('passwordDialog').showModal()}})}
 $('passwordForm').addEventListener('submit',async event=>{
  event.preventDefault();
