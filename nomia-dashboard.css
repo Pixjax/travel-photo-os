@@ -14,3 +14,38 @@
 /* Dashboard must never cover an opened trip or its modal windows. */
 #home.nomia-home.hide{display:none!important;visibility:hidden!important;pointer-events:none!important}
 #home.nomia-home:has(~ #tripOverlay.show),#home.nomia-home:has(~ #plannerOverlay.show){pointer-events:none}
+
+
+/* Small-screen refinements: keep the premium dashboard usable on narrow iPhones. */
+@media (max-width: 430px) {
+  .nomia-dash { padding-inline: 11px; }
+  .nd-top { gap: 6px; }
+  .nd-brand { gap: 7px; flex: 1 1 auto; min-width: 0; }
+  .nd-brandword { font-size: 19px; letter-spacing: 3.5px; }
+  .nd-brandtag { font-size: 5.5px; letter-spacing: .5px; white-space: nowrap; }
+  .nd-mark { width: 36px; height: 36px; font-size: 21px; flex-shrink: 0; }
+  .nd-greeting { flex: 0 0 auto; gap: 6px; font-size: 9px; }
+  .nd-greeting b { font-size: 12px; }
+  .nd-avatar { width: 29px; height: 29px; }
+  .nd-hero { height: 280px; }
+  .nd-herocopy { left: 16px; right: 12px; top: 40px; }
+  .nd-hero h1 { font-size: clamp(35px, 11vw, 50px); max-width: 90%; overflow-wrap: anywhere; letter-spacing: -1.5px; }
+  .nd-hero p { max-width: 76%; font-size: 11px; }
+  .nd-hero .nd-small { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; max-width: 95%; line-height: 1.6; }
+  #ndTripSelect { margin-left: 0 !important; max-width: 155px !important; }
+  .nd-mapdots { right: 6px; top: auto; bottom: 12px; gap: 4px; max-width: 43%; justify-items: end; }
+  .nd-pin { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nd-hero-more { max-width: 45%; white-space: normal; text-align: center; }
+  .nd-next { flex-wrap: wrap; }
+  .nd-next .nd-est { margin-left: auto; }
+  .nd-mobilebar { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 350px) {
+  .nd-greeting { display: none; }
+  .nd-hero h1 { font-size: 36px; }
+  .nd-quick { grid-template-columns: 1fr; }
+}
+.nomia-dash button:focus-visible, .nomia-dash select:focus-visible {
+  outline: 2px solid #f7cf86;
+  outline-offset: 3px;
+}
