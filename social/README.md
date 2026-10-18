@@ -67,3 +67,19 @@ La configuration Supabase existante est partagée avec un autre projet NØMIA : 
 ## Rollback
 
 Le déploiement de l'interface est isolé sous `social/` et n'altère pas l'accueil existant. Pour revenir en arrière, retirer la route Social, sans supprimer les tables utilisateur. Avant toute suppression définitive des tables ou du bucket, exporter données et médias et conserver une sauvegarde vérifiée.
+
+## Tests automatiques
+
+Dans le dossier `social/`, exécuter `npm install`, puis `npm run test:security` avec six variables d'environnement :
+
+- `SOCIAL_URL` et `SOCIAL_ANON_KEY` du projet **de test**.
+- `SOCIAL_TEST_A_EMAIL`, `SOCIAL_TEST_A_PASSWORD` : premier compte confirmé.
+- `SOCIAL_TEST_B_EMAIL`, `SOCIAL_TEST_B_PASSWORD` : deuxième compte confirmé.
+
+Le test utilise des données réelles temporaires, vérifie qu'un utilisateur ne peut pas effacer la publication de l'autre, teste likes/commentaires/notifications et contrôle la génération d'URL média autorisée. Le script supprime son post et son image à la fin. **Ne pas utiliser sur le projet de production sans sauvegarde et accord préalable.**
+
+## Avancement du frontend
+
+Implémentés côté interface : inscription, connexion, confirmation e-mail via Supabase, récupération de mot de passe, flux général et abonnements, publication photo, likes comptabilisés par la base, commentaires avec réponses, enregistrement, partage de liens vers les posts, profils et galeries personnelles, recherche de membres, blocage, signalement, notifications consultables.
+
+Tout cela reste **non validé de bout en bout**, car les migrations SQL n'ont pas encore été appliquées sur la base accessible au projet. Ne pas présenter comme un service de production actif.
