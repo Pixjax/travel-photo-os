@@ -63,10 +63,42 @@
     else {setTitle('Scouting RA','Mémorise exactement ce cadrage');setHud(`<div class="fieldArHudGrid">${metric('Orientation',heading==null?'—':`${Math.round(wrap360(heading+headingOffset))}° ${cardinal(heading+headingOffset)}`,'Azimut caméra')}${metric('Inclinaison',pitch==null?'—':`${(pitch+pitchOffset).toFixed(1)}°`,'Hauteur de visée')}${metric('GPS',loc?`${loc.lat.toFixed(5)}, ${loc.lon.toFixed(5)}`:'—',locAcc?`±${Math.round(locAcc)} m`:'')}${metric('Focale repère',`${frameFocal} mm`,'Réutilisée par Cadrage RA')}</div><div class="fieldArActions"><button class="primary" data-field-save-scout>Enregistrer ce cadrage</button></div>`)}
     svg.setAttribute('viewBox',`0 0 ${w} ${h}`);svg.innerHTML=s;const H=heading==null?'—':`${cardinal(heading+headingOffset)} ${Math.round(wrap360(heading+headingOffset))}°`;$('#fieldArCompass',root).textContent=`${H} · ${pitch==null?'—':Math.round(pitch+pitchOffset)+'°'} · ${locAcc?`GPS ±${Math.round(locAcc)}m`:'GPS'}`}
   function schedule(){if(!raf)raf=requestAnimationFrame(()=>{raf=0;if(root?.classList.contains('show'))renderMode()})}
-  function calibrate(){if(heading==null)return;const sun=sunPos(new Date());if(!sun)return;headingOffset=clamp(headingOffset+wrap180(sun.az-wrap360(heading+headingOffset)),-45,45);localStorage.setItem('travelPhotoArHeadingOffset',String(headingOffset));schedule()}
+  function calibrate(){
+    let panel=$('#fieldArCalibration',root);
+    if(!panel){
+      panel=document.createElement('section');
+      panel.id='fieldArCalibration';
+      panel.setAttribute('role','dialog');
+      panel.setAttribute('aria-label','Calibrer la projection RA');
+      panel.style.cssText='position:absolute;z-index:35;left:12px;right:12px;top:50%;transform:translateY(-50%);max-height:75dvh;overflow:auto;padding:18px;background:rgba(17,20,27,.98);border:1px solid #59616b;border-radius:19px;color:white;box-shadow:0 12px 60px #000b;touch-action:pan-y';
+      panel.innerHTML='<b style="font-size:17px">Calibrage RA</b><p style="font-size:12px;line-height:1.5;color:#cbd5e1">Choisis un repère dont tu connais la direction, puis ajuste l’arc sur la scène. La précision affichée est celle du capteur, pas une garantie de précision RA. Évite les objets métalliques et aimantés.</p><label style="display:block;font-size:12px">Correction horizontale <output id="fieldArAzValue"></output><input id="fieldArAzAdjust" type="range" min="-90" max="90" step="1" style="display:block;width:100%;height:38px"></label><label style="display:block;font-size:12px;margin-top:12px">Correction verticale <output id="fieldArPitchValue"></output><input id="fieldArPitchAdjust" type="range" min="-45" max="45" step="1" style="display:block;width:100%;height:38px"></label><p id="fieldArCalQuality" style="font-size:11px;color:#cbd5e1"></p><div style="display:flex;gap:9px;margin-top:12px"><button type="button" data-field-reset-cal style="flex:1;min-height:44px;background:#303744;color:white;border:1px solid #667085;border-radius:12px">Réinitialiser</button><button type="button" data-field-close-cal style="flex:1;min-height:44px;background:white;color:#111;border:0;border-radius:12px;font-weight:800">Terminé</button></div>';
+      root.appendChild(panel);
+      panel.addEventListener('input',e=>{
+        if(e.target.id==='fieldArAzAdjust')headingOffset=Number(e.target.value);
+        if(e.target.id==='fieldArPitchAdjust')pitchOffset=Number(e.target.value);
+        persistCalibration();updateCalibrationPanel();schedule();
+      });
+      panel.addEventListener('click',e=>{
+        if(e.target.closest('[data-field-close-cal]'))panel.style.display='none';
+        if(e.target.closest('[data-field-reset-cal]')){headingOffset=0;pitchOffset=0;persistCalibration();updateCalibrationPanel();schedule()}
+      });
+    }
+    panel.style.display='block';updateCalibrationPanel();
+  }
+  function persistCalibration(){
+    try{localStorage.setItem('travelPhotoArHeadingOffset',String(headingOffset));localStorage.setItem('travelPhotoArPitchOffset',String(pitchOffset))}catch(e){}
+  }
+  function updateCalibrationPanel(){
+    const panel=$('#fieldArCalibration',root);if(!panel)return;
+    $('#fieldArAzAdjust',panel).value=headingOffset;
+    $('#fieldArPitchAdjust',panel).value=pitchOffset;
+    $('#fieldArAzValue',panel).textContent=headingOffset.toFixed(0)+'°';
+    $('#fieldArPitchValue',panel).textContent=pitchOffset.toFixed(0)+'°';
+    $('#fieldArCalQuality',panel).textContent='Boussole : '+(headingAcc!=null?'±'+Math.round(headingAcc)+'°':'précision inconnue')+'. Le recalage est manuel : vérifie avec un repère réel.';
+  }
   function saveScout(){if(!loc)return;const rec={id:'scout-'+Date.now(),createdAt:new Date().toISOString(),tripId:typeof activeTripId!=='undefined'?activeTripId:null,lat:loc.lat,lon:loc.lon,accuracy:locAcc,heading:heading==null?null:wrap360(heading+headingOffset),pitch:pitch==null?null:pitch+pitchOffset,focal:frameFocal,spot:currentSpot()?.name||''};try{const k=`travelPhotoScoutAR:${rec.tripId||'global'}`,a=JSON.parse(localStorage.getItem(k)||'[]');a.push(rec);localStorage.setItem(k,JSON.stringify(a.slice(-200)));setHud(`<div class="fieldArMetric fieldArGood"><b>Cadrage enregistré ✓</b><span>${Math.round(rec.heading||0)}° · ${rec.focal} mm · ${rec.lat.toFixed(5)}, ${rec.lon.toFixed(5)}</span></div>`)}catch(e){}}
   async function open(m='astro'){ensureRoot();mode=m;root.classList.add('show');document.body.style.overflow='hidden';const [o,c,l]=await Promise.all([requestOrientation(),requestCamera(),requestLocation()]);const issues=[];if(!o)issues.push('Orientation refusée.');if(!c)issues.push('Caméra refusée.');if(!l)issues.push('GPS indisponible.');if(issues.length){$('#fieldArWarnText',root).textContent=issues.join(' ');$('#fieldArWarn',root).classList.add('show')}if(mode==='weather')fetchWeather().then(renderMode);if(mode==='marine')fetchMarine().then(renderMode);renderMode()}
-  function close(){root?.classList.remove('show');document.body.style.overflow='';if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}window.removeEventListener('deviceorientation',orientation,true)}
+  function close(){const panel=root?.querySelector('#fieldArCalibration');if(panel)panel.style.display='none';root?.classList.remove('show');document.body.style.overflow='';if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}window.removeEventListener('deviceorientation',orientation,true)}
   function inject(){const suite=document.getElementById('photoProSuite');if(suite&&suite.classList.contains('show')){const hero=suite.querySelector('.ppsHero');if(hero&&!hero.querySelector('.fieldArLaunchBtn')){const b=document.createElement('button');b.className='fieldArLaunchBtn';b.textContent='OUVRIR EN RA TERRAIN';b.onclick=()=>open('astro');hero.appendChild(b)}}}
 
   function install(){ensureRoot();inject();const obs=new MutationObserver(()=>setTimeout(inject,0));obs.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});setInterval(inject,1200);window.addEventListener('resize',schedule);window.openPhotoFieldAR=open}
