@@ -19,17 +19,42 @@ const gc=gal(0),g=projection(gc,w,h);if(g){ctx.strokeStyle='#f2a9ff';ctx.strokeR
 if(window.SunCalc)for(const [name,p,color]of [['Soleil',SunCalc.getPosition(date,lat,lon),'#ffd772'],['Lune',SunCalc.getMoonPosition(date,lat,lon),'#d8e5ff']]){const q=projection({az:wrap(p.azimuth*rad+180),alt:p.altitude*rad},w,h);if(q){ctx.fillStyle=color;ctx.beginPath();ctx.arc(q.x,q.y,7,0,7);ctx.fill();ctx.fillText(name,q.x+10,q.y-8)}}
 root.querySelector('#skyStatus').textContent=Math.round(wrap(heading+offset))+'° / '+Math.round(elevation)+'° • '+date.toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})+(cam?' · '+(Date.now()-sensorUpdated>2500?'Capteurs inactifs':orientationLabel)+(sensorAccuracy!=null?' ±'+Math.round(sensorAccuracy)+'°':''):'');root.classList.toggle('skyUnreliable',cam&&(!sensorGood||Date.now()-sensorUpdated>2500));
 frame=requestAnimationFrame(draw)}
-function refresh(){root.querySelector('#skyFov').value=fov;root.querySelector('#skyFovOut').textContent=fov+'°';offset=0;root.querySelector('#skyDate').value=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');root.querySelector('#skyTime').value=date.getHours()*60+date.getMinutes();root.querySelector('#skyLat').value=lat;root.querySelector('#skyLon').value=lon}
-function build(){if(root)return;root=document.createElement('div');root.id='skyAtlas';root.innerHTML='<video id="skyVideo" playsinline muted></video><canvas id="skyCanvas"></canvas><div class="skyHeader"><div><small>PHOTO PRO • PLANÉTARIUM</small><b>Ciel interactif</b><span id="skyStatus"></span></div><button id="skyExit">✕</button></div><div class="skyControls"><div class="skyRow"><button id="skyNow">Maintenant</button><button id="skyCamera">📷 RA caméra</button><button id="skyGps">GPS</button><button id="skyNight">Mode rouge</button></div><div class="skyRow"><input type="date" id="skyDate"><input id="skyTime" type="range" min="0" max="1439" step="5"></div><div class="skyRow"><label>Zoom <output id="skyFovOut"></output><input id="skyFov" type="range" min="30" max="130"></label><label>Calibrage automatique · boussole GPS</label></div><div class="skyRow"><label>Lat <input id="skyLat" type="number" step=".00001"></label><label>Lon <input id="skyLon" type="number" step=".00001"></label></div><small class="skyDisclaimer">Atlas initial : étoiles brillantes, Soleil, Lune, plan galactique. Bande stylisée, pas une texture réelle. Projection RA soumise aux capteurs du téléphone.</small></div>';document.body.appendChild(root);canvas=root.querySelector('canvas');ctx=canvas.getContext('2d');video=root.querySelector('video');
-root.querySelector('#skyExit').onclick=close;root.querySelector('#skyNow').onclick=()=>{live=true;date=new Date();refresh()};root.querySelector('#skyNight').onclick=()=>root.classList.toggle('red');root.querySelector('#skyCamera').onclick=toggleCam;root.querySelector('#skyGps').onclick=()=>navigator.geolocation.getCurrentPosition(p=>{lat=p.coords.latitude;lon=p.coords.longitude;refresh()},()=>alert('GPS refusé'),{enableHighAccuracy:true});
-root.querySelector('#skyDate').onchange=e=>{live=false;let [y,m,d]=e.target.value.split('-').map(Number);date.setFullYear(y,m-1,d)};
-root.querySelector('#skyTime').oninput=e=>{live=false;date.setHours(Math.floor(e.target.value/60),e.target.value%60,0)};
-root.querySelector('#skyFov').oninput=e=>{fov=+e.target.value;root.querySelector('#skyFovOut').textContent=fov+'°'};
-
-for(const k of ['lat','lon'])root.querySelector('#sky'+(k==='lat'?'Lat':'Lon')).onchange=e=>{let x=+e.target.value;if(Number.isFinite(x)&&Math.abs(x)<=(k==='lat'?90:180)){if(k==='lat')lat=x;else lon=x}};
-canvas.onpointerdown=()=>{};
-canvas.onpointermove=()=>{};
-canvas.onpointerup=()=>{};
+function localDateValue(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')}
+function localTimeValue(t){return String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')}
+function refresh(){
+ root.querySelector('#skyDate').value=localDateValue(date);
+ root.querySelector('#skyTime').value=localTimeValue(date);
+ root.querySelector('#skyClockMode').textContent=live?'DIRECT · heure réelle':'PRÉVISION · date et heure choisies';
+ root.querySelector('#skyNow').classList.toggle('on',live);
+}
+function pickTime(){
+ const day=root.querySelector('#skyDate').value,hm=root.querySelector('#skyTime').value;
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(day)||!/^\d{2}:\d{2}$/.test(hm))return;
+ const [y,m,d]=day.split('-').map(Number),[h,min]=hm.split(':').map(Number);
+ const chosen=new Date(y,m-1,d,h,min);
+ if(!Number.isFinite(chosen.getTime()))return;
+ date=chosen;live=false;refresh();
+}
+function build(){
+ if(root)return;
+ root=document.createElement('div');root.id='skyAtlas';
+ root.innerHTML='<video id="skyVideo" playsinline muted></video><canvas id="skyCanvas"></canvas><div class="skyHeader"><div><small>PHOTO PRO · PLANÉTARIUM</small><b>Ciel verrouillé</b><span id="skyStatus"></span></div><button id="skyExit" type="button">✕</button></div><div class="skyControls"><div class="skyRow"><button id="skyNow" type="button">● Maintenant</button><button id="skyCamera" type="button">📷 RA caméra</button><button id="skyNight" type="button">Mode rouge</button></div><div class="skyModeLabel" id="skyClockMode">DIRECT · heure réelle</div><div class="skyRow skyPredict"><label>Date<input type="date" id="skyDate"></label><label>Heure<input type="time" id="skyTime" step="60"></label></div><div class="skyRow"><button id="skyGps" type="button">⌖ Position GPS</button><button id="skyRecalibrate" type="button">↻ Recalibrer</button></div><small class="skyDisclaimer">La date et l’heure de prévision utilisent le fuseau horaire de ton téléphone. Oriente le téléphone pour explorer le ciel : déplacement manuel et curseurs désactivés. La RA dépend de la boussole et ne remplace pas un alignement vérifié.</small></div>';
+ document.body.appendChild(root);canvas=root.querySelector('canvas');ctx=canvas.getContext('2d');video=root.querySelector('video');
+ root.querySelector('#skyExit').onclick=close;
+ root.querySelector('#skyNow').onclick=()=>{live=true;date=new Date();refresh()};
+ root.querySelector('#skyNight').onclick=()=>root.classList.toggle('red');
+ root.querySelector('#skyCamera').onclick=toggleCam;
+ root.querySelector('#skyGps').onclick=()=>{if(!navigator.geolocation){alert('GPS indisponible');return}navigator.geolocation.getCurrentPosition(p=>{lat=p.coords.latitude;lon=p.coords.longitude;},()=>alert('Localisation indisponible : vérifie les autorisations iPhone.'),{enableHighAccuracy:true,timeout:12000})};
+ root.querySelector('#skyRecalibrate').onclick=()=>{
+   yawCorrection=null;goodCompassSamples=0;sensorGood=false;sensorUpdated=0;
+   orientationLabel='Recalibrage en cours';
+   alert('Éloigne l’iPhone des objets métalliques et aimantés, puis oriente-le lentement dans plusieurs directions. Si la boussole reste imprécise, la RA ne peut pas garantir le nord.');
+ };
+ root.querySelector('#skyDate').addEventListener('change',pickTime);
+ root.querySelector('#skyTime').addEventListener('change',pickTime);
+ canvas.style.touchAction='none';
+ // No manual sky drag. The same real-world direction stays fixed while the phone rotates.
+ canvas.onpointerdown=()=>{};canvas.onpointermove=()=>{};canvas.onpointerup=()=>{};
 }
 async function toggleCam(){if(cam){stopCam();return}try{const permission=(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function')?DeviceOrientationEvent.requestPermission():Promise.resolve('granted');const camera=navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});const [permissionResult,media]=await Promise.allSettled([permission,camera]);if(media.status!=='fulfilled')throw media.reason;stream=media.value;video.srcObject=stream;await video.play();cam=true;sensorGood=false;sensorUpdated=0;yawCorrection=null;goodCompassSamples=0;root.classList.add('camera');root.querySelector('#skyCamera').textContent='Carte du ciel';if(permissionResult.status==='fulfilled'&&permissionResult.value==='granted')window.addEventListener('deviceorientation',orient,true);else alert('Caméra active, mais orientation refusée. Utilise le mode carte ou autorise les capteurs.')}catch(e){alert('Caméra indisponible : '+e.message)}}
 // Device Euler angles (intrinsic Z-X'-Y' rotations): derive camera -Z
