@@ -14,8 +14,8 @@ if(!doc.getElementById('nomia-window-dock-script')){const script=doc.createEleme
 if(!doc.getElementById('nomia-ui-cleanup-style')){const link=doc.createElement('link');link.id='nomia-ui-cleanup-style';link.rel='stylesheet';link.href=new URL('./nomia-ui-cleanup.css?v=cleanup-20261018-v2',location.href).href;doc.head.append(link)}
 if(!doc.getElementById('nomia-route-compare-style')){const link=doc.createElement('link');link.id='nomia-route-compare-style';link.rel='stylesheet';link.href=new URL('./nomia-route-compare.css?v=compare-v1',location.href).href;doc.head.append(link)}
 if(!doc.getElementById('nomia-route-compare-script')){const script=doc.createElement('script');script.id='nomia-route-compare-script';script.src=new URL('./nomia-route-compare.js?v=compare-v1',location.href).href;doc.body.append(script)}
-if(!doc.getElementById('nomia-photo-preset-style')){const link=doc.createElement('link');link.id='nomia-photo-preset-style';link.rel='stylesheet';link.href=new URL('./nomia-photo-preset.css?v=photo-preset-v1',location.href).href;doc.head.append(link)}
-if(!doc.getElementById('nomia-photo-preset-script')){const script=doc.createElement('script');script.id='nomia-photo-preset-script';script.src=new URL('./nomia-photo-preset.js?v=photo-preset-v1',location.href).href;doc.body.append(script)}
+if(!doc.getElementById('nomia-photo-preset-style')){const link=doc.createElement('link');link.id='nomia-photo-preset-style';link.rel='stylesheet';link.href=new URL('./nomia-photo-preset.css?v=gemini-v1',location.href).href;doc.head.append(link)}
+if(!doc.getElementById('nomia-photo-preset-script')){const script=doc.createElement('script');script.id='nomia-photo-preset-script';script.src=new URL('./nomia-photo-preset.js?v=gemini-v1',location.href).href;doc.body.append(script)}
 status.hidden=true;
 }catch(err){status.textContent='Chargement de l’aperçu…';if(++count<8)setTimeout(inject,700)}}
 frame.addEventListener('load',()=>{count=0;setTimeout(inject,150)});
