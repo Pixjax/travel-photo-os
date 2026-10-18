@@ -18,6 +18,6 @@ for(const p of assets)check(cached.has(p),'offline cache includes '+p);
 for(const item of manifest.icons||[])check(fs.existsSync(path.join(root,item.src)),'icon '+item.src);
 check(!index.includes('photo-ra-direct.js'),'obsolete RA entry not loaded');
 check(!index.includes('photo-ra-entry.js'),'obsolete RA loader not loaded');
-check(!/href="manifest\.webmanifest"(?!\?)/.test(index),'manifest handled with version');
+check(index.includes('manifest.webmanifest?v=')||index.includes("manifest.webmanifest?v='+VERSION"),'manifest URL is versioned');
 console.log(failed?failed+' audit checks failed':'NØMIA audit passed');
 process.exitCode=failed?1:0;
