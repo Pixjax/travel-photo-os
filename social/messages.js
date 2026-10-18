@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const $=id=>document.getElementById(id);let client=null,me=null,current=null,sub=null,tick=null;
+const $=id=>document.getElementById(id);let client=null,me=null,current=null,sub=null,tick=null,sharePost=null;
 const list=$('dmList'),messages=$('dmMessages'),title=$('dmTitle'),pane=$('dmPane'),composer=$('dmComposer'),status=$('dmStatus');
 function notice(s){status.textContent=s||''}
 function button(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=fn;return b}
@@ -23,11 +23,41 @@ const time=document.createElement('small');time.textContent=new Date(msg.created
 function subscribe(id){clearSubscription();sub=client.channel('nomia-dm-'+id).on('postgres_changes',{event:'INSERT',schema:'public',table:'social_dm_messages',filter:'thread_id=eq.'+id},()=>{loadMessages();client.rpc('social_dm_read',{p_thread:id});refreshList()}).subscribe();
 tick=setInterval(()=>{if(document.visibilityState==='visible'){loadMessages();refreshList()}},12000)}
 async function start(id){if(!me)return;const r=await client.rpc('social_dm_start',{other_user:id});if(r.error){notice(r.error.message);return}await refreshList();const t=await client.from('social_dm_threads').select('*').eq('id',r.data).single();if(t.error)return notice(t.error.message);const p=await client.from('social_profiles').select('id,username,display_name').eq('id',id).single();await open(t.data,p.data);$('dmScreen').hidden=false}
-async function send(e){e.preventDefault();if(!current)return;const field=$('dmText'),text=field.value.trim();if(!text)return;const submit=$('dmSend');submit.disabled=true;const r=await client.rpc('social_dm_send',{p_thread:current.id,p_body:text});submit.disabled=false;if(r.error){notice(r.error.message);return}field.value='';notice('');await loadMessages();refreshList()}
+async function send(e){
+ e.preventDefault();if(!current)return;
+ const field=$('dmText'),text=field.value.trim(),file=$('dmFile').files[0],post=sharePost;
+ if(!text&&!file&&!post)return;
+ const submit=$('dmSend');submit.disabled=true;notice('Envoi en cours…');
+ let path=null;
+ try{
+  if(file){
+   if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10485760)throw Error('Image invalide (10 Mo maximum).');
+   const url=URL.createObjectURL(file);
+   let blob;
+   try{
+    const img=new Image();img.src=url;await img.decode();
+    const ratio=Math.min(1,3500/Math.max(img.naturalWidth,img.naturalHeight)),canvas=document.createElement('canvas');
+    canvas.width=Math.max(1,Math.round(img.naturalWidth*ratio));canvas.height=Math.max(1,Math.round(img.naturalHeight*ratio));
+    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+    blob=await new Promise((ok,bad)=>canvas.toBlob(b=>b?ok(b):bad(Error('Image impossible à préparer')),'image/jpeg',.92));
+   }finally{URL.revokeObjectURL(url)}
+   if(blob.size>10485760)throw Error('Image trop volumineuse après optimisation.');
+   path=me.id+'/'+crypto.randomUUID()+'.jpg';
+   const upload=await client.storage.from('nomia-messages').upload(path,blob,{contentType:'image/jpeg',upsert:false});
+   if(upload.error)throw upload.error;
+  }
+  const r=await client.rpc('social_dm_send',{p_thread:current.id,p_body:text||null,p_media:path,p_post:post});
+  if(r.error)throw r.error;
+  field.value='';$('dmFile').value='';sharePost=null;$('dmClearShare').hidden=true;notice('');
+  await loadMessages();await refreshList();
+ }catch(err){notice(err.message||'Envoi impossible');if(path)await client.storage.from('nomia-messages').remove([path])}
+ finally{submit.disabled=false}
+}
 async function respond(accept){if(!current)return;const r=await client.rpc('social_dm_respond',{p_thread:current.id,p_accept:accept});if(r.error)return notice(r.error.message);const t=await client.from('social_dm_threads').select('*').eq('id',current.id).single();if(t.data)await open(t.data,null)}
 async function find(){const query=$('dmSearch').value.trim();const results=$('dmResults');results.textContent='';if(query.length<2)return;const r=await client.from('social_profiles').select('id,display_name,username').ilike('username','%'+query.replace(/[%_]/g,'')+'%').limit(12);if(r.error)return notice(r.error.message);for(const p of r.data||[]){if(p.id===me.id)continue;results.append(button('@'+p.username+' · '+p.display_name,()=>start(p.id)))}}
 document.addEventListener('click',e=>{if(e.target.closest('#dmAccept'))respond(true);if(e.target.closest('#dmDecline'))respond(false);if(e.target.closest('#dmBack'))list.parentElement.classList.remove('dm-mobile-open')});
 $('dmForm').onsubmit=send;$('dmSearch').oninput=()=>{find().catch(e=>notice(e.message))};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&me){refreshList();loadMessages()}});
-window.NomiaMessages={mount:async(c,user)=>{client=c;me=user;await refreshList()},start,show:()=>{$('dmScreen').hidden=false;refreshList()},dispose:()=>{clearSubscription();me=null;current=null;$('dmScreen').hidden=true}};
+$('dmClearShare').onclick=()=>{sharePost=null;$('dmClearShare').hidden=true};
+window.NomiaMessages={mount:async(c,user)=>{client=c;me=user;await refreshList()},start,share:async(post)=>{sharePost=post;$('dmClearShare').hidden=false;$('dmClearShare').textContent='Publication sélectionnée · Retirer';$('dmScreen').hidden=false;notice('Sélectionne un membre ou une conversation pour partager cette publication.');await refreshList()},show:()=>{$('dmScreen').hidden=false;refreshList()},dispose:()=>{clearSubscription();me=null;current=null;$('dmScreen').hidden=true}};
 })();
