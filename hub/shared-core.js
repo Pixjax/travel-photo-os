@@ -30,6 +30,7 @@ function mount({mode,frame,status,onReady}){
   get ready(){return ready},
   get frame(){return frame},
   get mode(){return mode},
+  get storage(){return window.NomiaTripStorage||null},
   get tripSnapshot(){
    if(!ready)return null;
    try{
