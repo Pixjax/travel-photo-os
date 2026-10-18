@@ -17,11 +17,8 @@
     const k=l.id+'|'+prop;
     try{
      if(!original.has(k))original.set(k,m.getPaintProperty(l.id,prop));
-     if(l.type==='background')m.setPaintProperty(l.id,prop,'#061629');
-     else if(l.type==='fill')m.setPaintProperty(l.id,prop,'#152e45');
-     else if(l.type==='line')m.setPaintProperty(l.id,prop,'#345577');
-     else if(prop==='text-color')m.setPaintProperty(l.id,prop,'#d9e6ef');
-     else if(prop==='text-halo-color')m.setPaintProperty(l.id,prop,'#061629');
+     const target=l.type==='background'?'#061629':l.type==='fill'?'#152e45':l.type==='line'?'#345577':prop==='text-color'?'#d9e6ef':prop==='text-halo-color'?'#061629':null;
+     if(target!==null&&m.getPaintProperty(l.id,prop)!==target)m.setPaintProperty(l.id,prop,target);
     }catch(e){}
    });
   });
@@ -29,7 +26,7 @@
  function restore(m){
   for(const [key,value] of original){
    const i=key.lastIndexOf('|'),id=key.slice(0,i),prop=key.slice(i+1);
-   try{if(m.getLayer(id))m.setPaintProperty(id,prop,value===undefined?null:value)}catch(e){}
+   try{if(m.getLayer(id)){const desired=value===undefined?null:value;const current=m.getPaintProperty(id,prop);if(JSON.stringify(current)!==JSON.stringify(desired))m.setPaintProperty(id,prop,desired)}}catch(e){}
   }
  }
  function apply(mode){
