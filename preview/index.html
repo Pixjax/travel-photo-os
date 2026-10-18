@@ -9,6 +9,8 @@ function inject(){try{const doc=frame.contentDocument;if(!doc||!doc.body)throw E
 if(!doc.getElementById('nomia-simple-preview-script')){const script=doc.createElement('script');script.id='nomia-simple-preview-script';script.src=new URL('./nomia-simple-nav.js?v=preview-20261018-v1',location.href).href;doc.body.append(script)}
 if(!doc.getElementById('nomia-windows-plus-style')){const link=doc.createElement('link');link.id='nomia-windows-plus-style';link.rel='stylesheet';link.href=new URL('./nomia-windows-plus.css?v=preview-20261018-windows-v1',location.href).href;doc.head.append(link)}
 if(!doc.getElementById('nomia-windows-plus-script')){const script=doc.createElement('script');script.id='nomia-windows-plus-script';script.src=new URL('./nomia-windows-plus.js?v=preview-20261018-windows-v1',location.href).href;doc.body.append(script)}
+if(!doc.getElementById('nomia-window-dock-style')){const link=doc.createElement('link');link.id='nomia-window-dock-style';link.rel='stylesheet';link.href=new URL('./nomia-window-dock.css?v=dock-v1',location.href).href;doc.head.append(link)}
+if(!doc.getElementById('nomia-window-dock-script')){const script=doc.createElement('script');script.id='nomia-window-dock-script';script.src=new URL('./nomia-window-dock.js?v=dock-v1',location.href).href;doc.body.append(script)}
 status.hidden=true;
 }catch(err){status.textContent='Chargement de l’aperçu…';if(++count<8)setTimeout(inject,700)}}
 frame.addEventListener('load',()=>{count=0;setTimeout(inject,150)});
