@@ -11,7 +11,6 @@ function mount({mode,frame,status,onReady}){
    const w=frame.contentWindow,d=frame.contentDocument;
    if(!w||!d?.getElementById('map')||typeof w[required]!=='function')throw Error('not ready');
    clear();ready=true;status.hidden=true;
-   if(mode==='voyage')w.openVoyageHub();
    if(typeof onReady==='function')onReady({window:w,document:d});
    frame.dispatchEvent(new CustomEvent('nomia-module-ready'));
   }catch(e){
