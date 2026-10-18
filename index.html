@@ -11,7 +11,7 @@
 <div class="boot"><div><b>NØMIA</b><span id="bootMsg">Chargement de la version complète…</span></div></div>
 <script>
 (async()=>{
-  const VERSION='index-full-20261018-hub-return-v3';
+  const VERSION='index-full-20261019-modular-photo-v4';
   const setBoot=t=>{const e=document.getElementById('bootMsg');if(e)e.textContent=t};
 
   async function prepareOffline(){
@@ -77,6 +77,15 @@
     const cloudInline='<script>window.TRAVEL_PHOTO_CLOUD_CONFIG={url:"https://svfknuvlpxikzqvpksux.supabase.co",anon:"sb_publishable_pm5NiLhMirB8zD0yiYFWXg_6a6R8U1D"};</scr'+'ipt>';
     const scripts=cloudInline+'<script src="./cloud-config.js?v='+VERSION+'"></scr'+'ipt><script src="./mobile-ux.js?v='+VERSION+'"></scr'+'ipt><script src="./workspace-windows.js?v='+VERSION+'"></scr'+'ipt><script src="./simple-collab.js?v='+VERSION+'"></scr'+'ipt><script src="./home-cloud-fix.js?v='+VERSION+'"></scr'+'ipt><script src="./cloud-sync.js?v='+VERSION+'"></scr'+'ipt><script src="./offline-mode.js?v='+VERSION+'"></scr'+'ipt><script src="./premium-ux.js?v='+VERSION+'"></scr'+'ipt><script src="./day-experience.js?v='+VERSION+'"></scr'+'ipt><script src="./photo-experience.js?v='+VERSION+'"></scr'+'ipt><script src="./photo-hook.js?v='+VERSION+'"></scr'+'ipt><script src="./voyage-experience.js?v='+VERSION+'"></scr'+'ipt><script src="./voyage-time-fix.js?v='+VERSION+'"></scr'+'ipt><script src="./booking-launcher.js?v='+VERSION+'"></scr'+'ipt><script src="./booking-native.js?v='+VERSION+'"></scr'+'ipt><script src="./desktop-voyage-fab.js?v='+VERSION+'"></scr'+'ipt><script src="./navigation-v2.js?v='+VERSION+'"></scr'+'ipt><script src="./iphone-nav-fix.js?v='+VERSION+'"></scr'+'ipt><script src="./celestial-ar.js?v='+VERSION+'"></scr'+'ipt><script src="./photo-pro-suite.js?v='+VERSION+'"></scr'+'ipt><script src="./photo-ar-field.js?v='+VERSION+'"></scr'+'ipt><script src="./sky-atlas.js?v='+VERSION+'"></scr'+'ipt>';
     html=html.replace('</body>',scripts+'<script src="./nomia-dashboard.js?v='+VERSION+'"></scr'+'ipt><script src="./nomia-map-style.js?v='+VERSION+'"></scr'+'ipt><script src="./nomia-fidelity.js?v='+VERSION+'"></scr'+'ipt><script src="./preview/nomia-simple-nav.js?v='+VERSION+'"></scr'+'ipt><script src="./preview/nomia-windows-plus.js?v='+VERSION+'"></scr'+'ipt><script src="./preview/nomia-window-dock.js?v='+VERSION+'"></scr'+'ipt></body>');
+    // Photo-specific boot: the shared map/data engine stays loaded, while Voyage-only
+    // workspace, reservations and floating action controllers are excluded.
+    // Default production and Voyage mode keep their existing modules unchanged.
+    if(new URLSearchParams(location.search).get('nomia-module')==='photo'){
+      for(const asset of ['voyage-experience.js','voyage-time-fix.js','booking-launcher.js','booking-native.js','desktop-voyage-fab.js']){
+        html=html.split('<script src="./'+asset+'?v='+VERSION+'"></script>').join('');
+      }
+      html=html.replace(/<title>[^<]*<\/title>/,'<title>NØMIA Photo · Moteur</title>');
+    }
     // Always-visible return to the independent NØMIA ecosystem hub.
     // Inject into the generated document, not the boot document.
     html=html.replace('</body>','<a id="nomiaReturnHub" href="./hub/" aria-label="Retour au portail NØMIA">← <span>NØMIA</span></a><style>#nomiaReturnHub{position:fixed!important;left:14px!important;top:calc(12px + env(safe-area-inset-top,0px))!important;z-index:2147483600!important;display:inline-flex!important;align-items:center;gap:8px!important;padding:10px 14px!important;border:1px solid rgba(215,178,114,.65)!important;border-radius:999px!important;background:rgba(5,19,32,.95)!important;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#efcf91!important;text-decoration:none!important;font:600 12px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif!important;letter-spacing:.08em!important;box-shadow:0 3px 20px #0006!important}#nomiaReturnHub:hover,#nomiaReturnHub:focus-visible{background:#193248!important;outline:2px solid #dcb97c;outline-offset:2px}@media(max-width:560px){#nomiaReturnHub{left:9px!important;top:calc(8px + env(safe-area-inset-top,0px))!important;padding:8px 11px!important;font-size:11px!important}}</style></body>');
