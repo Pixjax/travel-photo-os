@@ -59,7 +59,7 @@ async function send(e){
 async function respond(accept){if(!current)return;const r=await client.rpc('social_dm_respond',{p_thread:current.id,p_accept:accept});if(r.error)return notice(r.error.message);const t=await client.from('social_dm_threads').select('*').eq('id',current.id).single();if(t.data)await open(t.data,null)}
 async function find(){const query=$('dmSearch').value.trim();const results=$('dmResults');results.textContent='';if(query.length<2)return;const r=await client.from('social_profiles').select('id,display_name,username').ilike('username','%'+query.replace(/[%_]/g,'')+'%').limit(12);if(r.error)return notice(r.error.message);for(const p of r.data||[]){if(p.id===me.id)continue;results.append(button('@'+p.username+' · '+p.display_name,()=>start(p.id)))}}
 document.addEventListener('click',e=>{if(e.target.closest('#dmAccept'))respond(true);if(e.target.closest('#dmDecline'))respond(false);if(e.target.closest('#dmBack'))list.parentElement.classList.remove('dm-mobile-open')});
-$('dmForm').onsubmit=send;$('dmSearch').oninput=()=>{find().catch(e=>notice(e.message))};
+$('dmComposer').onsubmit=send;$('dmSearch').oninput=()=>{find().catch(e=>notice(e.message))};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&me){refreshList();loadMessages()}});
 $('dmClearShare').onclick=()=>{sharePost=null;$('dmClearShare').hidden=true};
 async function loadPrivacy(){const r=await client.from('social_dm_preferences').select('allow_requests').eq('user_id',me.id).maybeSingle();if(r.error){notice(r.error.message);return}$('dmAllowRequests').checked=r.data?.allow_requests!==false}
