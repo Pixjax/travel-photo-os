@@ -18,3 +18,13 @@ body .navFab{display:none!important}
 
 /* Remove remaining right-side Voyage launcher; main five-tab navigation owns Voyage. */
 body #uxVoyageFab,body #uxDesktopVoyageFab,body .uxVoyageFab,body .uxDesktopVoyageFab{display:none!important;visibility:hidden!important;pointer-events:none!important}
+
+/* iPhone UX fix: reset is available in Plus > Réinitialiser fenêtres.
+   Never float a duplicate reset over the next-spot card. */
+@media(max-width:760px){
+  body #nomiaWinReset{display:none!important}
+  body #uxVoyageFab,body #uxDesktopVoyageFab,body .uxVoyageFab,body .uxDesktopVoyageFab{display:none!important}
+  body #nomiaSimpleNav{z-index:200!important;bottom:calc(env(safe-area-inset-bottom) + 7px)!important}
+  body #nomiaSimpleMore{z-index:210!important}
+  .nomia-managed.show{z-index:205!important}
+}
