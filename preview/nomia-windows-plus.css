@@ -9,11 +9,10 @@
 .nomia-managed.nomia-maximized{border-radius:16px!important}
 .nomia-resizer{position:absolute;right:0;bottom:0;width:32px;height:32px;z-index:4;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 55%,#e4c487 56%,#e4c487 60%,transparent 61%,transparent 72%,#e4c487 73%,#e4c487 78%,transparent 79%);border-bottom-right-radius:20px}
 .nomia-moving{user-select:none!important}
-@media(max-width:760px){.nomia-managed{padding:0!important}.nomia-managed .uxPhotoScroll,.nomia-managed .uxVoyageScroll,.nomia-managed .uxDepartureScroll{min-height:0!important}.nomia-managed .uxPhotoHead,.nomia-managed .uxVoyageHead,.nomia-managed .uxDepartureHead{padding:10px 12px!important}}
+@media(max-width:760px){.nomia-managed{padding:0!important}.nomia-managed .uxPhotoHead,.nomia-managed .uxVoyageHead,.nomia-managed .uxDepartureHead{padding:10px 12px!important}}
 
 
-/* Shared panel primitives (migrated from nomia-shared-panels.css). */
-/* NØMIA shared Voyage / Photo Pro components — preview-only */
+/* Shared Voyage / Photo Pro visual tokens and components — preview only. */
 body:has(#nomiaSimpleNav){--nomia-card-bg:linear-gradient(135deg,#0b263edc,#06192de8);--nomia-card-border:#8ba8bc70;--nomia-gold:#edc884;--nomia-radius:17px}
 body:has(#nomiaSimpleNav) :is(#uxVoyagePanel,#uxPhotoPanel).nomia-managed{background:linear-gradient(145deg,#071d33f9,#061529f8)!important;border:1px solid #c9a76d9a!important;border-radius:23px!important;box-shadow:0 20px 75px #000b!important;color:#edf4ff}
 body:has(#nomiaSimpleNav) :is(#uxVoyagePanel,#uxPhotoPanel) :is(.uxVoyageKicker,.uxPhotoKicker){font-size:10px!important;letter-spacing:2px!important;text-transform:uppercase;color:var(--nomia-gold)!important}
