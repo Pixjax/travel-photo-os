@@ -52,6 +52,12 @@ if(msg.media_path){
  item.append(thumb);
 }
 if(msg.post_id){const a=document.createElement('a');a.href='./?post='+encodeURIComponent(msg.post_id);a.textContent='Voir la publication ↗';item.append(a)}
+if(msg.sender_id!==me.id)item.append(button('Signaler',async()=>{
+ const reason=prompt('Pourquoi signaler ce message ? (minimum 5 caractères)');
+ if(!reason)return;
+ const r=await client.from('social_dm_reports').insert({reporter_id:me.id,message_id:msg.id,reason:reason.trim().slice(0,500)});
+ if(r.error)notice(r.error.message);else notice('Signalement transmis.');
+}));
 if(msg.sender_id===me.id)item.append(button('Supprimer',async()=>{if(!confirm('Supprimer ce message ?'))return;const r=await client.rpc('social_dm_delete',{p_message:msg.id});if(r.error)notice(r.error.message);else{if(msg.media_path){const d=await client.storage.from('nomia-messages').remove([msg.media_path]);if(d.error)notice('Message supprimé, mais le fichier doit encore être nettoyé.')}loadMessages()}}));
 const time=document.createElement('small');time.textContent=new Date(msg.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+(msg.sender_id===me.id?(otherRead&&new Date(otherRead)>=new Date(msg.created_at)?' · Lu':' · Envoyé'):'');item.append(time);fragment.append(item)}messages.append(fragment);messages.scrollTop=messages.scrollHeight}
 function subscribe(id){clearSubscription();sub=client.channel('nomia-dm-'+id).on('postgres_changes',{event:'INSERT',schema:'public',table:'social_dm_messages',filter:'thread_id=eq.'+id},()=>{loadMessages();client.rpc('social_dm_read',{p_thread:id});refreshList()}).subscribe();
