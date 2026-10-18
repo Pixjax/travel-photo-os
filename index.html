@@ -11,7 +11,7 @@
 <div class="boot"><div><b>NØMIA</b><span id="bootMsg">Chargement de la version complète…</span></div></div>
 <script>
 (async()=>{
-  const VERSION='index-full-20261019-split-engines-v5';
+  const VERSION='index-full-20261019-storage-bridge-v6';
   const setBoot=t=>{const e=document.getElementById('bootMsg');if(e)e.textContent=t};
 
   async function prepareOffline(){
@@ -90,6 +90,16 @@
     }
     if(moduleMode==='photo'||moduleMode==='voyage'){
       html=html.replace(/<title>[^<]*<\/title>/,'<title>NØMIA '+(moduleMode==='photo'?'Photo':'Voyage')+' · Moteur</title>');
+    }
+    if(moduleMode==='photo'||moduleMode==='voyage'){
+      const swaps=[
+        ['function loadTrips(){try{const r=localStorage.getItem(TRIPS_KEY);if(r)return JSON.parse(r)}catch(e){}return initialTrips()}', 'function loadTrips(){try{return window.NomiaTripStorage.readTrips()||initialTrips()}catch(e){return initialTrips()}}'],
+        ['function saveTrips(){localStorage.setItem(TRIPS_KEY,JSON.stringify(trips));renderHome()}', 'function saveTrips(){window.NomiaTripStorage.saveTrips(trips);renderHome()}'],
+        ['function loadData(id){try{const r=localStorage.getItem(DATA_PREFIX+id);if(r)return Object.assign(defaults(),JSON.parse(r))}catch(e){}return defaults()}', 'function loadData(id){try{return Object.assign(defaults(),window.NomiaTripStorage.readTrip(id)||{})}catch(e){return defaults()}}'],
+        ['function saveData(){if(!store)return;localStorage.setItem(DATA_PREFIX+activeTripId,JSON.stringify(store));refreshStats();renderHome()}', 'function saveData(){if(!store)return;window.NomiaTripStorage.saveTrip(activeTripId,store,{confirmOverwrite:true});refreshStats();renderHome()}']
+      ];
+      for(const [from,to] of swaps){if(!html.includes(from))throw Error('Moteur de sauvegarde non compatible');html=html.replace(from,to)}
+      html=html.replace('<scr'+'ipt>\nconst BUILTIN_JAPAN_SPOTS','<scr'+'ipt src="./hub/trip-storage.js?v='+VERSION+'"></scr'+'ipt><scr'+'ipt>\nconst BUILTIN_JAPAN_SPOTS');
     }
     // Always-visible return to the independent NØMIA ecosystem hub.
     // Inject into the generated document, not the boot document.
