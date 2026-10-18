@@ -5,7 +5,7 @@ let timer=0,ctx=null,stars=[],width=0,height=0,dpr=1,frame=0,visible=true,previo
 function done(){clearTimeout(timer);shell.classList.add('ready');chooser.removeAttribute('inert')}
 function play(){shell.classList.remove('ready');chooser.setAttribute('inert','');if(reduced.matches){done();return}clearTimeout(timer);timer=setTimeout(done,3250)}
 document.getElementById('skip').addEventListener('click',done);
-document.getElementById('replay').addEventListener('click',play);
+
 document.addEventListener('keydown',e=>{if(e.key==='Escape')done()});
 function setup(){if(!canvas||reduced.matches)return;ctx=canvas.getContext('2d',{alpha:true});if(!ctx)return;resize();startStars()}
 function resize(){if(!ctx)return;dpr=Math.min(devicePixelRatio||1,1.5);width=innerWidth;height=innerHeight;canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);const count=Math.min(90,Math.round(width*height/18000));stars=Array.from({length:count},(_,i)=>({x:((i*73.71)%100)/100*width,y:((i*41.37+19)%100)/100*height,r:.3+(i%4)*.27,phase:i*1.8}))}
