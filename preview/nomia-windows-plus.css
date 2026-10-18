@@ -9,25 +9,5 @@
 .nomia-managed.nomia-maximized{border-radius:16px!important}
 .nomia-resizer{position:absolute;right:0;bottom:0;width:32px;height:32px;z-index:4;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 55%,#e4c487 56%,#e4c487 60%,transparent 61%,transparent 72%,#e4c487 73%,#e4c487 78%,transparent 79%);border-bottom-right-radius:20px}
 .nomia-moving{user-select:none!important}
-#nomiaWinReset{position:fixed;right:15px;bottom:95px;z-index:195;background:#0a2845eb;border:1px solid #d1ad6d;border-radius:999px;color:#ffdd99;padding:8px 12px;font-size:11px}
-@media(max-width:760px){.nomia-managed{padding:0!important}.nomia-managed .uxPhotoScroll,.nomia-managed .uxVoyageScroll,.nomia-managed .uxDepartureScroll{min-height:0!important}.nomia-managed .uxPhotoHead,.nomia-managed .uxVoyageHead,.nomia-managed .uxDepartureHead{padding:10px 12px!important}#nomiaWinReset{bottom:calc(env(safe-area-inset-bottom) + 79px);right:8px}body.uxPhotoOpen #nomiaSimpleNav,body.uxVoyageOpen #nomiaSimpleNav{display:flex!important}}
+@media(max-width:760px){.nomia-managed{padding:0!important}.nomia-managed .uxPhotoScroll,.nomia-managed .uxVoyageScroll,.nomia-managed .uxDepartureScroll{min-height:0!important}.nomia-managed .uxPhotoHead,.nomia-managed .uxVoyageHead,.nomia-managed .uxDepartureHead{padding:10px 12px!important}}
 
-/* Preview cleanup: keep bottom-most Voyage launcher (desktop-voyage-fab), hide duplicates. */
-body #uxDesktopVoyageFab{display:none!important}
-body .navFab{display:none!important}
-
-/* Remove remaining right-side Voyage launcher; main five-tab navigation owns Voyage. */
-body #uxVoyageFab,body #uxDesktopVoyageFab,body .uxVoyageFab,body .uxDesktopVoyageFab{display:none!important;visibility:hidden!important;pointer-events:none!important}
-
-/* iPhone UX fix: reset is available in Plus > Réinitialiser fenêtres.
-   Never float a duplicate reset over the next-spot card. */
-@media(max-width:760px){
-  body #nomiaWinReset{display:none!important}
-  body #uxVoyageFab,body #uxDesktopVoyageFab,body .uxVoyageFab,body .uxDesktopVoyageFab{display:none!important}
-  body #nomiaSimpleNav{z-index:200!important;bottom:calc(env(safe-area-inset-bottom) + 7px)!important}
-  body #nomiaSimpleMore{z-index:210!important}
-  .nomia-managed.show{z-index:205!important}
-}
-
-/* Desktop cleanup: keep tools in Plus, no floating window-reset controls on map. */
-@media(min-width:761px){body #nomiaWinReset,body .layoutResetBtn{display:none!important;visibility:hidden!important;pointer-events:none!important}}
