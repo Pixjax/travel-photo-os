@@ -115,7 +115,7 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
      try{const stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});camera=stream.getVideoTracks().length>0;stream.getTracks().forEach(t=>t.stop())}catch(e){err=String(e)}
      return {geo,camera,err};
    });
-   assert(caps.geo&&Math.abs(caps.geo.lat+16.92)<.01,'GPS simulé non disponible');
+   console.log('QA GPS/camera state:',JSON.stringify(caps));assert(caps.geo&&Math.abs(caps.geo.lat+16.92)<.01,'GPS simulé non disponible: '+JSON.stringify(caps));
    assert(caps.camera,'Caméra simulée non accessible: '+caps.err);
    console.log('INFO: cela ne mesure pas la boussole réelle iPhone');
  });
@@ -132,12 +132,20 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
    const offlinePage=await offlineContext.newPage();
    try{
      await offlinePage.goto(base+'/index.html',{waitUntil:'domcontentloaded',timeout:30000});
-     await offlinePage.waitForFunction(async()=>{
-       if(!navigator.serviceWorker?.controller)return false;
-       const r=await caches.match('./app-base.html',{ignoreSearch:true});
-       const i=await caches.match('./index.html',{ignoreSearch:true});
-       return !!(r&&i);
-     },null,{timeout:25000});
+     // Poll from Node: Playwright waitForFunction does not await an async predicate.
+     let warmed=false,cacheInfo=null;
+     for(let n=0;n<50;n++){
+       cacheInfo=await offlinePage.evaluate(async()=>({
+         controller:!!navigator.serviceWorker?.controller,
+         names:await caches.keys(),
+         index:!!(await caches.match('./index.html',{ignoreSearch:true})),
+         base:!!(await caches.match('./app-base.html',{ignoreSearch:true}))
+       }));
+       if(cacheInfo.controller&&cacheInfo.index&&cacheInfo.base){warmed=true;break}
+       await offlinePage.waitForTimeout(500);
+     }
+     console.log('CACHE preload:',JSON.stringify(cacheInfo));
+     assert(warmed,'PWA offline cache not ready');
      const cached=await offlinePage.evaluate(async()=>({controller:navigator.serviceWorker.controller?.scriptURL,caches:await caches.keys(),index:!!(await caches.match('./index.html',{ignoreSearch:true})),base:!!(await caches.match('./app-base.html',{ignoreSearch:true}))}));
      console.log('OFFLINE before disconnect:',JSON.stringify(cached));
      await offlineContext.setOffline(true);
