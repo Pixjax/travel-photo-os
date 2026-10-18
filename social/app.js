@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id), supa=window.supabase;
 const URL='https://svfknuvlpxikzqvpksux.supabase.co', KEY='sb_publishable_pm5NiLhMirB8zD0yiYFWXg_6a6R8U1D';
 const S=supa?.createClient?.(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-let user=null,profile=null,view='feed',offset=0,activePost=null,busy=false,more=true;
+let user=null,profile=null,view='feed',offset=0,activePost=null,busy=false,more=true,feedMode='global';
 const show=(id,yes)=>$(id).hidden=!yes;
 function note(message){$('banner').textContent=message;$('banner').hidden=false;setTimeout(()=>$('banner').hidden=true,5500)}
 function fail(error){note(error?.message||String(error||'Une erreur est survenue'))}
@@ -22,9 +22,17 @@ const check=await S.from('social_profiles').insert({id:user.id,username,display_
 async function reset(){const email=$('email').value.trim();if(!email)return note('Indique ton adresse e-mail.');const r=await S.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(r.error)fail(r.error);else note('E-mail de récupération demandé.')}
 async function getSignedUrl(path){const r=await S.storage.from('nomia-social').createSignedUrl(path,3600);return r.data?.signedUrl||null}
 async function loadFeed(reset=false){if(!user||!profile||busy)return;if(reset){offset=0;more=true;$('feed').textContent=''}if(!more)return;busy=true;$('more').disabled=true;try{
-const {data,error}=await S.from('social_posts').select('id,author_id,image_path,caption,place_name,created_at,visibility,social_profiles!social_posts_author_id_fkey(username,display_name)').order('created_at',{ascending:false}).range(offset,offset+9);
+let query=S.from('social_posts').select('id,author_id,image_path,caption,place_name,created_at,visibility,social_profiles!social_posts_author_id_fkey(username,display_name)').order('created_at',{ascending:false});
+if(feedMode==='following'){
+ const relations=await S.from('social_follows').select('following_id').eq('follower_id',user.id);
+ if(relations.error)throw relations.error;
+ const ids=(relations.data||[]).map(x=>x.following_id);
+ if(!ids.length){$('feed').append(empty('Tu ne suis personne pour le moment. Découvre des photographes dans Explorer.'));more=false;$('more').hidden=true;return}
+ query=query.in('author_id',ids);
+}
+const {data,error}=await query.range(offset,offset+9);
 if(error)throw error;more=(data||[]).length===10;offset+=(data||[]).length;
-if(reset&&!data?.length)$('feed').append(empty('Aucune publication pour le moment. Sois le premier à partager une photographie.'));
+if(reset&&!data?.length)$('feed').append(empty(feedMode==='following'?'Aucune publication de tes abonnements pour le moment.':'Aucune publication pour le moment. Sois le premier à partager une photographie.'));
 for(const post of data||[])await addPost(post);
 $('more').hidden=!more
 }catch(e){fail(e)}finally{busy=false;$('more').disabled=false}}
@@ -43,7 +51,7 @@ async function share(id){const url=location.origin+location.pathname+'?post='+en
 async function remove(post){if(!confirm('Supprimer cette publication ?'))return;const r=await S.from('social_posts').delete().eq('id',post.id).eq('author_id',user.id);if(r.error)return fail(r.error);await S.storage.from('nomia-social').remove([post.image_path]);loadFeed(true)}
 async function report(post){const reason=prompt('Motif du signalement (minimum 5 caractères)');if(!reason)return;if(reason.trim().length<5)return note('Motif trop court');const r=await S.from('social_reports').insert({reporter_id:user.id,post_id:post.id,reason:reason.trim().slice(0,500)});if(r.error)fail(r.error);else note('Signalement transmis.')}
 async function search(){if(!user)return;const query=$('search').value.trim().toLowerCase();$('results').textContent='';if(query.length<2){$('results').append(empty('Saisis au moins deux caractères.'));return}const result=await S.from('social_profiles').select('id,username,display_name,bio').ilike('username','%'+query.replace(/[%_]/g,'')+'%').limit(25);if(result.error)return fail(result.error);for(const p of result.data||[]){const item=el('div','person'),left=el('div');left.append(el('strong','',p.display_name),el('p','small','@'+p.username));item.append(left);if(p.id!==user.id)item.append(btn('Suivre / ne plus suivre',()=>follow(p.id)));$('results').append(item)}if(!result.data?.length)$('results').append(empty('Aucun utilisateur trouvé.'))}
-async function loadProfile(){if(!profile)return;const root=$('profile');root.textContent='';const panel=el('div','profile');panel.append(el('div','eyebrow','@'+profile.username),el('h2','',profile.display_name),el('p','',profile.bio||'Aucune biographie'));panel.append(btn('Modifier mon profil',()=>{$('handleEdit').value=profile.username;$('nameEdit').value=profile.display_name;$('bioEdit').value=profile.bio;$('profileEditor').showModal()}));const posts=await S.from('social_posts').select('id').eq('author_id',user.id);panel.append(el('p','count',(posts.data?.length||0)+' publications'));root.append(panel)}
+async function loadProfile(){if(!profile)return;const root=$('profile');root.textContent='';const panel=el('div','profile');panel.append(el('div','eyebrow','@'+profile.username),el('h2','',profile.display_name),el('p','',profile.bio||'Aucune biographie'));panel.append(btn('Modifier mon profil',()=>{$('handleEdit').value=profile.username;$('nameEdit').value=profile.display_name;$('bioEdit').value=profile.bio;$('websiteEdit').value=profile.website||'';$('profileEditor').showModal()}));const posts=await S.from('social_posts').select('id').eq('author_id',user.id);if(profile.website){const a=el('a');a.href=profile.website;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Site internet ↗';panel.append(a)}panel.append(el('p','count',(posts.data?.length||0)+' publications'));root.append(panel)}
 async function upload(e){e.preventDefault();if(!user||!profile)return note('Complète ton profil avant de publier.');const file=$('image').files[0];if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10485760)return note('Image JPEG, PNG ou WebP de 10 Mo maximum.');$('publish').disabled=true;let path;try{
 const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';path=user.id+'/'+crypto.randomUUID()+'.'+ext;
 const result=await S.storage.from('nomia-social').upload(path,file,{contentType:file.type,upsert:false});if(result.error)throw result.error;
@@ -54,10 +62,11 @@ async function init(){if(!S){note('Impossible de charger le service.');return}co
 $('authForm').addEventListener('submit',signin);$('signup').onclick=register;$('reset').onclick=reset;
 $('account').onclick=async()=>{if(user){await S.auth.signOut();user=null;profile=null;signedIn()}else show('auth',true)};
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{if(user)openView(b.dataset.view)});
+for(const [id,mode] of [['globalFeed','global'],['followingFeed','following']]){$(id).onclick=()=>{feedMode=mode;$('globalFeed').setAttribute('aria-pressed',String(mode==='global'));$('followingFeed').setAttribute('aria-pressed',String(mode==='following'));loadFeed(true)}};
 $('composeBtn').onclick=()=>{if(!profile)return note('Complète ton profil avant de publier');$('compose').showModal()};
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=closeDialogs);
 $('postForm').addEventListener('submit',upload);$('more').onclick=()=>loadFeed(false);$('search').oninput=()=>{clearTimeout(window.__socialSearchTimer);window.__socialSearchTimer=setTimeout(search,350)};
 $('commentForm').onsubmit=async e=>{e.preventDefault();const r=await S.from('social_comments').insert({post_id:activePost,author_id:user.id,body:$('commentText').value.trim()});if(r.error)return fail(r.error);$('commentText').value='';comments(activePost)};
-$('profileForm').onsubmit=async e=>{e.preventDefault();const r=await S.from('social_profiles').update({username:$('handleEdit').value.trim().toLowerCase(),display_name:$('nameEdit').value.trim(),bio:$('bioEdit').value.trim()}).eq('id',user.id).select().single();if(r.error)return fail(r.error);profile=r.data;closeDialogs();loadProfile();note('Profil mis à jour')};
+$('profileForm').onsubmit=async e=>{e.preventDefault();const r=await S.from('social_profiles').update({username:$('handleEdit').value.trim().toLowerCase(),display_name:$('nameEdit').value.trim(),bio:$('bioEdit').value.trim(),website:$('websiteEdit').value.trim()||null}).eq('id',user.id).select().single();if(r.error)return fail(r.error);profile=r.data;closeDialogs();loadProfile();note('Profil mis à jour')};
 init();
 })();
