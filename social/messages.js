@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const $=id=>document.getElementById(id);let client=null,me=null,current=null,sub=null,tick=null,threadChannel=null,sharePost=null;
+const $=id=>document.getElementById(id);let client=null,me=null,current=null,sub=null,tick=null,threadChannel=null,sharePost=null,previewUrl=null;
 const list=$('dmList'),messages=$('dmMessages'),title=$('dmTitle'),pane=$('dmPane'),composer=$('dmComposer'),status=$('dmStatus');
 function notice(s){status.textContent=s||''}
 function button(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=fn;return b}
@@ -44,9 +44,15 @@ const readResult=await client.from('social_dm_reads').select('user_id,read_at').
 const otherRead=(readResult.data||[]).find(x=>x.user_id!==me.id)?.read_at||null;
 messages.textContent='';const fragment=document.createDocumentFragment();
 for(const msg of (r.data||[]).reverse()){const item=document.createElement('div');item.className='dm-bubble'+(msg.sender_id===me.id?' mine':'');if(msg.body){const p=document.createElement('p');p.textContent=msg.body;item.append(p)}
-if(msg.media_path){const link=button('Ouvrir la photo',async()=>{const u=await client.storage.from('nomia-messages').createSignedUrl(msg.media_path,90);if(u.error)notice(u.error.message);else window.open(u.data.signedUrl,'_blank','noopener')});item.append(link)}
+if(msg.media_path){
+ const thumb=document.createElement('img');thumb.className='dm-photo';thumb.alt='Photo privée';
+ const signed=await client.storage.from('nomia-messages').createSignedUrl(msg.media_path,1200);
+ if(signed.data?.signedUrl)thumb.src=signed.data.signedUrl;
+ thumb.onclick=async()=>{const u=await client.storage.from('nomia-messages').createSignedUrl(msg.media_path,120);if(u.error)notice(u.error.message);else window.open(u.data.signedUrl,'_blank','noopener')};
+ item.append(thumb);
+}
 if(msg.post_id){const a=document.createElement('a');a.href='./?post='+encodeURIComponent(msg.post_id);a.textContent='Voir la publication ↗';item.append(a)}
-if(msg.sender_id===me.id)item.append(button('Supprimer',async()=>{if(!confirm('Supprimer ce message ?'))return;const r=await client.rpc('social_dm_delete',{p_message:msg.id});if(r.error)notice(r.error.message);else loadMessages()}));
+if(msg.sender_id===me.id)item.append(button('Supprimer',async()=>{if(!confirm('Supprimer ce message ?'))return;const r=await client.rpc('social_dm_delete',{p_message:msg.id});if(r.error)notice(r.error.message);else{if(msg.media_path){const d=await client.storage.from('nomia-messages').remove([msg.media_path]);if(d.error)notice('Message supprimé, mais le fichier doit encore être nettoyé.')}loadMessages()}}));
 const time=document.createElement('small');time.textContent=new Date(msg.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+(msg.sender_id===me.id?(otherRead&&new Date(otherRead)>=new Date(msg.created_at)?' · Lu':' · Envoyé'):'');item.append(time);fragment.append(item)}messages.append(fragment);messages.scrollTop=messages.scrollHeight}
 function subscribe(id){clearSubscription();sub=client.channel('nomia-dm-'+id).on('postgres_changes',{event:'INSERT',schema:'public',table:'social_dm_messages',filter:'thread_id=eq.'+id},()=>{loadMessages();client.rpc('social_dm_read',{p_thread:id});refreshList()}).subscribe();
 tick=setInterval(()=>{if(document.visibilityState==='visible'){loadMessages();refreshList()}},12000)}
@@ -76,7 +82,7 @@ async function send(e){
   }
   const r=await client.rpc('social_dm_send',{p_thread:current.id,p_body:text||null,p_media:path,p_post:post});
   if(r.error)throw r.error;
-  field.value='';$('dmFile').value='';sharePost=null;$('dmClearShare').hidden=true;notice('');
+  field.value='';$('dmFile').value='';if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}$('dmPreview').hidden=true;$('dmPreview').textContent='';sharePost=null;$('dmClearShare').hidden=true;notice('');
   await loadMessages();await refreshList();
  }catch(err){notice(err.message||'Envoi impossible');if(path)await client.storage.from('nomia-messages').remove([path])}
  finally{submit.disabled=false}
@@ -87,6 +93,14 @@ document.addEventListener('click',e=>{if(e.target.closest('#dmAccept'))respond(t
 $('dmComposer').onsubmit=send;$('dmSearch').oninput=()=>{find().catch(e=>notice(e.message))};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&me){refreshList();loadMessages()}});
 $('dmClearShare').onclick=()=>{sharePost=null;$('dmClearShare').hidden=true};
+$('dmFile').onchange=()=>{
+ const file=$('dmFile').files[0],container=$('dmPreview');
+ container.textContent='';if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null}
+ if(!file){container.hidden=true;return}
+ previewUrl=URL.createObjectURL(file);
+ const img=document.createElement('img');img.alt='Aperçu de la photo avant envoi';img.src=previewUrl;img.className='dm-photo-preview';
+ container.append(img,button('Retirer la photo',()=>{$('dmFile').value='';$('dmFile').dispatchEvent(new Event('change'))}));container.hidden=false;
+};
 async function loadPrivacy(){const r=await client.from('social_dm_preferences').select('allow_requests').eq('user_id',me.id).maybeSingle();if(r.error){notice(r.error.message);return}$('dmAllowRequests').checked=r.data?.allow_requests!==false}
 $('dmAllowRequests').onchange=async()=>{const enabled=$('dmAllowRequests').checked;const r=await client.from('social_dm_preferences').upsert({user_id:me.id,allow_requests:enabled},{onConflict:'user_id'});if(r.error){notice(r.error.message);$('dmAllowRequests').checked=!enabled}else notice('Préférence enregistrée.')};
 window.NomiaMessages={mount:async(c,user)=>{client=c;me=user;await Promise.all([refreshList(),loadPrivacy()]);watchThreads()},start,share:async(post)=>{sharePost=post;$('dmClearShare').hidden=false;$('dmClearShare').textContent='Publication sélectionnée · Retirer';$('dmScreen').hidden=false;notice('Sélectionne un membre ou une conversation pour partager cette publication.');await refreshList()},show:()=>{$('dmScreen').hidden=false;refreshList()},dispose:()=>{clearSubscription();if(threadChannel&&client)client.removeChannel(threadChannel);threadChannel=null;me=null;current=null;$('dmScreen').hidden=true}};
