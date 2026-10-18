@@ -83,3 +83,50 @@ Le test utilise des données réelles temporaires, vérifie qu'un utilisateur ne
 Implémentés côté interface : inscription, connexion, confirmation e-mail via Supabase, récupération de mot de passe, flux général et abonnements, publication photo, likes comptabilisés par la base, commentaires avec réponses, enregistrement, partage de liens vers les posts, profils et galeries personnelles, recherche de membres, blocage, signalement, notifications consultables.
 
 Tout cela reste **non validé de bout en bout**, car les migrations SQL n'ont pas encore été appliquées sur la base accessible au projet. Ne pas présenter comme un service de production actif.
+
+## NØMIA Messages — intégration du 19 octobre 2026
+
+**Intégré dans Social (pas de second compte).** Le menu « Messages » est accessible après connexion. Depuis le profil d'une autre personne, « Message » démarre ou retrouve une conversation à deux. Les inconnus envoient une invitation à accepter ; les correspondants autorisés peuvent discuter en temps réel.
+
+### Fonctions développées
+
+- Conversations à deux participants, sans doublons par paire.
+- Demandes reçues, acceptation/refus, blocage via Social, paramètre « accepter les demandes ».
+- Textes, photos en bucket privé, liens vers des publications Social, historique et suppression de ses propres messages.
+- Realtime sur messages/conversations, avec récupération périodique pendant une conversation.
+- Statuts envoyés et lus basés sur les données serveur et compteur de conversations non lues.
+- Préparation des images via Canvas pour retirer les métadonnées EXIF, notamment GPS.
+- Adaptation des conversations au clavier et aux formats mobiles.
+
+### Migrations appliquées sur Supabase
+
+`004_messages.sql`, `005_dm_realtime.sql`, `006_dm_privacy.sql`, `007_dm_thread_events.sql`, `008_dm_media_integrity.sql`.
+
+**Vérifications structurelles réalisées :** les quatre tables de messagerie ont RLS actif ; toutes les fonctions RPC de messagerie refusent `anon` et acceptent `authenticated` ; les médias sont dans le bucket privé `nomia-messages` (10 Mo) ; `social_dm_messages` et `social_dm_threads` sont dans `supabase_realtime`. Les tables Voyage n'ont pas été modifiées.
+
+### Test réel recommandé avant forte adoption
+
+Créer **trois comptes de test distincts** (A, B, C), confirmer les adresses e-mail et les profils. Depuis `social/` :
+
+1. A trouve B, demande une conversation ; B l'accepte.
+2. A envoie un texte et une photo ; B les voit, répond et marque comme lus.
+3. Fermer/rouvrir sur deux appareils et vérifier l'historique.
+4. C essaie de lire/modifier la conversation A-B : accès refusé.
+5. B bloque A : aucun nouvel envoi possible.
+6. Tester l'envoi d'une photo, l'ouverture du fichier et sa suppression.
+7. Tester les demandes désactivées dans les préférences.
+8. Vérifier le compteur de messages non lus et les actualisations Realtime.
+
+Script : `npm run test:messages`. Nécessite `SOCIAL_URL`, `SOCIAL_ANON_KEY` et `DM_TEST_A_EMAIL/PASSWORD`, `DM_TEST_B_EMAIL/PASSWORD`, `DM_TEST_C_EMAIL/PASSWORD`. Exécuter uniquement sur des comptes de test : le script accepte potentiellement une demande de conversation et laisse la conversation créée. Les contrôles automatiques **n'ont pas été exécutés avec trois comptes réels ici**, faute de comptes de test disponibles.
+
+### Restant à réaliser
+
+- Modération centralisée des messages et traitement administratif des signalements.
+- Anti-spam/rate limiting plus avancés, suppression RGPD complète et nettoyage systématique des médias orphelins.
+- Tests E2E Safari/iPhone sur deux appareils (non effectués ici).
+- Notifications push système (non implémentées), appels, voix, groupes, réactions et « écrit… » (non implémentés).
+- Reprise hors ligne/réessai automatique avancés et gestion robuste de longues discussions (pagination actuellement limitée aux 80 derniers messages).
+- Un statut « reçu sur l'appareil » n'est pas affiché car il ne serait pas vérifiable.
+- Pas de chiffrement de bout en bout ; TLS et autorisations Supabase constituent les protections actuelles.
+
+**Important :** ne pas qualifier le service d'audité ou de messagerie de production mature avant les tests réels à trois comptes et une revue indépendante des politiques d'accès.
