@@ -64,6 +64,14 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
    await page.waitForTimeout(450);
    assert(await page.locator('#uxVoyagePanel.show').count()===1,'Voyage Hub non visible');
    assert(await page.locator('#uxVoyageScroll').count()===1,'Contenu Voyage absent');
+   const before=await page.evaluate(()=>store.reservations.length);
+   await page.locator('#uxResTitle').fill('Test automatique NØMIA');
+   await page.locator('#uxResDate').fill('18 OCT');
+   await page.locator('[data-add-res]').click();
+   const after=await page.evaluate(()=>store.reservations.length);
+   assert(after===before+1,'Ajout réservation non persisté en mémoire');
+   assert(await page.getByText('Test automatique NØMIA').count()>=1,'Réservation ajoutée non visible');
+   await page.evaluate(()=>{store.reservations=store.reservations.filter(r=>r.title!=='Test automatique NØMIA');if(typeof saveData==='function')saveData()});
    await page.evaluate(()=>document.getElementById('uxVoyageClose')?.click());
    assert(await page.locator('#uxVoyagePanel.show').count()===0,'Voyage Hub ne se ferme pas');
  });
