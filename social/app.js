@@ -43,9 +43,18 @@ $('more').hidden=!more
 }catch(e){fail(e)}finally{busy=false;$('more').disabled=false}}
 async function addPost(post){const card=el('article','post');const header=el('div','post-head');const left=el('div');const name=el('b','',post.social_profiles?.display_name||post.social_profiles?.username||'Photographe');const meta=el('div','subline',(post.place_name?post.place_name+' · ':'')+new Date(post.created_at).toLocaleDateString('fr-FR'));left.append(name,meta);header.append(left);if(post.author_id!==user.id)header.append(btn('Suivre',()=>follow(post.author_id)));
 const img=el('img');img.alt=post.caption||'Photographie publiée sur NØMIA';img.loading='lazy';img.src=await getSignedUrl(post.image_path)||'';const foot=el('div','post-foot');const controls=el('div','controls');
-const [likes,saved]=await Promise.all([S.from('social_likes').select('user_id').eq('post_id',post.id),S.from('social_saved').select('post_id').eq('post_id',post.id).eq('user_id',user.id)]);
-let liked=(likes.data||[]).some(v=>v.user_id===user.id),savedOn=(saved.data||[]).length>0;
-const likeButton=btn('♡ '+(likes.data?.length||0),async()=>{const r=liked?await S.from('social_likes').delete().eq('post_id',post.id).eq('user_id',user.id):await S.from('social_likes').insert({post_id:post.id,user_id:user.id});if(r.error)return fail(r.error);liked=!liked;likeButton.setAttribute('aria-pressed',String(liked));likeButton.textContent=(liked?'♥ ':'♡ ')+((likes.data?.length||0)+(liked?1:0)-(likes.data?.some(x=>x.user_id===user.id)?1:0))},liked);
+const [likes,ownLike,saved]=await Promise.all([
+ S.from('social_likes').select('post_id',{count:'exact',head:true}).eq('post_id',post.id),
+ S.from('social_likes').select('user_id').eq('post_id',post.id).eq('user_id',user.id).maybeSingle(),
+ S.from('social_saved').select('post_id').eq('post_id',post.id).eq('user_id',user.id)
+]);
+let liked=!!ownLike.data,savedOn=(saved.data||[]).length>0,likeCount=likes.count||0;
+const likeButton=btn('♡ '+likeCount,async()=>{
+ const r=liked?await S.from('social_likes').delete().eq('post_id',post.id).eq('user_id',user.id):await S.from('social_likes').insert({post_id:post.id,user_id:user.id});
+ if(r.error)return fail(r.error);
+ likeCount=Math.max(0,likeCount+(liked?-1:1));liked=!liked;
+ likeButton.setAttribute('aria-pressed',String(liked));likeButton.textContent=(liked?'♥ ':'♡ ')+likeCount;
+},liked);
 const saveButton=btn('Enregistrer',async()=>{const r=savedOn?await S.from('social_saved').delete().eq('post_id',post.id).eq('user_id',user.id):await S.from('social_saved').insert({post_id:post.id,user_id:user.id});if(r.error)return fail(r.error);savedOn=!savedOn;saveButton.setAttribute('aria-pressed',String(savedOn));saveButton.textContent=savedOn?'Enregistré':'Enregistrer'},savedOn);
 controls.append(likeButton,btn('Commenter',()=>comments(post.id)),saveButton,btn('Partager',()=>share(post.id)));
 if(post.author_id===user.id)controls.append(btn('Supprimer',()=>remove(post)));else controls.append(btn('Signaler',()=>report(post)));
