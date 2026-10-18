@@ -82,7 +82,7 @@
     // Default production and Voyage mode keep their existing modules unchanged.
     if(new URLSearchParams(location.search).get('nomia-module')==='photo'){
       for(const asset of ['voyage-experience.js','voyage-time-fix.js','booking-launcher.js','booking-native.js','desktop-voyage-fab.js']){
-        html=html.split('<script src="./'+asset+'?v='+VERSION+'"></script>').join('');
+        html=html.split('<scr'+'ipt src="./'+asset+'?v='+VERSION+'"></scr'+'ipt>').join('');
       }
       html=html.replace(/<title>[^<]*<\/title>/,'<title>NØMIA Photo · Moteur</title>');
     }
