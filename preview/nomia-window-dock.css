@@ -9,3 +9,11 @@
 #nomiaWindowDock button.minimized .nomia-dock-state{color:#ffe09b}
 @media(max-width:760px){#nomiaWindowDock{bottom:calc(env(safe-area-inset-bottom) + 77px);left:8px;right:8px;transform:none;overflow-x:auto;justify-content:flex-start;padding:6px;max-width:none;border-radius:13px}#nomiaWindowDock button{padding:8px 9px;font-size:10px}.nomia-dock-title{display:none}#nomiaWinReset{bottom:calc(env(safe-area-inset-bottom) + 135px)!important}}
 @media(min-width:761px){#nomiaWindowDock{bottom:94px}#nomiaWinReset{bottom:94px}}
+
+/* Dock only appears for open windows; anchored just above navigation on mobile. */
+@media(max-width:760px){
+ body #nomiaWindowDock{left:10px!important;right:10px!important;bottom:calc(env(safe-area-inset-bottom) + 82px)!important;max-width:none!important;transform:none!important;z-index:199!important;border-radius:14px!important;padding:5px 7px!important;gap:5px!important;max-height:54px!important}
+ body #nomiaWindowDock button{min-height:39px!important;padding:6px 9px!important;font-size:10px!important}
+ body #nomiaWindowDock .nomia-dock-symbol{font-size:17px!important}
+ body #nomiaWindowDock[hidden]{display:none!important}
+}
