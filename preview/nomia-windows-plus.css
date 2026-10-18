@@ -12,6 +12,10 @@
 @media(max-width:760px){.nomia-managed{padding:0!important}.nomia-managed .uxPhotoHead,.nomia-managed .uxVoyageHead,.nomia-managed .uxDepartureHead{padding:10px 12px!important}}
 
 
+/* Layout primitives owned by the window component, not the general UI stylesheet. */
+body:has(#nomiaSimpleNav) .nomia-managed .nomia-winbar{position:relative;z-index:6;flex-shrink:0!important}
+body:has(#nomiaSimpleNav) .nomia-managed :is(.uxVoyageScroll,.uxPhotoScroll,.uxDepartureScroll){flex:1 1 auto!important;min-height:0!important;overflow:auto!important;overscroll-behavior:contain}
+
 /* Shared Voyage / Photo Pro visual tokens and components — preview only. */
 body:has(#nomiaSimpleNav){--nomia-card-bg:linear-gradient(135deg,#0b263edc,#06192de8);--nomia-card-border:#8ba8bc70;--nomia-gold:#edc884;--nomia-radius:17px}
 body:has(#nomiaSimpleNav) :is(#uxVoyagePanel,#uxPhotoPanel).nomia-managed{background:linear-gradient(145deg,#071d33f9,#061529f8)!important;border:1px solid #c9a76d9a!important;border-radius:23px!important;box-shadow:0 20px 75px #000b!important;color:#edf4ff}
