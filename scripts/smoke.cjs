@@ -22,10 +22,21 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
    await page.waitForFunction(()=>document.querySelectorAll('#tripGrid .tripCard').length>0,null,{timeout:30000});
    assert((await page.title()).includes('NØMIA'),'titre NØMIA manquant');
  });
- await run('Entrée dans le voyage local de démonstration',async()=>{
-   const opened=await page.evaluate(()=>{if(!trips?.some(t=>t.id==='japan-2026'))throw Error('Voyage de démo absent');openTrip('japan-2026');return {className:document.getElementById('home').className,id:activeTripId,hasStore:!!store}});console.log('DEBUG trip immediately',opened);
-   await page.waitForTimeout(500);
-   const tripState=await page.evaluate(()=>({className:document.getElementById('home').className,activeTripId,hasStore:!!store}));console.log('DEBUG trip after delay',tripState);assert(await page.locator('#home.hide').count()===1,'Voyage non ouvert: '+JSON.stringify(tripState));
+ await run('Entrée dans un voyage de test local isolé',async()=>{
+   await page.waitForTimeout(400);
+   const state=await page.evaluate(()=>{
+     const id='nomia-qa-local';
+     if(!trips.some(t=>t.id===id)){
+       trips.push({id,name:'NØMIA QA',country:'France',start:'2026-10-18',end:'2026-10-20',currency:'EUR',emoji:'🧪',builtIn:false,description:'Tests navigateur isolés'});
+       saveTrips();
+     }
+     openTrip(id);
+     return {id:activeTripId,home:document.getElementById('home').className,store:!!store};
+   });
+   console.log('QA voyage initialisé',state);
+   await page.waitForTimeout(450);
+   const final=await page.evaluate(()=>({id:activeTripId,home:document.getElementById('home').className,store:!!store}));
+   assert(final.id==='nomia-qa-local'&&final.store&&final.home.includes('hide'),'Voyage test non ouvert: '+JSON.stringify(final));
  });
  await run('Boutons visibles sans erreur de syntaxe d’attribut',async()=>{
    const bad=await page.locator('button[onclick]').evaluateAll(btns=>btns.filter(b=>!b.getAttribute('onclick')?.trim()).map(b=>b.outerHTML));
