@@ -2332,7 +2332,7 @@ openTrip=function(id){
 
 initMap();
 renderHome();
-if("serviceWorker" in navigator && location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
+// Service worker lifecycle is managed once by index.html (versioned registration).
 </script>
 </body>
 </html>
