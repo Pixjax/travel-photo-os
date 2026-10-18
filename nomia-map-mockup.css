@@ -1,0 +1,64 @@
+/* NØMIA MAP — visual composition v3, matches the cinematic mockup while keeping native DOM and handlers. */
+@media(min-width:761px){
+body{--nomia-gold:#edc77d}
+body .top{align-items:flex-start;top:25px}
+body .top .brand{width:clamp(360px,32vw,490px);min-height:176px;padding:27px 25px 20px!important;background:linear-gradient(105deg,rgba(4,17,34,.97),rgba(10,32,54,.91)),url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=500&q=70') right center/40% auto no-repeat!important}
+body .top .brand:before{content:"✧  N Ø M I A";display:block;margin-bottom:13px;color:#f9d58f;font-size:16px;letter-spacing:4px}
+body .top .brand small{font-size:9px;color:#bfcbdc;letter-spacing:1.4px}
+body .top .brand strong{font:normal clamp(29px,2.6vw,38px) Georgia,serif;line-height:1.15;margin:8px 0}
+body .top .brand span{font-size:12px}
+body .top .tools{min-height:79px;padding:11px 14px!important;gap:8px!important;align-items:center;max-width:calc(100vw - 550px)}
+body .top .tools button{min-height:48px;border-radius:13px;border:1px solid rgba(162,193,221,.22);background:linear-gradient(150deg,#17314d,#081c32);color:#e7f0fc;padding:12px 14px}
+body .top .tools button:nth-child(2),body .top .tools button:nth-child(3),body .top .tools button:nth-child(4),body .top .tools button:nth-child(5){min-width:68px;padding:11px 9px;display:flex;justify-content:center;align-items:end;background-size:cover;background-position:center;box-shadow:inset 0 -35px 24px rgba(2,14,27,.92);font-size:11px;text-shadow:0 1px 6px #000}
+body .top .tools button:nth-child(2){background-image:linear-gradient(0deg,#061627 5%,transparent 95%),url('https://images.unsplash.com/photo-1590559899731-a382839e5549?w=220&q=60')}
+body .top .tools button:nth-child(3){background-image:linear-gradient(0deg,#061627 5%,transparent 95%),url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=220&q=60')}
+body .top .tools button:nth-child(4){background-image:linear-gradient(0deg,#061627 5%,transparent 95%),url('https://images.unsplash.com/photo-1500534623283-312aade485b7?w=220&q=60')}
+body .top .tools button:nth-child(5){background-image:linear-gradient(0deg,#061627 5%,transparent 95%),url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=220&q=60')}
+body .top .tools button:hover,body .top .tools button:focus-visible{border-color:var(--nomia-gold);box-shadow:0 0 0 1px #e6c58675}
+body .left{top:219px;width:clamp(340px,32vw,490px);bottom:16px;gap:12px}
+body .left .dash{padding:12px}
+body .left .heroStats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+body .left .statrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+body .left .stat,body .left .big{min-width:0;min-height:82px;padding:13px 12px;background:linear-gradient(155deg,rgba(24,46,70,.8),rgba(8,27,48,.78));border:1px solid #ffffff18}
+body .left .big b{font-size:32px}body .left .stat b{font-size:22px}
+body .left .big small:before,body .left .stat small:before{display:inline-block;margin-right:6px;color:var(--nomia-gold);font-size:13px}
+body .left .big small:before{content:"♧"}body .left .heroStats .stat small:before{content:"◴"}
+body .left .statrow .stat:nth-child(1) small:before{content:"♡"}body .left .statrow .stat:nth-child(2) small:before{content:"◈"}body .left .statrow .stat:nth-child(3) small:before{content:"◎"}
+body .left .workspace{min-height:300px;border-radius:22px}
+body .left .workspace .tabs{grid-template-columns:repeat(5,1fr);padding:11px 12px;gap:5px}
+body .left .workspace .tab{min-height:45px;font-size:11px;padding:8px 2px}
+body .left .workspace .tab:before{display:block;font-size:18px;font-weight:400;margin-bottom:3px}
+body .tab[data-mode=explore]:before{content:"⌕"}body .tab[data-mode=today]:before{content:"▥"}body .tab[data-mode=photo]:before{content:"◎"}body .tab[data-mode=favs]:before{content:"♡"}body .tab[data-mode=done]:before{content:"✓"}
+body .left .workspace .search{padding:9px 13px}
+body .left .workspace .search input{font-size:12px;min-height:47px}
+body .left .workspace .chips,body .left .workspace .days{gap:6px}
+body .left .workspace .list{min-height:96px}
+body .left .workspace .item{border-color:rgba(144,184,218,.12);margin-bottom:6px;background:rgba(15,38,62,.42)}
+body .left .workspace .item.sel{border-color:rgba(237,199,125,.68);box-shadow:0 0 0 1px rgba(237,199,125,.14)}
+body .right{top:154px;width:clamp(355px,31vw,485px)}
+body .right .brief{padding:20px 21px;border-radius:24px}
+body .right .brief h3{font-size:27px;margin-bottom:10px}
+body .right .briefBtns{gap:10px;margin-top:17px}
+body .right .briefBtns .btn{min-height:50px;border-radius:13px;font-size:12px;padding:12px}
+body .right .briefBtns .btn:before{display:inline-block;margin-right:9px;font-size:18px;vertical-align:middle;color:#f4cd85}
+body .right .briefBtns .btn:nth-child(1):before{content:"➤"}body .right .briefBtns .btn:nth-child(2):before{content:"▢"}body .right .briefBtns .btn:nth-child(3):before{content:"✓"}body .right .briefBtns .btn:nth-child(4):before{content:"✎"}
+body .navFab,body .geoFab,body .collabFab,body .ultimateFab,body .aiFab{min-height:49px!important;min-width:175px!important;text-align:left!important;padding:12px 19px!important;font-size:12px!important}
+body .navFab:hover,body .geoFab:hover,body .collabFab:hover,body .ultimateFab:hover,body .aiFab:hover{border-color:#f4d496!important;transform:translateX(-3px)}
+body .right .detail{border:1px solid rgba(157,189,215,.3);background:linear-gradient(145deg,#092640,#041528)}
+body .right .detail .detailActions button,body .right .detail .detailActions a{border-radius:12px}
+}
+@media(min-width:761px) and (max-width:1260px){
+body .top .brand{width:330px;min-height:145px;padding:15px!important}
+body .top .brand:before{margin-bottom:6px}
+body .top .tools{max-width:calc(100vw - 380px);gap:4px!important;padding:7px!important}
+body .top .tools button:nth-child(n+2):nth-child(-n+5){min-width:50px}
+body .left{top:185px;width:330px}body .right{width:325px;top:155px}
+body .left .stat,body .left .big{min-height:68px;padding:9px}
+body .left .workspace .tabs{padding:6px;gap:1px}body .left .workspace .tab{font-size:9px}
+}
+@media(max-width:760px){
+body .brand:before{content:"✧  NØMIA";display:block;color:#f4d194;letter-spacing:2px;font-size:11px;margin-bottom:3px}
+body .uxNav .uxIcon{color:#edc77d}
+body .left .workspace .tab.on{color:#f4d194!important}
+body .right .detail .coverText h2{font-family:Georgia,serif}
+}
