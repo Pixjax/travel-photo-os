@@ -11,3 +11,16 @@
 .nomia-moving{user-select:none!important}
 @media(max-width:760px){.nomia-managed{padding:0!important}.nomia-managed .uxPhotoScroll,.nomia-managed .uxVoyageScroll,.nomia-managed .uxDepartureScroll{min-height:0!important}.nomia-managed .uxPhotoHead,.nomia-managed .uxVoyageHead,.nomia-managed .uxDepartureHead{padding:10px 12px!important}}
 
+
+/* Shared panel primitives (migrated from nomia-shared-panels.css). */
+/* NØMIA shared Voyage / Photo Pro components — preview-only */
+body:has(#nomiaSimpleNav){--nomia-card-bg:linear-gradient(135deg,#0b263edc,#06192de8);--nomia-card-border:#8ba8bc70;--nomia-gold:#edc884;--nomia-radius:17px}
+body:has(#nomiaSimpleNav) :is(#uxVoyagePanel,#uxPhotoPanel).nomia-managed{background:linear-gradient(145deg,#071d33f9,#061529f8)!important;border:1px solid #c9a76d9a!important;border-radius:23px!important;box-shadow:0 20px 75px #000b!important;color:#edf4ff}
+body:has(#nomiaSimpleNav) :is(#uxVoyagePanel,#uxPhotoPanel) :is(.uxVoyageKicker,.uxPhotoKicker){font-size:10px!important;letter-spacing:2px!important;text-transform:uppercase;color:var(--nomia-gold)!important}
+body:has(#nomiaSimpleNav) :is(#uxVoyagePanel,#uxPhotoPanel) :is(.uxVoyageHead h2,.uxPhotoHead h2){font-family:Georgia,serif!important;font-weight:400!important;color:#fff!important}
+body:has(#nomiaSimpleNav) :is(#uxVoyagePanel,#uxPhotoPanel) :is(.uxVoyageHero,.uxVoyageSection,.uxPhotoHero,.uxPhotoSection,.ppsLaunch){background:var(--nomia-card-bg)!important;border:1px solid var(--nomia-card-border)!important;border-radius:var(--nomia-radius)!important}
+body:has(#nomiaSimpleNav) :is(#uxVoyagePanel,#uxPhotoPanel) :is(.uxVoyageSectionHead,.uxPhotoSectionHead){display:flex;align-items:center;justify-content:space-between;gap:9px}
+body:has(#nomiaSimpleNav) :is(#uxVoyagePanel,#uxPhotoPanel) :is(button,input,select){font-family:inherit}
+body:has(#nomiaSimpleNav) :is(#uxVoyagePanel,#uxPhotoPanel) button:focus-visible{outline:2px solid var(--nomia-gold);outline-offset:2px}
+body:has(#nomiaSimpleNav) :is(#uxVoyagePanel,#uxPhotoPanel) :is(.uxVoyageAdd,.uxPhotoActions button:first-child,.uxPhotoDate.on){border-color:#f5d79e!important;background:linear-gradient(145deg,#fbe8b8,#d3a65b)!important;color:#18263b!important}
+@media(max-width:760px){body:has(#nomiaSimpleNav) :is(#uxVoyagePanel,#uxPhotoPanel).nomia-managed{border-radius:18px!important}body:has(#nomiaSimpleNav) :is(#uxVoyagePanel,#uxPhotoPanel) :is(.uxVoyageHero,.uxVoyageSection,.uxPhotoHero,.uxPhotoSection,.ppsLaunch){border-radius:14px!important}}
