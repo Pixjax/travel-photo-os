@@ -90,9 +90,26 @@ target.append(item)}
 async function loadProfile(){if(!profile)return;const root=$('profile');root.textContent='';const panel=el('div','profile');panel.append(el('div','eyebrow','@'+profile.username),el('h2','',profile.display_name),el('p','',profile.bio||'Aucune biographie'));panel.append(btn('Modifier mon profil',()=>{$('handleEdit').value=profile.username;$('nameEdit').value=profile.display_name;$('bioEdit').value=profile.bio;$('websiteEdit').value=profile.website||'';$('profileEditor').showModal()}));const posts=await S.from('social_posts').select('id,image_path,caption').eq('author_id',user.id).order('created_at',{ascending:false}).limit(36);if(posts.error)return fail(posts.error);if(profile.website&&/^https:\/\/[^\s]+$/i.test(profile.website)){const a=el('a');a.href=profile.website;a.target='_blank';a.rel='noopener noreferrer';a.textContent='Site internet ↗';panel.append(a)}panel.append(el('p','count',(posts.data?.length||0)+' publications'));root.append(panel);
 if(posts.data?.length){const gallery=el('div','profile-grid');for(const post of posts.data){const image=el('img');image.loading='lazy';image.alt=post.caption||'Publication photo';image.src=await getSignedUrl(post.image_path)||'';gallery.append(image)}root.append(gallery)}
 }
+async function prepareImage(file){
+ const url=URL.createObjectURL(file);
+ try{
+  const image=new Image();image.src=url;await image.decode();
+  const scale=Math.min(1,4000/Math.max(image.naturalWidth,image.naturalHeight));
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
+  const ctx=canvas.getContext('2d');
+  if(!ctx)throw Error('Conversion image indisponible');
+  ctx.drawImage(image,0,0,canvas.width,canvas.height);
+  const mime=file.type==='image/png'?'image/png':'image/jpeg';
+  const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Conversion impossible')),mime,.94));
+  if(blob.size>10485760)throw Error('Image encore trop volumineuse après optimisation.');
+  return {blob,mime};
+ }finally{URL.revokeObjectURL(url)}
+}
 async function upload(e){e.preventDefault();if(!user||!profile)return note('Complète ton profil avant de publier.');const file=$('image').files[0];if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10485760)return note('Image JPEG, PNG ou WebP de 10 Mo maximum.');$('publish').disabled=true;let path;try{
-const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';path=user.id+'/'+crypto.randomUUID()+'.'+ext;
-const result=await S.storage.from('nomia-social').upload(path,file,{contentType:file.type,upsert:false});if(result.error)throw result.error;
+const prepared=await prepareImage(file);
+const ext=prepared.mime==='image/png'?'png':'jpg';path=user.id+'/'+crypto.randomUUID()+'.'+ext;
+const result=await S.storage.from('nomia-social').upload(path,prepared.blob,{contentType:prepared.mime,upsert:false});if(result.error)throw result.error;
 const post=await S.from('social_posts').insert({author_id:user.id,image_path:path,caption:$('caption').value.trim(),place_name:$('place').value.trim()||null,visibility:$('visibility').value}).select().single();if(post.error)throw post.error;
 $('postForm').reset();closeDialogs();openView('feed');note('Publication créée.');
 }catch(error){if(path)await S.storage.from('nomia-social').remove([path]);fail(error)}finally{$('publish').disabled=false}}
