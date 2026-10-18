@@ -2,7 +2,7 @@
 if(window.openSkyAtlas)return;
 const d=Math.PI/180,rad=180/Math.PI,wrap=x=>(x%360+360)%360,clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const stars=[['Sirius',101.287,-16.716,-1.46],['Canopus',95.988,-52.696,-.74],['Arcturus',213.915,19.182,-.05],['Vega',279.234,38.784,.03],['Capella',79.172,45.998,.08],['Rigel',78.634,-8.202,.13],['Procyon',114.825,5.225,.34],['Betelgeuse',88.793,7.407,.42],['Achernar',24.429,-57.237,.46],['Hadar',210.956,-60.373,.61],['Acrux',186.650,-63.099,.76],['Altair',297.696,8.868,.77],['Aldebaran',68.980,16.509,.85],['Spica',201.298,-11.161,.97],['Antares',247.352,-26.432,1.06],['Pollux',116.329,28.026,1.14],['Fomalhaut',344.412,-29.622,1.16],['Deneb',310.358,45.280,1.25],['Mimosa',191.930,-59.689,1.25],['Regulus',152.093,11.967,1.35],['Adhara',104.656,-28.972,1.50],['Castor',113.650,31.888,1.58],['Gacrux',187.792,-57.113,1.63],['Bellatrix',81.283,6.350,1.64],['Elnath',81.573,28.608,1.65],['Alnair',332.058,-46.961,1.73],['Alioth',193.507,55.960,1.76],['Dubhe',165.932,61.751,1.79],['Merak',165.461,56.382,2.37],['Mizar',200.981,54.925,2.23],['Alkaid',206.885,49.313,1.86],['Polaris',37.955,89.264,1.98],['Alnitak',85.189,-1.943,1.74],['Alnilam',84.053,-1.202,1.69],['Mintaka',83.002,-.299,2.25],['Saiph',86.939,-9.670,2.07],['Sadr',305.557,40.257,2.23],['Albireo',292.680,27.960,3.05],['Kaus Australis',276.043,-34.384,1.79],['Shaula',263.402,-37.104,1.62],['Nunki',283.816,-26.297,2.05],['Dschubba',240.083,-22.622,2.29],['Rasalhague',263.734,12.560,2.08],['Mirfak',51.081,49.861,1.79],['Algol',47.042,40.955,2.12],['Alpheratz',2.097,29.091,2.06],['Markab',346.190,15.205,2.49],['Rigil Kentaurus',219.902,-60.834,-.01]];
-let root,canvas,ctx,video,stream,shown=false,lat=-16.92,lon=145.77,heading=180,elevation=20,fov=90,offset=0,date=new Date(),live=true,frame=0,drag=null,cam=false,sensorGood=false,sensorAccuracy=null,sensorUpdated=0,calibrationReference=null,orientationLabel='Capteurs non prêts';
+let root,canvas,ctx,video,stream,shown=false,lat=-16.92,lon=145.77,heading=180,elevation=20,fov=90,offset=0,date=new Date(),live=true,frame=0,drag=null,cam=false,sensorGood=false,sensorAccuracy=null,sensorUpdated=0,calibrationReference=null,orientationLabel='Capteurs non prêts',yawCorrection=null;
 function jd(t){return t.getTime()/86400000+2440587.5}
 function lst(t){let j=jd(t),T=(j-2451545)/36525;return wrap(280.46061837+360.98564736629*(j-2451545)+.000387933*T*T-T*T*T/38710000+lon)}
 function equ(ra,dec){let H=(wrap(lst(date)-ra+180)-180)*d,p=lat*d,de=dec*d,h=Math.asin(Math.sin(p)*Math.sin(de)+Math.cos(p)*Math.cos(de)*Math.cos(H));return {az:wrap((Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(p)-Math.tan(de)*Math.cos(p))+Math.PI)*rad),alt:h*rad}}
@@ -31,7 +31,7 @@ canvas.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY,az:heading,h:elevation};c
 canvas.onpointermove=e=>{if(!drag||cam)return;heading=wrap(drag.az-(e.clientX-drag.x)*fov/innerWidth);elevation=clamp(drag.h+(e.clientY-drag.y)*fov/innerWidth,-85,85)};
 canvas.onpointerup=()=>drag=null;
 }
-async function toggleCam(){if(cam){stopCam();return}try{const permission=(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function')?DeviceOrientationEvent.requestPermission():Promise.resolve('granted');const camera=navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});const [permissionResult,media]=await Promise.allSettled([permission,camera]);if(media.status!=='fulfilled')throw media.reason;stream=media.value;video.srcObject=stream;await video.play();cam=true;sensorGood=false;sensorUpdated=0;root.classList.add('camera');root.querySelector('#skyCamera').textContent='Carte du ciel';if(permissionResult.status==='fulfilled'&&permissionResult.value==='granted')window.addEventListener('deviceorientation',orient,true);else alert('Caméra active, mais orientation refusée. Utilise le mode carte ou autorise les capteurs.')}catch(e){alert('Caméra indisponible : '+e.message)}}
+async function toggleCam(){if(cam){stopCam();return}try{const permission=(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function')?DeviceOrientationEvent.requestPermission():Promise.resolve('granted');const camera=navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});const [permissionResult,media]=await Promise.allSettled([permission,camera]);if(media.status!=='fulfilled')throw media.reason;stream=media.value;video.srcObject=stream;await video.play();cam=true;sensorGood=false;sensorUpdated=0;yawCorrection=null;root.classList.add('camera');root.querySelector('#skyCamera').textContent='Carte du ciel';if(permissionResult.status==='fulfilled'&&permissionResult.value==='granted')window.addEventListener('deviceorientation',orient,true);else alert('Caméra active, mais orientation refusée. Utilise le mode carte ou autorise les capteurs.')}catch(e){alert('Caméra indisponible : '+e.message)}}
 // Device Euler angles (intrinsic Z-X'-Y' rotations): derive camera -Z
 // in local tangent coordinates. The compass anchors the yaw separately.
 function orientationVectors(alpha,beta,gamma){
@@ -56,10 +56,16 @@ function orient(e){
  if(Number.isFinite(e.webkitCompassHeading)){
    // WebKit heading refers to device top, not camera optical axis.
    // Offset Euler horizontal heading to true compass direction.
-   const topDevice=wrap(Math.atan2(v.y[0],v.y[1])*rad);
-   measured=wrap(measured+((e.webkitCompassHeading-topDevice+540)%360-180));
+   const horizontal=Math.hypot(v.y[0],v.y[1]);
+   if(horizontal>.22) {
+     const topDevice=wrap(Math.atan2(v.y[0],v.y[1])*rad);
+     const nextCorrection=(e.webkitCompassHeading-topDevice+540)%360-180;
+     if(yawCorrection===null)yawCorrection=nextCorrection;
+     else yawCorrection+=(((nextCorrection-yawCorrection+540)%360)-180)*.12;
+   }
+   if(yawCorrection!==null)measured=wrap(measured+yawCorrection);
    sensorAccuracy=Number.isFinite(e.webkitCompassAccuracy)?Math.abs(e.webkitCompassAccuracy):null;
-   quality=sensorAccuracy!=null&&sensorAccuracy<=15?'compass':'low';
+   quality=yawCorrection===null?'relative':sensorAccuracy!=null&&sensorAccuracy<=15?'compass':'low';
  } else if(e.absolute===true){quality='absolute';sensorAccuracy=null}
  else {sensorAccuracy=null;quality='relative'}
  const h=Math.asin(clamp(camera[2],-1,1))*rad;
