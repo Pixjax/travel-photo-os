@@ -139,3 +139,11 @@ using(bucket_id='nomia-social' and (storage.foldername(name))[1]=auth.uid()::tex
 
 -- Heads-up: public launch additionally requires dedicated moderation/rate limits,
 -- user-deletion backend and privacy/legal review before opening registration broadly.
+
+-- Ensure block list visibility is respected on subscriptions, and private media is never public.
+-- Definer functions are for authorization checks only; they never return user data.
+-- Restrict updates to immutable relationship keys:
+revoke update on public.social_follows,public.social_likes,public.social_saved,public.social_blocks,public.social_comments,public.social_reports from authenticated;
+-- A basic database-level protection against duplicate report spam:
+create unique index if not exists social_reports_duplicate_post on public.social_reports(reporter_id,post_id) where post_id is not null;
+create unique index if not exists social_reports_duplicate_user on public.social_reports(reporter_id,target_user_id) where target_user_id is not null;
