@@ -9,7 +9,7 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
 (async()=>{
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const base='http://127.0.0.1:'+server.address().port;
- const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+ const browser=await chromium.launch({headless:true,args:['--no-sandbox','--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']});
  const context=await browser.newContext({...devices['iPhone 13'],permissions:['geolocation','camera'],geolocation:{latitude:-16.92,longitude:145.77},serviceWorkers:'block'});
  await context.route(/supabase\.co\//,route=>route.abort()); // never touch production data
  const page=await context.newPage();
@@ -73,10 +73,16 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
    assert(await page.locator('#collabOverlay.show').count()===1,'Collaboration non visible');
    await page.evaluate(()=>window.closeOverlay('collabOverlay'));
  });
- await run('Emulation mobile : permissions GPS et caméra',async()=>{
-   const caps=await page.evaluate(()=>({gps:!!navigator.geolocation,camera:!!navigator.mediaDevices?.getUserMedia,motion:typeof DeviceOrientationEvent!=='undefined'}));
-   assert(caps.gps&&caps.camera,'API manquante sur le navigateur');
-   console.log('INFO: appareils iPhone physiques non testés:',JSON.stringify(caps));
+ await run('Émulation mobile : GPS et caméra simulés',async()=>{
+   const caps=await page.evaluate(async()=>{
+     const geo=await new Promise(resolve=>navigator.geolocation.getCurrentPosition(p=>resolve({lat:p.coords.latitude,lon:p.coords.longitude}),()=>resolve(null),{timeout:6000}));
+     let camera=false,err='';
+     try{const stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});camera=stream.getVideoTracks().length>0;stream.getTracks().forEach(t=>t.stop())}catch(e){err=String(e)}
+     return {geo,camera,err};
+   });
+   assert(caps.geo&&Math.abs(caps.geo.lat+16.92)<.01,'GPS simulé non disponible');
+   assert(caps.camera,'Caméra simulée non accessible: '+caps.err);
+   console.log('INFO: cela ne mesure pas la boussole réelle iPhone');
  });
  await run('Hors ligne : service worker et app shell déclarés',async()=>{
    const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');
