@@ -57,6 +57,14 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
    await page.waitForTimeout(300);
    assert(await page.locator('#plannerOverlay.show').count()===1,'Planning/dépenses non visible');
    assert(await page.locator('#plannerOverlay button').count()>=1,'Contrôles dépenses absents');
+   const oldCount=await page.evaluate(()=>store.expenses.length);
+   await page.locator('#expAmount').fill('12');
+   await page.locator('#expNote').fill('Test automatique NØMIA');
+   await page.locator('button[onclick="addExpense()"]').click();
+   const n=await page.evaluate(()=>store.expenses.length);
+   assert(n===oldCount+1,'Ajout de dépense échoué');
+   assert(await page.getByText('Test automatique NØMIA').count()>=1,'Dépense non affichée');
+   await page.evaluate(()=>{store.expenses=store.expenses.filter(e=>e.note!=='Test automatique NØMIA');saveData()});
    await page.evaluate(()=>window.closeOverlay('plannerOverlay'));
  });
  await run('Réservations : ouverture de Voyage Hub',async()=>{
