@@ -185,13 +185,7 @@
   }
   function closeAR(){root?.classList.remove('show');document.body.style.overflow='';if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;track=null}cameraReady=false;window.removeEventListener('deviceorientation',orientationHandler,true)}
 
-  function injectLaunch(){
-    const panel=document.getElementById('uxPhotoPanel'),scroll=document.getElementById('uxPhotoScroll');if(!panel||!scroll)return;
-    if(scroll.querySelector('.celArLaunch'))return;
-    const box=document.createElement('div');box.className='celArLaunch';box.innerHTML='<div class="celArLaunchIcon">◎</div><div class="celArLaunchText"><b>RA Soleil & Lune</b><span>Trajectoires temps réel et prévisionnelles · caméra, GPS, boussole, calibration fine</span></div><button type="button">OUVRIR</button>';
-    box.querySelector('button').addEventListener('click',openAR);
-    const hero=scroll.querySelector('.uxPhotoHero');if(hero)hero.insertAdjacentElement('afterend',box);else scroll.prepend(box);
-  }
+  function injectLaunch(){document.querySelectorAll('#uxPhotoScroll .celArLaunch').forEach(el=>el.remove())}
 
   function install(){ensureRoot();injectLaunch();const obs=new MutationObserver(()=>{if(document.getElementById('uxPhotoPanel')?.classList.contains('show'))setTimeout(injectLaunch,0)});obs.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});setInterval(()=>{if(document.getElementById('uxPhotoPanel')?.classList.contains('show'))injectLaunch();if(root?.classList.contains('show')&&liveMode){const n=new Date();if(ymd(n)!==ymd(selectedDate)){selectedDate=n;recomputeArcs(true)}selectedMinutes=n.getHours()*60+n.getMinutes();root.querySelector('#celArTime').value=selectedMinutes;schedule()}},1000);window.addEventListener('resize',schedule);window.addEventListener('orientationchange',()=>setTimeout(schedule,250));window.openCelestialAR=openAR}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,1100));else setTimeout(install,1100);
