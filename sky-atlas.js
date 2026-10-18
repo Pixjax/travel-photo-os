@@ -17,7 +17,7 @@ for(let A=0;A<360;A+=45){const q=projection({az:A,alt:0},w,h);if(q){ctx.fillStyl
 for(const s of stars){let p=equ(s[1],s[2]);if(p.alt<-7)continue;let q=projection(p,w,h);if(!q||q.x<0||q.x>w||q.y<0||q.y>h)continue;ctx.fillStyle='#f7f7ff';ctx.beginPath();ctx.arc(q.x,q.y,clamp(3-s[3]*.55,1,3.8),0,7);ctx.fill();if(s[3]<1.3){ctx.font='11px system-ui';ctx.fillText(s[0],q.x+7,q.y-7)}}
 const gc=gal(0),g=projection(gc,w,h);if(g){ctx.strokeStyle='#f2a9ff';ctx.strokeRect(g.x-10,g.y-10,20,20);ctx.fillStyle='#f2d9ff';ctx.font='12px system-ui';ctx.fillText('Centre galactique',g.x+15,g.y)}
 if(window.SunCalc)for(const [name,p,color]of [['Soleil',SunCalc.getPosition(date,lat,lon),'#ffd772'],['Lune',SunCalc.getMoonPosition(date,lat,lon),'#d8e5ff']]){const q=projection({az:wrap(p.azimuth*rad+180),alt:p.altitude*rad},w,h);if(q){ctx.fillStyle=color;ctx.beginPath();ctx.arc(q.x,q.y,7,0,7);ctx.fill();ctx.fillText(name,q.x+10,q.y-8)}}
-root.querySelector('#skyStatus').textContent=Math.round(wrap(heading+offset))+'° / '+Math.round(elevation)+'° • '+date.toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})+(cam?' · '+(Date.now()-sensorUpdated>2500?'Capteurs inactifs':orientationLabel)+(sensorAccuracy!=null?' · boussole ±'+Math.round(sensorAccuracy)+'°':'')+(calibratedAt?' · alignement visuel':''):'');root.classList.toggle('skyUnreliable',cam&&(!sensorGood||Date.now()-sensorUpdated>2500));
+root.querySelector('#skyStatus').textContent=Math.round(wrap(heading+offset))+'° / '+Math.round(elevation)+'° • '+date.toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})+(cam?' · '+(Date.now()-sensorUpdated>2500?'Capteurs inactifs':orientationLabel)+(sensorAccuracy!=null?' · boussole ±'+Math.round(sensorAccuracy)+'°':'')+(calibratedAt?' · alignement visuel':''):'');root.classList.toggle('skyUnreliable',cam&&(!sensorGood||sensorAccuracy==null||sensorAccuracy>10||Date.now()-sensorUpdated>2500));
 frame=requestAnimationFrame(draw)}
 function localDateValue(t){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')}
 function localTimeValue(t){return String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0')}
@@ -130,7 +130,7 @@ function orient(e){
  // orientation directly to a heading already in geographical coordinates.
  heading=wrap(heading+delta*.24);
  lastGoodHeading=heading;sensorGood=true;
- orientationLabel='Nord géographique suivi';
+ orientationLabel=sensorAccuracy!=null&&sensorAccuracy<=5?'Boussole stable · RA à vérifier':'Boussole suivie · précision limitée';
 }
 function stopCam(){calibrationState=null;root?.classList.remove('calibrating');if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;cam=false;sensorGood=false;video.srcObject=null;root.classList.remove('camera');root.querySelector('#skyCamera').textContent='📷 RA caméra';window.removeEventListener('deviceorientation',orient,true)}
 function open(){build();offset=0;skyPitchOffset=0;calibratedAt=0;try{if(typeof myGeo!=='undefined'&&myGeo&&Number.isFinite(+myGeo.lat)){lat=+myGeo.lat;lon=+myGeo.lon}else if(typeof selected!=='undefined'&&selected&&Number.isFinite(+selected.lat)){lat=+selected.lat;lon=+selected.lon}}catch(e){}date=new Date();live=true;refresh();shown=true;root.classList.add('show');cancelAnimationFrame(frame);draw()}
