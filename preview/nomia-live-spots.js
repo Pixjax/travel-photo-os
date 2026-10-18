@@ -1,0 +1,27 @@
+/* NØMIA Live Spots — preview-only, approximate compass-overlay prototype. */
+(()=>{'use strict';if(window.__nomiaLiveSpots)return;window.__nomiaLiveSpots=true;
+const RAD=Math.PI/180,deg=x=>(x%360+360)%360,delta=x=>((x+540)%360)-180;
+let root,video,stream,watch,heading=null,accuracy=null,position=null,raf=0,active=false,items=[];
+function bearing(a,b){const p1=a.lat*RAD,p2=b.lat*RAD,dl=(b.lon-a.lon)*RAD;return deg(Math.atan2(Math.sin(dl)*Math.cos(p2),Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl))/RAD)}
+function distance(a,b){const t=(b.lat-a.lat)*RAD,u=(b.lon-a.lon)*RAD,x=Math.sin(t/2)**2+Math.cos(a.lat*RAD)*Math.cos(b.lat*RAD)*Math.sin(u/2)**2;return 6371*2*Math.asin(Math.min(1,Math.sqrt(x)))}
+function spots(){try{const a=typeof activeSpots==='function'?activeSpots():[];return a.filter(s=>Number.isFinite(+s.lat)&&Number.isFinite(+s.lon)&&Math.abs(+s.lat)<=90&&Math.abs(+s.lon)<=180).map(s=>({name:String(s.name||'Spot'),lat:+s.lat,lon:+s.lon}))}catch(e){return []}}
+function status(s){if(root)root.querySelector('.nls-status').textContent=s}
+function draw(){raf=0;if(!active||!root||!position)return;const layer=root.querySelector('.nls-markers');layer.replaceChildren();items=spots().map(s=>({...s,d:distance(position,s),az:bearing(position,s)})).filter(s=>s.d>.02&&s.d<60).sort((a,b)=>a.d-b.d).slice(0,35);const visible=heading===null?[]:items.filter(s=>Math.abs(delta(s.az-heading))<28).slice(0,8);
+ const used=[];for(const s of visible){const x=50+delta(s.az-heading)/56*100;let y=36+(used.length%4)*13;const node=document.createElement('div');node.className='nls-marker';node.style.left=Math.max(8,Math.min(87,x))+'%';node.style.top=y+'%';node.textContent=s.name+' · '+(s.d<1?Math.round(s.d*1000)+' m':s.d.toFixed(1)+' km');layer.append(node);used.push(node)}
+ root.querySelector('.nls-heading').textContent=heading===null?'Boussole indisponible':Math.round(heading)+'° · '+visible.length+' spots en direction de la caméra';
+ root.querySelector('.nls-list').replaceChildren(...items.slice(0,6).map(s=>{const e=document.createElement('div');e.textContent=s.name+' · '+s.d.toFixed(1)+' km · '+Math.round(s.az)+'°';return e}));
+}
+function schedule(){if(!raf)raf=requestAnimationFrame(draw)}
+function orientation(e){let h=null;if(Number.isFinite(e.webkitCompassHeading))h=deg(e.webkitCompassHeading);else if(e.absolute&&Number.isFinite(e.alpha))h=deg(360-e.alpha);if(h!==null){heading=heading===null?h:deg(heading+delta(h-heading)*.25);schedule()}}
+async function start(){active=true;heading=null;root.hidden=false;status('Autorise le GPS et la caméra. Le cadrage est indicatif.');
+try{if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function')await DeviceOrientationEvent.requestPermission()}catch(_){}
+window.addEventListener('deviceorientation',orientation);window.addEventListener('deviceorientationabsolute',orientation);
+if(navigator.geolocation)watch=navigator.geolocation.watchPosition(p=>{position={lat:p.coords.latitude,lon:p.coords.longitude};accuracy=p.coords.accuracy;status('GPS ±'+Math.round(accuracy)+' m · Repères indicatifs, non calibrés');schedule()},()=>status('GPS refusé ou indisponible : autorise la localisation pour voir les spots.'),{enableHighAccuracy:true,maximumAge:8000,timeout:16000});
+try{stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'}}});video.srcObject=stream;await video.play()}catch(_){status('Caméra indisponible ou refusée. Les repères restent accessibles si GPS et boussole fonctionnent.')}
+schedule()}
+function stop(){active=false;root.hidden=true;window.removeEventListener('deviceorientation',orientation);window.removeEventListener('deviceorientationabsolute',orientation);if(watch!==undefined)navigator.geolocation.clearWatch(watch);watch=undefined;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}video.srcObject=null;if(raf)cancelAnimationFrame(raf);raf=0}
+function mount(){if(document.getElementById('nomiaLiveSpotsLaunch'))return;const p=document.getElementById('uxPhotoPanel');if(!p)return;const btn=document.createElement('button');btn.id='nomiaLiveSpotsLaunch';btn.type='button';btn.textContent='⌖ Live View · Spots proches';btn.onclick=()=>{if(!root)build();start()};const bar=p.querySelector('.nomia-winbar');if(bar)bar.after(btn);else p.prepend(btn)}
+function build(){root=document.createElement('section');root.id='nomiaLiveSpots';root.hidden=true;root.innerHTML='<div class="nls-camera"><video autoplay muted playsinline></video><div class="nls-markers"></div><div class="nls-top"><strong>Live View · Spots</strong><button type="button" aria-label="Fermer Live View">✕</button></div><div class="nls-bottom"><div class="nls-heading"></div><div class="nls-list"></div><p class="nls-status">Initialisation…</p><small>Prototype : repères approximatifs selon GPS et boussole. Ne pas utiliser pour naviguer ou éviter des obstacles.</small></div></div>';document.body.append(root);video=root.querySelector('video');root.querySelector('button').onclick=stop}
+function init(){mount();new MutationObserver(r=>{if(r.some(m=>[...m.addedNodes].some(n=>n.nodeType===1&&(n.id==='uxPhotoPanel'||n.querySelector?.('#uxPhotoPanel')))))mount()}).observe(document.body,{childList:true,subtree:true});document.addEventListener('visibilitychange',()=>{if(document.hidden&&active)stop()});window.addEventListener('pagehide',()=>{if(active)stop()})}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
