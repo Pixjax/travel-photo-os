@@ -147,3 +147,33 @@ revoke update on public.social_follows,public.social_likes,public.social_saved,p
 -- A basic database-level protection against duplicate report spam:
 create unique index if not exists social_reports_duplicate_post on public.social_reports(reporter_id,post_id) where post_id is not null;
 create unique index if not exists social_reports_duplicate_user on public.social_reports(reporter_id,target_user_id) where target_user_id is not null;
+
+-- Private accounts may not gain unapproved followers. A request/approval flow
+-- is a later feature; public profile subscriptions work now.
+drop policy if exists "follows_insert" on public.social_follows;
+create policy "follows_insert" on public.social_follows for insert to authenticated with check (
+ follower_id=auth.uid()
+ and not public.social_blocked(follower_id,following_id)
+ and exists (select 1 from public.social_profiles p where p.id=following_id and not p.is_private)
+);
+-- Server-side minimum spacing. Additional platform/edge request limits required before public launch.
+create or replace function public.social_limit_post() returns trigger
+language plpgsql set search_path='' as $$
+begin
+ if exists(select 1 from public.social_posts p where p.author_id=new.author_id and p.created_at > now()-interval '15 seconds') then
+  raise exception 'Please wait before posting again';
+ end if;
+ return new;
+end $$;
+create or replace function public.social_limit_comment() returns trigger
+language plpgsql set search_path='' as $$
+begin
+ if exists(select 1 from public.social_comments c where c.author_id=new.author_id and c.created_at > now()-interval '3 seconds') then
+  raise exception 'Please wait before commenting again';
+ end if;
+ return new;
+end $$;
+drop trigger if exists nomia_social_post_limit on public.social_posts;
+create trigger nomia_social_post_limit before insert on public.social_posts for each row execute function public.social_limit_post();
+drop trigger if exists nomia_social_comment_limit on public.social_comments;
+create trigger nomia_social_comment_limit before insert on public.social_comments for each row execute function public.social_limit_comment();
