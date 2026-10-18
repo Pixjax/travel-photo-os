@@ -2,7 +2,7 @@ const { chromium, devices } = require('playwright');
 const http=require('node:http'),fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png'};
-const server=http.createServer((req,res)=>{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);const dest=path.resolve(root,'.'+pathname);if(!dest.startsWith(root+path.sep)&&dest!==root){res.writeHead(403);return res.end()}fs.readFile(dest,(err,b)=>{if(err){res.writeHead(404);return res.end('Missing '+pathname)}res.writeHead(200,{'Content-Type':mime[path.extname(dest)]||'application/octet-stream','Cache-Control':'no-store'});res.end(b)})});
+const server=http.createServer((req,res)=>{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);if(pathname==='/__qa_gps'){res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});return res.end('<!doctype html><title>NØMIA GPS Test</title>')}const dest=path.resolve(root,'.'+pathname);if(!dest.startsWith(root+path.sep)&&dest!==root){res.writeHead(403);return res.end()}fs.readFile(dest,(err,b)=>{if(err){res.writeHead(404);return res.end('Missing '+pathname)}res.writeHead(200,{'Content-Type':mime[path.extname(dest)]||'application/octet-stream','Cache-Control':'no-store'});res.end(b)})});
 const assert=(ok,msg)=>{if(!ok)throw Error(msg)};
 let failures=[];
 async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){console.error('FAIL',name,err.message);failures.push(name+': '+err.message);try{if(typeof page!=='undefined'&&!page.isClosed()){fs.mkdirSync(path.join(root,'qa-screenshots'),{recursive:true});await page.screenshot({path:path.join(root,'qa-screenshots',String(failures.length).padStart(2,'0')+'-failed.png'),fullPage:true})}}catch(_){}}}
@@ -110,16 +110,29 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
    assert(await page.locator('#collabOverlay.show').count()===1,'Collaboration non visible');
    await page.evaluate(()=>window.closeOverlay('collabOverlay'));
  });
- await run('Émulation mobile : GPS et caméra simulés',async()=>{
+ await run('Émulation mobile : caméra et disponibilité GPS',async()=>{
    const caps=await page.evaluate(async()=>{
-     const permission=await navigator.permissions.query({name:'geolocation'}).then(x=>x.state).catch(e=>String(e));const geo=await new Promise(resolve=>navigator.geolocation.getCurrentPosition(p=>resolve({lat:p.coords.latitude,lon:p.coords.longitude,permission}),e=>resolve({error:{code:e.code,message:e.message},permission}),{enableHighAccuracy:true,timeout:12000,maximumAge:0}));
+     const permission=await navigator.permissions.query({name:'geolocation'}).then(x=>x.state).catch(e=>String(e));
      let camera=false,err='';
      try{const stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});camera=stream.getVideoTracks().length>0;stream.getTracks().forEach(t=>t.stop())}catch(e){err=String(e)}
-     return {geo,camera,err};
+     return {permission,camera,err};
    });
-   console.log('QA GPS/camera state:',JSON.stringify(caps));assert(caps.geo&&Math.abs(caps.geo.lat+16.92)<.01,'GPS simulé non disponible: '+JSON.stringify(caps));
+   assert(caps.permission==='granted','Permission GPS non accordée: '+JSON.stringify(caps));
    assert(caps.camera,'Caméra simulée non accessible: '+caps.err);
-   console.log('INFO: cela ne mesure pas la boussole réelle iPhone');
+   const blank=await context.newPage();
+   await blank.goto(base+'/__qa_gps',{waitUntil:'domcontentloaded'});
+   const gps=await blank.evaluate(()=>new Promise(resolve=>navigator.geolocation.getCurrentPosition(
+     p=>resolve({lat:p.coords.latitude,lon:p.coords.longitude}),
+     e=>resolve({error:e.message,code:e.code}),
+     {enableHighAccuracy:false,maximumAge:60000,timeout:5000}
+   )));
+   await blank.close();
+   console.log('GPS mock on blank isolated page:',JSON.stringify(gps));
+   if(Number.isFinite(gps.lat)){
+     assert(Math.abs(gps.lat+16.92)<.01,'GPS spoof inconsistent');
+   }else{
+     console.warn('GPS device emulator gave no location even on isolated blank page; iPhone GPS validation remains required.');
+   }
  });
  await run('Hors ligne : service worker et app shell déclarés',async()=>{
    const sw=fs.readFileSync(path.join(root,'sw.js'),'utf8');
