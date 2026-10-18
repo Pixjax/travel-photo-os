@@ -100,7 +100,15 @@ async function init(){if(!S){note('Impossible de charger le service.');$('authFo
 const check=await S.from('social_profiles').select('id').limit(1);
 if(check.error){$('authForm').hidden=true;note('NØMIA Social est en cours de configuration. Les inscriptions ne sont pas encore ouvertes.');return}
 backendReady=true;
-const session=await S.auth.getSession();if(session.error)fail(session.error);user=session.data.session?.user||null;if(user)try{await ensureProfile()}catch(e){fail(e)}signedIn();S.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){user=null;profile=null;signedIn()}})}
+const session=await S.auth.getSession();if(session.error)fail(session.error);user=session.data.session?.user||null;if(user)try{await ensureProfile()}catch(e){fail(e)}signedIn();S.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){user=null;profile=null;signedIn()}else if(event==='PASSWORD_RECOVERY'){$('passwordDialog').showModal()}})}
+$('passwordForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ const password=$('newPassword').value;
+ const r=await S.auth.updateUser({password});
+ if(r.error)return fail(r.error);
+ $('passwordDialog').close();$('passwordForm').reset();
+ note('Ton mot de passe a été modifié.');
+});
 $('authForm').addEventListener('submit',signin);$('signup').onclick=register;$('reset').onclick=reset;
 $('account').onclick=async()=>{if(user){await S.auth.signOut();user=null;profile=null;signedIn()}else show('auth',true)};
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{if(user)openView(b.dataset.view)});
