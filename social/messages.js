@@ -7,9 +7,32 @@ function clearSubscription(){if(sub&&client)client.removeChannel(sub);sub=null;i
 function watchThreads(){if(threadChannel&&client)client.removeChannel(threadChannel);threadChannel=client.channel('nomia-dm-conversations').on('postgres_changes',{event:'*',schema:'public',table:'social_dm_threads'},()=>refreshList().catch(()=>{})).subscribe()}
 
 async function peers(){const r=await client.from('social_dm_threads').select('id,user_low,user_high,initiated_by,status,last_activity').order('last_activity',{ascending:false}).limit(100);if(r.error)throw r.error;return r.data||[]}
-async function refreshList(){if(!me)return;const rows=await peers();list.textContent='';if(!rows.length){list.textContent='Aucune conversation pour le moment.';return}
-const ids=[...new Set(rows.map(t=>t.user_low===me.id?t.user_high:t.user_low))];const result=await client.from('social_profiles').select('id,username,display_name').in('id',ids);const map=new Map((result.data||[]).map(p=>[p.id,p]));
-for(const row of rows){const other=row.user_low===me.id?row.user_high:row.user_low,p=map.get(other);const b=button((p?.display_name||p?.username||'Membre')+(row.status==='pending'?' · Demande':''),()=>open(row,p));b.className='dm-thread'+(current?.id===row.id?' selected':'');list.append(b)}}
+async function refreshList(){
+ if(!me)return;
+ const rows=await peers();list.textContent='';
+ const menu=document.querySelector('[data-view="messages"]');
+ if(!rows.length){list.textContent='Aucune conversation pour le moment.';if(menu)menu.textContent='Messages';return}
+ const ids=[...new Set(rows.map(t=>t.user_low===me.id?t.user_high:t.user_low))],threadIds=rows.map(x=>x.id);
+ const [result,reads,last]=await Promise.all([
+  client.from('social_profiles').select('id,username,display_name').in('id',ids),
+  client.from('social_dm_reads').select('thread_id,read_at').eq('user_id',me.id).in('thread_id',threadIds),
+  client.from('social_dm_messages').select('thread_id,sender_id,created_at').in('thread_id',threadIds).order('created_at',{ascending:false}).limit(250)
+ ]);
+ const profiles=new Map((result.data||[]).map(p=>[p.id,p]));
+ const readAt=new Map((reads.data||[]).map(x=>[x.thread_id,new Date(x.read_at).getTime()]));
+ const latest=new Map();
+ for(const row of last.data||[])if(!latest.has(row.thread_id))latest.set(row.thread_id,row);
+ let unread=0;
+ for(const row of rows){
+  const other=row.user_low===me.id?row.user_high:row.user_low,p=profiles.get(other);
+  const lastMsg=latest.get(row.id),request=row.status==='pending'&&row.initiated_by!==me.id;
+  const pending=!!(lastMsg&&lastMsg.sender_id!==me.id&&new Date(lastMsg.created_at).getTime()>(readAt.get(row.id)||0));
+  if(request||pending)unread++;
+  const b=button((request||pending?'●  ':'')+(p?.display_name||p?.username||'Membre')+(request?' · Invitation':row.status==='pending'?' · En attente':''),()=>open(row,p));
+  b.className='dm-thread'+(current?.id===row.id?' selected':'');list.append(b);
+ }
+ if(menu)menu.textContent='Messages'+(unread?' ('+unread+')':'');
+}
 async function open(row,person){clearSubscription();current=row;title.textContent=person?.display_name||person?.username||'Conversation';pane.hidden=false;list.parentElement.classList.add('dm-mobile-open');notice('');
 const incoming=row.status==='pending'&&row.initiated_by!==me.id;
 $('dmRequest').hidden=!incoming;$('dmPending').hidden=row.status!=='pending'||incoming;composer.hidden=row.status!=='accepted';
