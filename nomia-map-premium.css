@@ -59,3 +59,22 @@ body .uxGo,body .uxSpotCTA button:first-child,body .mobileAction.primary{backgro
 body .mobileActionMenu{background:rgba(5,20,38,.98)!important;border-color:rgba(229,188,114,.28)!important}
 body .mobileActionBtn{background:#061d36;color:#f7d18c;border-color:rgba(223,190,125,.4)}
 }
+
+/* Map usability pass: preserve spot list even when windows were manually resized. */
+@media(min-width:761px){
+body .left .workspace{min-height:330px;display:flex;flex-direction:column;min-width:0}
+body .left .workspace .list{flex:1 1 auto;min-height:76px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#45617d transparent}
+body .left .workspace .tabs{padding:7px 10px 2px;gap:2px}
+body .left .workspace .tab{min-height:35px;padding:5px 2px;font-size:10px}
+body .left .workspace .search{padding:8px 10px 6px}
+body .left .workspace .search input{min-height:37px;padding:8px 10px}
+body .left .workspace .chips{padding-top:6px}
+body .left .workspace .days{padding:6px 9px}
+body .left .workspace .chip,body .left .workspace .day{padding:6px 10px!important;font-size:10px}
+body .left .workspace .workspaceFoot{flex:0 0 auto;padding:8px 10px}
+body .left .workspace .item{padding:8px;border-radius:12px}
+body .left .workspace .item.sel{background:linear-gradient(100deg,rgba(219,173,92,.17),rgba(19,46,72,.67));border-color:rgba(240,202,130,.38)}
+body .left .workspace .item b{color:#fff}
+body .right .briefBtns .btn{white-space:normal}
+body .left .dash{flex:0 0 auto}
+}
