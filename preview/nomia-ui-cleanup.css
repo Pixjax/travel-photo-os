@@ -9,11 +9,6 @@ body:has(#nomiaSimpleNav) .navFab,
 body:has(#nomiaSimpleNav) #nomiaWinReset,
 body:has(#nomiaSimpleNav) .layoutResetBtn{display:none!important;visibility:hidden!important;pointer-events:none!important}
 body:has(#nomiaSimpleNav) #nomiaSimpleNav{isolation:isolate}
-body:has(#nomiaSimpleNav) .nomia-managed{min-width:0!important;box-sizing:border-box!important}
-body:has(#nomiaSimpleNav) .nomia-managed .nomia-winbar{position:relative;z-index:6;flex-shrink:0!important}
-body:has(#nomiaSimpleNav) .nomia-managed .uxVoyageScroll,
-body:has(#nomiaSimpleNav) .nomia-managed .uxPhotoScroll,
-body:has(#nomiaSimpleNav) .nomia-managed .uxDepartureScroll{flex:1 1 auto!important;min-height:0!important;overflow:auto!important;overscroll-behavior:contain}
 body:has(#nomiaSimpleNav) #nomiaWindowDock[hidden]{display:none!important}
 body:has(#nomiaSimpleNav) #nomiaSimpleMore[hidden]{display:none!important}
 @media(min-width:761px){
@@ -31,5 +26,5 @@ body:has(#nomiaSimpleNav) #nomiaSimpleMore[hidden]{display:none!important}
  body:has(#nomiaSimpleNav) .nomia-winbar{height:42px!important;flex-basis:42px!important}
  body:has(#nomiaSimpleNav) .nomia-winbuttons button{height:34px!important;min-width:34px!important}
  body:has(#nomiaSimpleNav) .nomia-resizer{width:38px!important;height:38px!important}
- body:has(#nomiaSimpleNav) .nomia-managed.nomia-minimized{height:42px!important;min-height:42px!important;max-height:42px!important}
+ body:has(#nomiaSimpleNav) .nomia-managed.nomia-minimized{height:38px!important;min-height:38px!important;max-height:38px!important}
 }
