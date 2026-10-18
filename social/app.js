@@ -41,7 +41,7 @@ if(reset&&deepId&&/^[a-f0-9-]{36}$/i.test(deepId)){
 for(const post of data||[]){if(reset&&deepId===post.id)continue;await addPost(post)}
 $('more').hidden=!more
 }catch(e){fail(e)}finally{busy=false;$('more').disabled=false}}
-async function addPost(post){const card=el('article','post');const header=el('div','post-head');const left=el('div');const name=el('b','',post.social_profiles?.display_name||post.social_profiles?.username||'Photographe');const meta=el('div','subline',(post.place_name?post.place_name+' · ':'')+new Date(post.created_at).toLocaleDateString('fr-FR'));left.append(name,meta);header.append(left);if(post.author_id!==user.id)header.append(btn('Suivre',()=>follow(post.author_id)));
+async function addPost(post){const card=el('article','post');const header=el('div','post-head');const left=el('div');const name=btn(post.social_profiles?.display_name||post.social_profiles?.username||'Photographe',()=>openMemberProfile(post.author_id));name.className='profile-link';const meta=el('div','subline',(post.place_name?post.place_name+' · ':'')+new Date(post.created_at).toLocaleDateString('fr-FR'));left.append(name,meta);header.append(left);if(post.author_id!==user.id)header.append(btn('Suivre',()=>follow(post.author_id)));
 const img=el('img');img.alt=post.caption||'Photographie publiée sur NØMIA';img.loading='lazy';img.src=await getSignedUrl(post.image_path)||'';const foot=el('div','post-foot');const controls=el('div','controls');
 const [likes,ownLike,saved]=await Promise.all([
  S.from('social_likes').select('post_id',{count:'exact',head:true}).eq('post_id',post.id),
@@ -70,7 +70,26 @@ async function blockUser(id){
  if(r.error)return fail(r.error);note('Membre bloqué');loadFeed(true);
 }
 async function report(post){const reason=prompt('Motif du signalement (minimum 5 caractères)');if(!reason)return;if(reason.trim().length<5)return note('Motif trop court');const r=await S.from('social_reports').insert({reporter_id:user.id,post_id:post.id,reason:reason.trim().slice(0,500)});if(r.error)fail(r.error);else note('Signalement transmis.')}
-async function search(){if(!user)return;const query=$('search').value.trim().toLowerCase();$('results').textContent='';if(query.length<2){$('results').append(empty('Saisis au moins deux caractères.'));return}const result=await S.from('social_profiles').select('id,username,display_name,bio').ilike('username','%'+query.replace(/[%_]/g,'')+'%').limit(25);if(result.error)return fail(result.error);for(const p of result.data||[]){const item=el('div','person'),left=el('div');left.append(el('strong','',p.display_name),el('p','small','@'+p.username));item.append(left);if(p.id!==user.id)item.append(btn('Suivre / ne plus suivre',()=>follow(p.id)));$('results').append(item)}if(!result.data?.length)$('results').append(empty('Aucun utilisateur trouvé.'))}
+async function search(){if(!user)return;const query=$('search').value.trim().toLowerCase();$('results').textContent='';if(query.length<2){$('results').append(empty('Saisis au moins deux caractères.'));return}const result=await S.from('social_profiles').select('id,username,display_name,bio').ilike('username','%'+query.replace(/[%_]/g,'')+'%').limit(25);if(result.error)return fail(result.error);for(const p of result.data||[]){const item=el('div','person'),left=el('div');left.append(el('strong','',p.display_name),el('p','small','@'+p.username));item.append(left);item.append(btn('Voir le profil',()=>openMemberProfile(p.id)));if(p.id!==user.id)item.append(btn('Suivre / ne plus suivre',()=>follow(p.id)));$('results').append(item)}if(!result.data?.length)$('results').append(empty('Aucun utilisateur trouvé.'))}
+async function openMemberProfile(id){
+ if(id===user.id){openView('profile');return}
+ view='profile';
+ for(const name of ['feed','explore','profile','notifications'])show(name+'View',name==='profile');
+ document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view==='profile'));
+ $('viewTitle').textContent='Photographe.';
+ const root=$('profile');root.textContent='';
+ const r=await S.from('social_profiles').select('id,username,display_name,bio,website,is_private').eq('id',id).maybeSingle();
+ if(r.error)return fail(r.error);
+ if(!r.data){root.append(empty('Ce profil est indisponible.'));return}
+ const p=r.data,card=el('div','profile');
+ card.append(el('div','eyebrow','@'+p.username),el('h2','',p.display_name),el('p','',p.bio||''));
+ card.append(btn('Suivre / ne plus suivre',()=>follow(p.id)));
+ root.append(card);
+ const posts=await S.from('social_posts').select('image_path,caption').eq('author_id',id).order('created_at',{ascending:false}).limit(36);
+ if(posts.error)return fail(posts.error);
+ if(posts.data?.length){const gallery=el('div','profile-grid');for(const post of posts.data){const image=el('img');image.loading='lazy';image.alt=post.caption||'Photographie';image.src=await getSignedUrl(post.image_path)||'';gallery.append(image)}root.append(gallery)}
+ else root.append(empty('Aucune publication visible.'));
+}
 async function loadNotifications(){
 const target=$('notifications');target.textContent='';
 const r=await S.from('social_notifications').select('id,kind,read_at,created_at,actor_id,post_id').eq('recipient_id',user.id).order('created_at',{ascending:false}).limit(60);
