@@ -1,0 +1,35 @@
+/* NØMIA preview UI consolidation v1 — last-loaded layout authority.
+   Does not remove legacy functionality or modify stored trips. */
+:root{--nomia-bottom-safe:env(safe-area-inset-bottom,0px)}
+body:has(#nomiaSimpleNav) #uxVoyageFab,
+body:has(#nomiaSimpleNav) #uxDesktopVoyageFab,
+body:has(#nomiaSimpleNav) .uxVoyageFab,
+body:has(#nomiaSimpleNav) .uxDesktopVoyageFab,
+body:has(#nomiaSimpleNav) .navFab,
+body:has(#nomiaSimpleNav) #nomiaWinReset,
+body:has(#nomiaSimpleNav) .layoutResetBtn{display:none!important;visibility:hidden!important;pointer-events:none!important}
+body:has(#nomiaSimpleNav) #nomiaSimpleNav{isolation:isolate}
+body:has(#nomiaSimpleNav) .nomia-managed{min-width:0!important;box-sizing:border-box!important}
+body:has(#nomiaSimpleNav) .nomia-managed .nomia-winbar{position:relative;z-index:6;flex-shrink:0!important}
+body:has(#nomiaSimpleNav) .nomia-managed .uxVoyageScroll,
+body:has(#nomiaSimpleNav) .nomia-managed .uxPhotoScroll,
+body:has(#nomiaSimpleNav) .nomia-managed .uxDepartureScroll{flex:1 1 auto!important;min-height:0!important;overflow:auto!important;overscroll-behavior:contain}
+body:has(#nomiaSimpleNav) #nomiaWindowDock[hidden]{display:none!important}
+body:has(#nomiaSimpleNav) #nomiaSimpleMore[hidden]{display:none!important}
+@media(min-width:761px){
+ body:has(#nomiaSimpleNav) #nomiaSimpleNav{bottom:16px!important;z-index:190!important}
+ body:has(#nomiaSimpleNav) #nomiaWindowDock{bottom:88px!important;z-index:191!important}
+ body:has(#nomiaSimpleNav) #nomiaSimpleMore{bottom:85px!important;z-index:220!important}
+ body:has(#nomiaSimpleNav) .nomia-managed.show{max-height:calc(100dvh - 20px)!important}
+}
+@media(max-width:760px){
+ body:has(#nomiaSimpleNav) #nomiaSimpleNav{left:8px!important;right:8px!important;bottom:calc(var(--nomia-bottom-safe) + 7px)!important;transform:none!important;width:auto!important;max-width:none!important;z-index:190!important;display:flex!important}
+ body:has(#nomiaSimpleNav) #nomiaSimpleNav button{min-width:0!important;flex:1 1 0!important}
+ body:has(#nomiaSimpleNav) #nomiaWindowDock{bottom:calc(var(--nomia-bottom-safe) + 82px)!important;left:8px!important;right:8px!important;max-width:none!important;width:auto!important;transform:none!important;z-index:191!important}
+ body:has(#nomiaSimpleNav) #nomiaSimpleMore{left:8px!important;right:8px!important;width:auto!important;bottom:calc(var(--nomia-bottom-safe) + 88px)!important;transform:none!important;z-index:220!important}
+ body:has(#nomiaSimpleNav) .nomia-managed.show{max-width:calc(100vw - 14px)!important;max-height:calc(100dvh - 14px)!important}
+ body:has(#nomiaSimpleNav) .nomia-winbar{height:42px!important;flex-basis:42px!important}
+ body:has(#nomiaSimpleNav) .nomia-winbuttons button{height:34px!important;min-width:34px!important}
+ body:has(#nomiaSimpleNav) .nomia-resizer{width:38px!important;height:38px!important}
+ body:has(#nomiaSimpleNav) .nomia-managed.nomia-minimized{height:42px!important;min-height:42px!important;max-height:42px!important}
+}
