@@ -63,7 +63,16 @@
  function boot(){install();const old=window.renderHome;if(typeof old==='function'&&!old.__nomiaWrapped){
    const wrapped=function(){const result=old.apply(this,arguments);setTimeout(install,0);return result};wrapped.__nomiaWrapped=true;window.renderHome=wrapped;try{renderHome=wrapped}catch(e){}
  }
- const prevShowHome=window.showHome;if(typeof prevShowHome==='function'){const back=function(){legacyTrips=false;const r=prevShowHome.apply(this,arguments);setTimeout(install,0);return r};window.showHome=back;try{showHome=back}catch(e){}}
+ const prevOpenTrip=window.openTrip;
+ if(typeof prevOpenTrip==='function'){
+   const launch=function(id){const r=prevOpenTrip.apply(this,arguments);
+     const home=document.getElementById('home');
+     if(home&&typeof activeTrip!=='undefined'&&activeTrip){home.classList.add('hide');home.style.pointerEvents='none'}
+     return r;
+   };
+   window.openTrip=launch;try{openTrip=launch}catch(e){}
+ }
+ const prevShowHome=window.showHome;if(typeof prevShowHome==='function'){const back=function(){legacyTrips=false;const r=prevShowHome.apply(this,arguments);const home=document.getElementById('home');if(home){home.style.pointerEvents='';home.classList.remove('hide')}setTimeout(install,0);return r};window.showHome=back;try{showHome=back}catch(e){}}
  window.nomiaDashboardRefresh=install;
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,700));else setTimeout(boot,700);
