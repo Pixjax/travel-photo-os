@@ -1,0 +1,12 @@
+/* NØMIA simplified navigation — optional, feature flag in preview branch only */
+#nomiaSimpleNav{position:fixed;z-index:180;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:4px;padding:7px;border:1px solid #cba96c6e;border-radius:22px;background:#07192df2;backdrop-filter:blur(22px);box-shadow:0 14px 48px #0008}
+#nomiaSimpleNav button{min-width:82px;border:0;border-radius:15px;background:transparent;color:#e8f0fa;padding:9px 12px;cursor:pointer;display:grid;place-items:center;gap:2px}
+#nomiaSimpleNav button:hover,#nomiaSimpleNav button:focus-visible{background:#d4b07828;color:#ffe2ad}
+#nomiaSimpleNav button span{font-size:22px;color:#e1bc7c}#nomiaSimpleNav button small{font-size:10px}
+#nomiaSimpleMore{position:fixed;z-index:181;bottom:94px;left:50%;transform:translateX(-50%);width:min(345px,calc(100vw - 24px));max-height:65dvh;overflow:auto;padding:14px;border:1px solid #ddb97978;border-radius:22px;background:#071c33fa;box-shadow:0 24px 65px #000b;backdrop-filter:blur(22px)}
+#nomiaSimpleMore[hidden]{display:none!important}#nomiaSimpleMore header{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 12px;color:#f3d79c}
+#nomiaSimpleMore button{width:100%;min-height:42px;margin-top:5px;text-align:left;border:1px solid #7094b348;background:#17314a;color:#eaf2fb;border-radius:12px;padding:10px;font-size:12px}
+#nomiaSimpleMore header button{width:36px;text-align:center}
+@media(max-width:760px){#nomiaSimpleNav{left:7px;right:7px;bottom:calc(env(safe-area-inset-bottom) + 5px);transform:none;justify-content:space-around;border-radius:18px;padding:4px}#nomiaSimpleNav button{min-width:0;flex:1;padding:7px 1px}#nomiaSimpleNav button span{font-size:19px}#nomiaSimpleNav button small{font-size:9px}#nomiaSimpleMore{bottom:calc(env(safe-area-inset-bottom) + 74px)}body:has(#nomiaSimpleNav) .uxNav{display:none!important}body:has(#nomiaSimpleNav) .nd-mobilebar{display:none!important}}
+@media(max-width:760px){body.uxPhotoOpen #nomiaSimpleNav,body.uxVoyageOpen #nomiaSimpleNav{display:none}}
+@media(min-width:761px){body:has(#nomiaSimpleNav) .navFab,body:has(#nomiaSimpleNav) .geoFab,body:has(#nomiaSimpleNav) .collabFab,body:has(#nomiaSimpleNav) .ultimateFab,body:has(#nomiaSimpleNav) .aiFab{display:none!important}}
