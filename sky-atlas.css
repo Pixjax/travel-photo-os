@@ -2,3 +2,5 @@
 #skyAtlas.skyUnreliable .skyHeader>div{border:2px solid #ff9d4d;background:#2b1c18e8}#skyAtlas.skyUnreliable #skyStatus{color:#ffccaa}#skyAtlas.skyUnreliable canvas{opacity:.62}
 
 #skyAtlas .skyModeLabel{font-size:10px;font-weight:850;color:#a9c7ff;letter-spacing:.8px;padding:4px 3px}#skyAtlas #skyNow.on{background:#e8f1ff;color:#0b1730}#skyAtlas .skyPredict label{min-width:0;flex:1;font-size:11px}#skyAtlas .skyPredict input{width:100%;display:block;height:42px;margin-top:5px;font-size:14px;max-width:none}#skyAtlas .skyRow button{min-height:44px}#skyAtlas #skyGps,#skyAtlas #skyRecalibrate{flex:1}#skyAtlas .skyDisclaimer{font-size:10px}
+
+#skyAtlas.calibrating #skyCanvas{cursor:crosshair;touch-action:none}#skyAtlas.calibrating .skyHeader>div{border:2px solid #a8f1c4}#skyAtlas.calibrating .skyHeader b:after{content:' · TOUCHE L’ASTRE';color:#a8f1c4;font-size:11px}
