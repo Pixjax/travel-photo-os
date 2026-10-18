@@ -84,6 +84,25 @@ async function run(name,fn){try{await fn();console.log('PASS',name)}catch(err){c
    assert(sw.includes("'./index.html'")&&sw.includes("'./app-base.html'"),'App shell non déclaré');
  });
 
+
+ await run('Vrai redémarrage navigateur hors ligne après préchargement PWA',async()=>{
+   const offlineContext=await browser.newContext({...devices['iPhone 13'],serviceWorkers:'allow'});
+   await offlineContext.route(/supabase\.co\//,route=>route.abort());
+   const offlinePage=await offlineContext.newPage();
+   try{
+     await offlinePage.goto(base+'/index.html',{waitUntil:'domcontentloaded',timeout:30000});
+     await offlinePage.waitForFunction(async()=>{
+       if(!navigator.serviceWorker?.controller)return false;
+       const r=await caches.match('./app-base.html',{ignoreSearch:true});
+       const i=await caches.match('./index.html',{ignoreSearch:true});
+       return !!(r&&i);
+     },null,{timeout:25000});
+     await offlineContext.setOffline(true);
+     await offlinePage.reload({waitUntil:'domcontentloaded',timeout:20000});
+     await offlinePage.waitForSelector('#home',{state:'attached',timeout:20000});
+     assert((await offlinePage.title()).includes('NØMIA'),'Titre ou page absent hors ligne');
+   }finally{await offlineContext.close()}
+ });
  await run('Absence d’erreurs JavaScript fatales',async()=>{
    const fatal=exceptions.filter(x=>/SyntaxError|ReferenceError|is not a function|Unexpected token/i.test(x));
    assert(fatal.length===0,fatal.slice(0,6).join('; '));
