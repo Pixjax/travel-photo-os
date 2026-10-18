@@ -6,7 +6,7 @@ let root,canvas,ctx,video,stream,shown=false,lat=-16.92,lon=145.77,heading=180,e
 function jd(t){return t.getTime()/86400000+2440587.5}
 function lst(t){let j=jd(t),T=(j-2451545)/36525;return wrap(280.46061837+360.98564736629*(j-2451545)+.000387933*T*T-T*T*T/38710000+lon)}
 function equ(ra,dec){let H=(wrap(lst(date)-ra+180)-180)*d,p=lat*d,de=dec*d,h=Math.asin(Math.sin(p)*Math.sin(de)+Math.cos(p)*Math.cos(de)*Math.cos(H));return {az:wrap((Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(p)-Math.tan(de)*Math.cos(p))+Math.PI)*rad),alt:h*rad}}
-function gal(l){let x=Math.cos(l*d),y=Math.sin(l*d),xx=-.0548755604*x+.4941094279*y,yy=-.8734370902*x-.4448296300*y,zz=-.4838350155*x+.7469822445*y;return equ(wrap(Math.atan2(yy,xx)*rad),Math.asin(zz)*rad)}
+function gal(l){let x=Math.cos(l*d),y=Math.sin(l*d),xx=-.0548755604*x-.8734370902*y,yy=.4941094279*x-.4448296300*y,zz=-.8676661490*x-.1980763734*y;return equ(wrap(Math.atan2(yy,xx)*rad),Math.asin(zz)*rad)}
 function projection(p,w,h){let A=(p.az-heading-offset)*d,E=p.alt*d,e=elevation*d,z=Math.sin(E)*Math.sin(e)+Math.cos(E)*Math.cos(e)*Math.cos(A);if(z<=.02)return null;let k=(w/2)/Math.tan(fov*d/2);return {x:w/2+k*Math.cos(E)*Math.sin(A)/z,y:h/2-k*(Math.sin(E)*Math.cos(e)-Math.cos(E)*Math.cos(A)*Math.sin(e))/z}}
 function line(points,w,h){ctx.beginPath();let prev=null;for(const p of points){let q=projection(p,w,h);if(!q||q.x<-w||q.x>2*w||q.y<-h||q.y>2*h){prev=null;continue}if(!prev)ctx.moveTo(q.x,q.y);else ctx.lineTo(q.x,q.y);prev=q}ctx.stroke()}
 function draw(){if(!shown)return;if(live)date=new Date();const z=devicePixelRatio||1,w=innerWidth,h=innerHeight;canvas.width=Math.round(w*z);canvas.height=Math.round(h*z);ctx.setTransform(z,0,0,z,0,0);ctx.clearRect(0,0,w,h);
