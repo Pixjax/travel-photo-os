@@ -15,6 +15,8 @@ jobs:
           node-version: '22'
       - name: Verify scripts, PWA assets and icons
         run: node scripts/audit.cjs
+      - name: Two-device isolated cloud sync contract
+        run: node scripts/cloud-contract.cjs
       - name: Install browser test runner
         run: npm install --no-save playwright@1.58.2
       - name: Install Chromium
