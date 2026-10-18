@@ -1,0 +1,4 @@
+/* Switch is independent of movable workspace panels. */
+.nomia-map-style-toggle{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);z-index:68;display:flex;align-items:center;justify-content:center;gap:9px;min-height:42px;padding:9px 18px;border-radius:999px;border:1px solid rgba(237,199,128,.65);color:#fbe2a9;background:linear-gradient(140deg,rgba(8,32,55,.95),rgba(2,17,34,.97));box-shadow:0 12px 38px #0009,0 0 18px #e0b36d29;backdrop-filter:blur(20px);font-size:12px;font-weight:750;cursor:pointer;white-space:nowrap}
+.nomia-map-style-toggle:hover,.nomia-map-style-toggle:focus-visible{border-color:#ffdf9c;background:#183958;outline-offset:3px}
+@media(max-width:760px){.nomia-map-style-toggle{left:auto;right:12px;bottom:calc(env(safe-area-inset-bottom) + 165px);transform:none;padding:9px 12px;font-size:10px;z-index:83}.nomia-map-style-toggle span{display:none}}
