@@ -1,1 +1,13 @@
-{"name":"nomia-social","version":"0.1.0","private":true,"type":"module","scripts":{"test:security":"node ./tests/security.mjs"},"dependencies":{"@supabase/supabase-js":"^2.57.0"}}
+{
+  "name": "nomia-social",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:security": "node ./tests/security.mjs",
+    "test:messages": "node ./tests/messages.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.0"
+  }
+}
