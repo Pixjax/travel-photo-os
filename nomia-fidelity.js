@@ -8,7 +8,14 @@ function fold(key,force){if(!(key in panels))return;state[key]=force===undefined
 window.nomiaFoldPanel=fold;
 function install(){if(!document.querySelector('.left')||!document.querySelector('.right'))return false;if(!document.querySelector('.nf-panel-buttons')){const bar=document.createElement('div');bar.className='nf-panel-buttons';bar.setAttribute('aria-label','Afficher ou masquer les panneaux');for(const key of ['left','right']){const b=document.createElement('button');b.type='button';b.className='nf-fold-btn '+(key==='right'?'right-side':'');b.dataset.nfFold=key;b.addEventListener('click',()=>fold(key));bar.appendChild(b)}document.body.appendChild(bar)}paint();return true}
 let ticks=0;const timer=setInterval(()=>{if(install()||++ticks>50)clearInterval(timer)},200);
-document.addEventListener('pointerdown',e=>{if(!desktop())return;if(e.target.closest?.('#map canvas')){if(!state.left||!state.right){state.left=true;state.right=true;save();paint()}}},true);
+// Fold only on an intentional click on empty map, never on marker selection or drag.
+let start=null;
+document.addEventListener('pointerdown',e=>{if(!desktop()||!e.target.closest?.('#map canvas')||e.button!==0)return;start={x:e.clientX,y:e.clientY,t:e.timeStamp}},true);
+document.addEventListener('pointerup',e=>{if(!start)return;const p=start;start=null;if(!desktop()||Math.hypot(e.clientX-p.x,e.clientY-p.y)>7)return;
+// MapLibre handles the same click; a deferred check avoids folding while spot details open.
+setTimeout(()=>{if(document.querySelector('.detail.show,.uxPhotoPanel.show,.uxVoyagePanel.show,.overlay.show'))return;if(!state.left||!state.right){state.left=true;state.right=true;save();paint()}},80);
+},true);
+document.addEventListener('pointercancel',()=>{start=null},true);
 document.addEventListener('click',e=>{if(!desktop()||e.target.closest?.('.nf-fold-btn'))return;const target=e.target.closest?.('.left .workspace,.right .brief');if(target?.matches('.left .workspace'))fold('left',false);if(target?.matches('.right .brief'))fold('right',false)});
 addEventListener('resize',paint);
 })();
