@@ -28,3 +28,6 @@ body #uxVoyageFab,body #uxDesktopVoyageFab,body .uxVoyageFab,body .uxDesktopVoya
   body #nomiaSimpleMore{z-index:210!important}
   .nomia-managed.show{z-index:205!important}
 }
+
+/* Desktop cleanup: keep tools in Plus, no floating window-reset controls on map. */
+@media(min-width:761px){body #nomiaWinReset,body .layoutResetBtn{display:none!important;visibility:hidden!important;pointer-events:none!important}}
