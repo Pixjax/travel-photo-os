@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080a0f">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="NØMIA">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>Travel Photo OS — PRO MAX</title>
+<title>NØMIA</title>
 <link href="https://unpkg.com/maplibre-gl@5.0.1/dist/maplibre-gl.css" rel="stylesheet">
 <script src="https://unpkg.com/maplibre-gl@5.0.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/suncalc@1.9.0/suncalc.min.js"></script>
@@ -169,13 +170,13 @@ textarea{width:100%;min-height:76px;resize:vertical;background:rgba(255,255,255,
   <span id="liveUsersCount">0 voyageurs</span>
 </div>
 
-<div class="loader" id="loader"><div style="text-align:center"><div class="spin"></div><b style="display:block;margin-top:12px">Travel Photo OS — PRO MAX</b><span style="font-size:11px;color:#9199a4">Initialisation du cockpit voyage…</span></div></div>
+<div class="loader" id="loader"><div style="text-align:center"><div class="spin"></div><b style="display:block;margin-top:12px">NØMIA</b><span style="font-size:11px;color:#9199a4">Initialisation du cockpit voyage…</span></div></div>
 
 <div class="home" id="home">
  <div class="homeInner">
   <div class="homeHead">
    <div>
-    <small style="font-size:10px;font-weight:900;letter-spacing:1.7px;color:#8e96a1">TRAVEL PHOTO OS · PRO MAX</small>
+    <small style="font-size:10px;font-weight:900;letter-spacing:1.7px;color:#8e96a1">NØMIA · VOYAGES & PHOTO</small>
     <h1>Mes voyages</h1>
     <p>Planification, photo, budget, progression et cartes réunis dans une seule app.</p>
     <div class="globalStats" id="globalStats"></div>
@@ -194,9 +195,9 @@ textarea{width:100%;min-height:76px;resize:vertical;background:rgba(255,255,255,
 
 <div class="top">
  <div class="brand glass">
-  <small>TRAVEL PHOTO OS · VOYAGE ACTIF</small>
+  <small>NØMIA · VOYAGE ACTIF</small>
   <strong id="tripTitle">Japon 2026</strong>
-  <span id="tripSub">PRO MAX · cockpit voyage photo</span>
+  <span id="tripSub">NØMIA · cockpit voyage photo</span>
  </div>
  <div class="tools glass">
   <button class="btn desktop" onclick="flyOverview()">Vue voyage</button>
@@ -924,7 +925,7 @@ function showHome(){document.getElementById("home").classList.remove("hide");doc
 function openTrip(id){
  activeTripId=id;activeTrip=trips.find(t=>t.id===id);store=loadData(id);mode="explore";currentCity="Tous";currentDay="Tous";selected=null;
  document.getElementById("home").classList.add("hide");document.getElementById("homeBtn").style.display="block";
- document.getElementById("tripTitle").textContent=activeTrip.name;document.getElementById("tripSub").textContent=(activeTrip.description||"PRO MAX · cockpit voyage photo");
+ document.getElementById("tripTitle").textContent=activeTrip.name;document.getElementById("tripSub").textContent=(activeTrip.description||"NØMIA · cockpit voyage photo");
  document.getElementById("detail").classList.remove("show");
  rebuildTripUI();refreshStats();renderExpenses();renderChecklist();updateGeoJSON();updateBrief();flyOverview()
 }
@@ -1860,7 +1861,7 @@ Je veux que tu construises un voyage COMPLET à partir de cette demande:
 "${request}"
 ${currentContext}
 OBJECTIF:
-Créer un itinéraire réaliste, pratique, optimisé géographiquement et pensé pour être importé directement dans mon application Travel Photo OS.
+Créer un itinéraire réaliste, pratique, optimisé géographiquement et pensé pour être importé directement dans mon application NØMIA.
 
 RÈGLES:
 - Respecte précisément mes dates, budget, centres d’intérêt, rythme et contraintes.
