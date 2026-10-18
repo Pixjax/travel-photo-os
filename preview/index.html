@@ -12,6 +12,8 @@ if(!doc.getElementById('nomia-windows-plus-script')){const script=doc.createElem
 if(!doc.getElementById('nomia-window-dock-style')){const link=doc.createElement('link');link.id='nomia-window-dock-style';link.rel='stylesheet';link.href=new URL('./nomia-window-dock.css?v=consolidation-v1',location.href).href;doc.head.append(link)}
 if(!doc.getElementById('nomia-window-dock-script')){const script=doc.createElement('script');script.id='nomia-window-dock-script';script.src=new URL('./nomia-window-dock.js?v=stable-v3',location.href).href;doc.body.append(script)}
 if(!doc.getElementById('nomia-ui-cleanup-style')){const link=doc.createElement('link');link.id='nomia-ui-cleanup-style';link.rel='stylesheet';link.href=new URL('./nomia-ui-cleanup.css?v=cleanup-20261018-v2',location.href).href;doc.head.append(link)}
+if(!doc.getElementById('nomia-map-actions-style')){const link=doc.createElement('link');link.id='nomia-map-actions-style';link.rel='stylesheet';link.href=new URL('./nomia-map-actions.css?v=map-actions-v1',location.href).href;doc.head.append(link)}
+if(!doc.getElementById('nomia-map-actions-script')){const script=doc.createElement('script');script.id='nomia-map-actions-script';script.src=new URL('./nomia-map-actions.js?v=map-actions-v1',location.href).href;doc.body.append(script)}
 status.hidden=true;
 }catch(err){status.textContent='Chargement de l’aperçu…';if(++count<8)setTimeout(inject,700)}}
 frame.addEventListener('load',()=>{count=0;setTimeout(inject,150)});
