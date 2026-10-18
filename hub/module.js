@@ -1,0 +1,5 @@
+(()=>{'use strict';const frame=document.getElementById('module-app');const status=document.getElementById('module-status');const mode=document.body.dataset.module;let attempts=0,timer;
+function activate(){try{const w=frame.contentWindow,d=frame.contentDocument;if(!d||!d.getElementById('map'))throw Error('Carte pas encore prête');const open=mode==='photo'?'openPhotoExperience':'openVoyageHub';if(typeof w[open]!=='function')throw Error('Module en cours de chargement');w[open]();status.hidden=true;clearInterval(timer)}catch(e){if(++attempts>35){clearInterval(timer);status.textContent='Les outils sont accessibles dans NØMIA. Si nécessaire, actualise cette page.'}}}
+frame.addEventListener('load',()=>{attempts=0;clearInterval(timer);setTimeout(activate,250);timer=setInterval(activate,450)});
+setTimeout(()=>{if(!status.hidden&&attempts===0)status.textContent='Chargement du module NØMIA…'},7000);
+})();
