@@ -1,4 +1,4 @@
-const CACHE='travel-photo-os-mobile-ux-v54';
+const CACHE='travel-photo-os-mobile-ux-v55';
 const RUNTIME='travel-photo-os-runtime-v2';
 const MAP_CACHE='travel-photo-os-map-runtime-v2';
 const APP=['./','./index.html','./workspace.html','./app-base.html','./mobile-ux.css','./mobile-ux.js','./workspace-windows.css','./workspace-windows.js','./simple-collab.css','./simple-collab.js','./cloud-config.js','./home-cloud-fix.js','./cloud-sync.js','./premium-ux.css','./premium-ux.js','./day-experience.css','./day-experience.js','./photo-experience.css','./photo-experience.js','./photo-hook.js','./voyage-experience.css','./voyage-experience.js','./voyage-time-fix.js','./booking-launcher.css','./booking-launcher.js','./booking-native.css','./booking-native.js','./desktop-voyage-fab.css','./desktop-voyage-fab.js','./offline-mode.css','./offline-mode.js','./navigation-v2.css','./navigation-v2.js','./iphone-nav-fix.js','./celestial-ar.css','./celestial-ar.js','./photo-pro-suite.css','./photo-pro-suite.js','./photo-ar-field.css','./photo-ar-field.js','./sky-atlas.css','./sky-atlas.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png','./nomia-dashboard.css','./nomia-dashboard.js','./nomia-map-premium.css','./nomia-map-mockup.css','./nomia-map-style.css','./nomia-map-style.js','./nomia-fidelity.css','./nomia-fidelity.js','./nomia-photo-fidelity.css','./nomia-dual-mockups.css','./preview/nomia-simple-nav.css','./preview/nomia-simple-nav.js','./preview/nomia-windows-plus.css','./preview/nomia-windows-plus.js','./preview/nomia-window-dock.css','./preview/nomia-window-dock.js','./preview/nomia-ui-cleanup.css'];
@@ -73,10 +73,13 @@ self.addEventListener('fetch',e=>{
   if(url.origin===location.origin){
     if(e.request.mode==='navigate'){
       e.respondWith((async()=>{
-        const cached=(await caches.match('./index.html',{ignoreSearch:true}))||(await caches.match('./',{ignoreSearch:true}));
+        const path=url.pathname;
+        const isHome=path.endsWith('/travel-photo-os/')||path.endsWith('/travel-photo-os/index.html');
+        const key=isHome?'./index.html':normalizedSameOrigin(e.request);
+        const cached=(await caches.match(key,{ignoreSearch:true}))||(isHome?await caches.match('./',{ignoreSearch:true}):null);
         try{
           const net=await fetch(e.request,{cache:'no-store'});
-          if(net&&net.ok){const c=await caches.open(CACHE);await c.put('./index.html',net.clone())}
+          if(net&&net.ok){const c=await caches.open(CACHE);await c.put(key,net.clone())}
           return net;
         }catch(err){return cached||new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><body style="background:#080a0e;color:white;font-family:system-ui;padding:30px"><h2>NØMIA</h2><p>Le cache hors ligne n’est pas encore prêt. Reconnecte Internet une fois, ouvre l’app et laisse-la chargée quelques secondes.</p></body>',{headers:{'Content-Type':'text/html; charset=utf-8'}})}
       })());
