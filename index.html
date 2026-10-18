@@ -11,17 +11,21 @@
 <div class="boot"><div><b>NØMIA</b><span id="bootMsg">Chargement de la version complète…</span></div></div>
 <script>
 (async()=>{
-  const VERSION='index-full-20261018-nomia-ui-release-v1';
+  const VERSION='index-full-20261018-performance-v1';
   const setBoot=t=>{const e=document.getElementById('bootMsg');if(e)e.textContent=t};
 
   async function prepareOffline(){
     if(!('serviceWorker' in navigator)||location.protocol==='file:')return;
     try{
+      // Keep the app responsive: no full cache warm-up on every page visit.
+      // The SW install itself pre-caches offline resources.
       const reg=await navigator.serviceWorker.register('./sw.js?v='+VERSION,{updateViaCache:'none'});
-      try{await reg.update()}catch(e){}
-      const ready=await navigator.serviceWorker.ready;
-      const worker=ready.active||ready.waiting||ready.installing;
-      if(worker)worker.postMessage({type:'WARM_OFFLINE'});
+      const key='nomia-sw-check-v1',now=Date.now(),day=24*60*60*1000;
+      let last=0;
+      try{last=Number(localStorage.getItem(key))||0}catch(e){}
+      if(now-last>day){
+        try{await reg.update();localStorage.setItem(key,String(now))}catch(e){}
+      }
     }catch(e){}
   }
 
