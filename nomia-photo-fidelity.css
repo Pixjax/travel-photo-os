@@ -1,0 +1,51 @@
+/* NØMIA Photo Fidelity: designed over existing functional photo experience */
+@media(min-width:761px){
+body .uxPhotoPanel{right:20px;top:84px;bottom:20px;width:min(650px,41vw);z-index:90!important;background:linear-gradient(155deg,#071b30f8,#030f20fc)!important;border:1px solid rgba(133,188,222,.52)!important;border-radius:26px!important;box-shadow:0 28px 85px #000b,inset 0 1px #ffffff12!important;backdrop-filter:blur(28px);color:#f0f6ff}
+body .uxPhotoPanel .uxPhotoHead{padding:18px 23px 14px;background:linear-gradient(145deg,#07172b,#06152a);border-bottom:1px solid #89a8c342}
+body .uxPhotoPanel .uxPhotoHeadTop{align-items:center}
+body .uxPhotoPanel .uxPhotoKicker{font-size:10px;letter-spacing:3px;color:#ebc780}
+body .uxPhotoPanel .uxPhotoHead h2{font:normal clamp(27px,2.8vw,39px) Georgia,serif;letter-spacing:-.5px;margin:7px 0 0}
+body .uxPhotoPanel #photoRaBuiltIn{background:linear-gradient(160deg,#ffebbb,#d4a95e)!important;color:#172036!important;font-size:11px!important;min-height:44px!important;padding:0 19px!important;border-radius:13px!important}
+body .uxPhotoPanel .uxPhotoClose{background:#172b42!important;border:1px solid #adc2d13d!important;width:39px;height:39px;font-size:17px}
+body .uxPhotoPanel .uxPhotoDates{margin-top:17px;gap:7px;scrollbar-width:none}
+body .uxPhotoPanel .uxPhotoDate{padding:10px 13px;min-height:36px;border-radius:11px;border:1px solid #89a7c327;background:#112339;color:#d5e0ef;font-size:10px}
+body .uxPhotoPanel .uxPhotoDate.on{background:linear-gradient(150deg,#ffeab9,#dcae65)!important;color:#192334!important;border-color:#f2d497}
+body .uxPhotoPanel .uxPhotoScroll{padding:12px 19px 26px;scrollbar-color:#6983a3 #07172b;scrollbar-width:thin}
+body .uxPhotoPanel .uxPhotoHero,body .uxPhotoPanel .uxPhotoSection,body .uxPhotoPanel .ppsLaunch{background:linear-gradient(143deg,rgba(10,29,49,.92),rgba(3,15,30,.96))!important;border:1px solid rgba(209,170,101,.57)!important;border-radius:17px!important;padding:14px!important;margin:0 0 10px!important;box-shadow:inset 0 1px #ffffff0b}
+body .uxPhotoPanel .uxPhotoHeroTop{min-height:63px;align-items:center;padding:4px 1px 9px}
+body .uxPhotoPanel .uxPhotoHeroTop:before{content:'';width:110px;min-width:110px;height:63px;background:url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=350&q=75') center/cover;border-radius:11px;border:1px solid #ddc0885a;margin-right:10px}
+body .uxPhotoPanel .uxPhotoHeroTop>div:first-of-type{flex:1;min-width:0}
+body .uxPhotoPanel .uxPhotoHeroTop b{font-size:18px;color:#fff}
+body .uxPhotoPanel .uxPhotoHeroTop span{font-size:10px;color:#a7bdd3;line-height:1.5}
+body .uxPhotoPanel .uxPhotoScore{background:#132d48;border:1px solid #5470884d;border-radius:14px;flex-shrink:0}
+body .uxPhotoPanel .uxPhotoStats{gap:8px;margin-top:6px}
+body .uxPhotoPanel .uxPhotoStat{padding:13px 10px;min-height:76px;border-radius:13px;border:1px solid #7392af45;background:linear-gradient(130deg,#132942bb,#0b1c31)}
+body .uxPhotoPanel .uxPhotoStat:before{display:block;font-size:21px;line-height:24px;margin-bottom:3px;color:#f3ce80}
+body .uxPhotoPanel .uxPhotoStat:nth-child(1):before{content:'☼'}body .uxPhotoPanel .uxPhotoStat:nth-child(2):before{content:'✺'}body .uxPhotoPanel .uxPhotoStat:nth-child(3):before{content:'◒'}body .uxPhotoPanel .uxPhotoStat:nth-child(4):before{content:'☾'}
+body .uxPhotoPanel .uxPhotoStat small{font-size:9px;color:#adc3db}
+body .uxPhotoPanel .uxPhotoStat b{font-size:17px;font-weight:700;white-space:normal}
+body .uxPhotoPanel .uxPhotoSectionHead h3{font-size:16px;color:#f2f5fc}
+body .uxPhotoPanel .uxPhotoSectionHead span{font-size:10px;color:#a9bbcc}
+body .uxPhotoPanel .uxPhotoLightGrid{gap:10px}
+body .uxPhotoPanel .uxPhotoLight{min-height:83px;padding:13px;border:1px solid #90aac23b;border-radius:12px;background:linear-gradient(90deg,#10283e,#091e30)}
+body .uxPhotoPanel .uxPhotoLight:first-child{background:linear-gradient(90deg,#0d243b 35%,#0c2032a0),url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=480&q=65') right/cover}
+body .uxPhotoPanel .uxPhotoLight:last-child{background:linear-gradient(90deg,#0d243b 35%,#0c2032a0),url('https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=480&q=65') right/cover}
+body .uxPhotoPanel .uxPhotoLight small{color:#f6d39b;font-size:9px}body .uxPhotoPanel .uxPhotoLight b{font-size:14px}body .uxPhotoPanel .uxPhotoLight span{font-size:10px;color:#c8d7e6}
+body .uxPhotoPanel .uxPhotoMiniBtn,body .uxPhotoPanel .ppsLaunchHead>button{background:linear-gradient(145deg,#fbe6af,#d7aa5e)!important;color:#162134!important;border:0!important;border-radius:11px!important;min-height:32px;font-size:9px}
+body .uxPhotoPanel .uxPhotoWeather{border:1px solid #7794b342;background:#13294290;min-height:55px}
+body .uxPhotoPanel .uxPhotoWeatherText b{font-size:12px}body .uxPhotoPanel .uxPhotoWeatherText span{font-size:10px;line-height:1.45}
+body .uxPhotoPanel .uxPhotoSpot{grid-template-columns:105px 1fr;gap:12px;border:1px solid #6889ab52;border-radius:13px;padding:11px;background:#0e253d90}
+body .uxPhotoPanel .uxPhotoThumb{width:105px;height:95px;border-radius:10px}
+body .uxPhotoPanel .uxPhotoSpotTop b{font-size:14px}.uxPhotoPanel .uxPhotoSpotTop span{font-size:9px;color:#eac783}.uxPhotoPanel .uxPhotoSpotBody>span{font-size:10px}
+body .uxPhotoPanel .uxPhotoChip{font-size:9px;border-radius:999px;padding:6px 8px;background:#2940598a}
+body .uxPhotoPanel .uxPhotoActions button{min-height:31px;font-size:10px;border-radius:11px;padding:6px 12px;border:1px solid #7797b14c}
+body .uxPhotoPanel .uxPhotoActions button:first-child{background:linear-gradient(145deg,#fbe4ae,#d8aa60)!important;color:#182334}
+body .uxPhotoPanel .ppsLaunchHead small{color:#edc981;letter-spacing:2px;font-size:10px}
+body .uxPhotoPanel .ppsLaunchHead b{color:white;font-size:18px}
+body .uxPhotoPanel .ppsLaunchGrid{grid-template-columns:repeat(8,minmax(0,1fr));gap:5px}
+body .uxPhotoPanel .ppsLaunchGrid button{min-width:0;min-height:62px;padding:7px 2px;border-radius:11px;border:1px solid #6e8caa5c;background:linear-gradient(140deg,#183049,#091b2e);color:#ebf2fc}
+body .uxPhotoPanel .ppsLaunchGrid button span{color:#edc781;font-size:20px}body .uxPhotoPanel .ppsLaunchGrid button b{font-size:8px}
+body .uxPhotoPanel .uxPhotoKitTag{border:1px solid #789ab245;background:#132b45;color:#e4ebf5}
+}
+@media(min-width:761px) and (max-width:1250px){body .uxPhotoPanel{width:min(565px,49vw)}body .uxPhotoPanel .uxPhotoHeroTop:before{width:70px;min-width:70px}body .uxPhotoPanel .ppsLaunchGrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:760px){body .uxPhotoPanel{background:linear-gradient(145deg,#071d35,#030f22)!important;color:#f2f5fa}body .uxPhotoPanel .uxPhotoHead{background:#081c33;border-color:#e2bd7859}body .uxPhotoPanel .uxPhotoKicker{color:#ebc77b}body .uxPhotoPanel h2{font-family:Georgia,serif}body .uxPhotoPanel .uxPhotoDate.on,body .uxPhotoPanel .uxPhotoActions button:first-child{background:linear-gradient(145deg,#ffebb9,#d7a959)!important;color:#132238!important}body .uxPhotoPanel .uxPhotoHero,body .uxPhotoPanel .uxPhotoSection,body .uxPhotoPanel .ppsLaunch{background:#0c243d!important;border:1px solid #bd9f6970!important}body .uxPhotoPanel .uxPhotoStat{background:#142f4b;border-radius:12px}body .uxPhotoPanel .uxPhotoLight{background:#173650;border-radius:12px}body .uxPhotoPanel .uxPhotoSpot{background:#122d49;border-radius:13px}}
