@@ -20,7 +20,16 @@ if(!username){$('usernameField').hidden=false;$('username').required=true;note('
 if(!/^[a-z0-9_]{3,24}$/.test(username))return note('Identifiant de 3 à 24 lettres minuscules, chiffres ou _');
 let result;if(!user){result=await S.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});if(result.error)return fail(result.error);user=result.data.user;if(!result.data.session){note('Consulte ton e-mail pour confirmer ton compte, puis connecte-toi.');return}}
 const check=await S.from('social_profiles').insert({id:user.id,username,display_name:username}).select().single();if(check.error)return fail(check.error);profile=check.data;signedIn()}
-async function reset(){const email=$('email').value.trim();if(!email)return note('Indique ton adresse e-mail.');const r=await S.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(r.error)fail(r.error);else note('E-mail de récupération demandé.')}
+async function reset(){
+ const email=$('email').value.trim().toLowerCase();
+ if(!email)return note('Saisis ton adresse e-mail dans le champ au-dessus, puis recommence.');
+ $('reset').disabled=true;
+ try{
+  const r=await S.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  if(r.error)return fail(r.error);
+  note('Si un compte existe à cette adresse, un lien de réinitialisation a été demandé. Regarde aussi les spams. Si rien ne vient, le service d’envoi Supabase doit être vérifié.');
+ }catch(e){fail(e)}finally{$('reset').disabled=false}
+}
 async function getSignedUrl(path){const r=await S.storage.from('nomia-social').createSignedUrl(path,3600);return r.data?.signedUrl||null}
 async function loadFeed(reset=false){if(!user||!profile||busy)return;if(reset){offset=0;more=true;$('feed').textContent=''}if(!more)return;busy=true;$('more').disabled=true;try{
 let query=S.from('social_posts').select('id,author_id,image_path,caption,place_name,created_at,visibility,social_profiles!social_posts_author_id_fkey(username,display_name)').order('created_at',{ascending:false});
@@ -135,7 +144,8 @@ $('postForm').reset();closeDialogs();openView('feed');note('Publication créée.
 }catch(error){if(path)await S.storage.from('nomia-social').remove([path]);fail(error)}finally{$('publish').disabled=false}}
 async function init(){if(!S){note('Impossible de charger le service.');$('authForm').hidden=true;return}
 backendReady=true; // Anonymous SQL access is deliberately revoked. Schema is validated separately.
-const session=await S.auth.getSession();if(session.error)fail(session.error);user=session.data.session?.user||null;if(user)try{await ensureProfile()}catch(e){fail(e)}signedIn();S.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){window.NomiaMessages?.dispose();user=null;profile=null;signedIn()}else if(event==='PASSWORD_RECOVERY'){$('passwordDialog').showModal()}})}
+const session=await S.auth.getSession();if(session.error)fail(session.error);user=session.data.session?.user||null;if(user)try{await ensureProfile()}catch(e){fail(e)}signedIn();S.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_OUT'){window.NomiaMessages?.dispose();user=null;profile=null;signedIn()}
+ else if(event==='PASSWORD_RECOVERY'){if(!$('passwordDialog').open)$('passwordDialog').showModal()}})}
 $('passwordForm').addEventListener('submit',async event=>{
  event.preventDefault();
  const password=$('newPassword').value;
@@ -145,7 +155,16 @@ $('passwordForm').addEventListener('submit',async event=>{
  note('Ton mot de passe a été modifié.');
 });
 $('authForm').addEventListener('submit',signin);$('signup').onclick=register;$('reset').onclick=reset;
-$('account').onclick=async()=>{if(user){await S.auth.signOut();user=null;profile=null;signedIn()}else show('auth',true)};
+$('account').onclick=async()=>{
+ if(!user){show('auth',true);return}
+ $('account').disabled=true;
+ try{
+  const r=await S.auth.signOut();
+  if(r.error)return fail(r.error);
+  window.NomiaMessages?.dispose();user=null;profile=null;$('password').value='';signedIn();
+  note('Déconnexion effectuée. Tu peux te reconnecter avec ton e-mail et ton mot de passe.');
+ }catch(e){fail(e)}finally{$('account').disabled=false}
+};
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{if(user)openView(b.dataset.view)});
 for(const [id,mode] of [['globalFeed','global'],['followingFeed','following']]){$(id).onclick=()=>{feedMode=mode;$('globalFeed').setAttribute('aria-pressed',String(mode==='global'));$('followingFeed').setAttribute('aria-pressed',String(mode==='following'));loadFeed(true)}};
 $('welcomePublish').onclick=()=>{if(!profile)return note('Complète ton profil avant de publier.');$('compose').showModal()};$('welcomeExplore').onclick=()=>openView('explore');
