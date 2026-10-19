@@ -13,13 +13,41 @@ function btn(label,click,pressed){const b=el('button','',label);b.type='button';
 function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.close())}
 function openView(name){$('composeBtn').hidden=name==='messages'||name==='notifications';view=name;show('feedView',name==='feed');show('exploreView',name==='explore');show('profileView',name==='profile');show('notificationsView',name==='notifications');show('dmScreen',name==='messages');document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===name));$('viewTitle').textContent={feed:'Explorer le monde.',explore:'Découvrir.',profile:'Mon profil.',notifications:'Notifications.',messages:'Messages privés.'}[name];if(name==='feed')loadFeed(true);if(name==='profile')loadProfile();if(name==='notifications')loadNotifications();if(name==='messages')window.NomiaMessages?.show();if(name==='explore')search()}
 function signedIn(){show('auth',!user||!profile);show('app',!!user&&!!profile);$('account').textContent=user?'Déconnexion':'Connexion';if(user&&profile){window.NomiaMessages?.mount(S,user).catch(fail);openView('feed')}}
-async function ensureProfile(){if(!user)return;let q=await S.from('social_profiles').select('*').eq('id',user.id).maybeSingle();if(q.error)throw q.error;profile=q.data;if(!profile){show('auth',true);show('app',false);$('usernameField').hidden=false;$('username').required=true;note('Choisis un identifiant et clique sur Créer un compte pour terminer ton profil.');$('signup').textContent='Terminer mon profil'}else $('usernameField').hidden=true}
+async function ensureProfile(){if(!user)return;let q=await S.from('social_profiles').select('*').eq('id',user.id).maybeSingle();if(q.error)throw q.error;profile=q.data;if(!profile){show('auth',true);show('app',false);$('usernameField').hidden=false;$('username').required=true;note('Choisis un identifiant et clique sur Créer un compte pour terminer ton profil.');$('signup').textContent='Terminer mon profil'}else {$('usernameField').hidden=true;$('username').required=false;$('signup').textContent='Créer un compte'}}
 async function signin(e){e.preventDefault();if(!backendReady)return note('La base Social n’est pas encore configurée.');if(!S){note('Service de connexion indisponible.');return}const email=$('email').value.trim(),password=$('password').value;const r=await S.auth.signInWithPassword({email,password});if(r.error)return fail(r.error);user=r.data.user;try{await ensureProfile()}catch(e){return fail(e)}signedIn()}
-async function register(){if(!REGISTRATION_OPEN)return note('Les inscriptions publiques ne sont pas encore ouvertes.');if(!S||!backendReady)return note('La base Social n’est pas encore configurée.');const username=$('username').value.trim().toLowerCase(),email=$('email').value.trim(),password=$('password').value;
-if(!username){$('usernameField').hidden=false;$('username').required=true;note('Choisis ton identifiant puis clique à nouveau sur Créer un compte.');return}
-if(!/^[a-z0-9_]{3,24}$/.test(username))return note('Identifiant de 3 à 24 lettres minuscules, chiffres ou _');
-let result;if(!user){result=await S.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});if(result.error)return fail(result.error);user=result.data.user;if(!result.data.session){note('Consulte ton e-mail pour confirmer ton compte, puis connecte-toi.');return}}
-const check=await S.from('social_profiles').insert({id:user.id,username,display_name:username}).select().single();if(check.error)return fail(check.error);profile=check.data;signedIn()}
+async function register(){
+ if(!REGISTRATION_OPEN)return note('Les inscriptions publiques ne sont pas encore ouvertes.');
+ if(!S||!backendReady)return note('Connexion indisponible.');
+ const username=$('username').value.trim().toLowerCase();
+ const email=$('email').value.trim();
+ const password=$('password').value;
+ if(profile)return note('Tu disposes déjà d’un compte connecté.');
+ if(!username){$('usernameField').hidden=false;$('username').required=true;return note('Choisis un identifiant public, puis clique sur Créer un compte.')}
+ if(!/^[a-z0-9_]{3,24}$/.test(username))return note('Identifiant de 3 à 24 caractères : minuscules, chiffres ou _.');
+ $('signup').disabled=true;
+ try{
+  const session=await S.auth.getSession();
+  if(session.error)throw session.error;
+  if(!session.data.session){
+   if(!email||!password)return note('Indique ton e-mail et ton mot de passe.');
+   const r=await S.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}});
+   if(r.error)throw r.error;
+   if(!r.data.session){
+    user=null;
+    profile=null;
+    $('password').value='';
+    note('Inscription reçue. Confirme ton adresse e-mail avant de te connecter et de créer ton profil. Vérifie aussi les indésirables.');
+    return;
+   }
+   user=r.data.session.user;
+  }else user=session.data.session.user;
+  const check=await S.from('social_profiles').insert({id:user.id,username,display_name:username}).select().single();
+  if(check.error)throw check.error;
+  profile=check.data;
+  $('usernameField').hidden=true;$('username').required=false;
+  signedIn();
+ }catch(error){fail(error)}finally{$('signup').disabled=false}
+}
 async function reset(){
  const email=$('email').value.trim().toLowerCase();
  if(!email)return note('Saisis ton adresse e-mail dans le champ au-dessus, puis recommence.');
