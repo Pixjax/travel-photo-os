@@ -33,7 +33,7 @@ if(feedMode==='following'){
 }
 const {data,error}=await query.range(offset,offset+9);
 if(error)throw error;more=(data||[]).length===10;offset+=(data||[]).length;
-if(reset&&!data?.length)$('feed').append(empty(feedMode==='following'?'Aucune publication de tes abonnements pour le moment.':'Aucune publication pour le moment. Sois le premier à partager une photographie.'));
+if(reset){const isEmpty=!data?.length&&feedMode==='global';$('feedWelcome').hidden=!isEmpty;$('feedSectionHeading').hidden=isEmpty;$('composeBtn').hidden=isEmpty; if(isEmpty)$('feed').append(empty('Les premières histoires arrivent bientôt. La prochaine pourrait être la tienne.')); if(!data?.length&&feedMode==='following')$('feed').append(empty('Ton fil Abonnements est encore calme. Découvre des profils dans Explorer pour le remplir.'));}
 const deepId=new URLSearchParams(location.search).get('post');
 if(reset&&deepId&&/^[a-f0-9-]{36}$/i.test(deepId)){
  const target=await S.from('social_posts').select('id,author_id,image_path,caption,place_name,created_at,visibility,social_profiles!social_posts_author_id_fkey(username,display_name)').eq('id',deepId).maybeSingle();
@@ -148,6 +148,7 @@ $('authForm').addEventListener('submit',signin);$('signup').onclick=register;$('
 $('account').onclick=async()=>{if(user){await S.auth.signOut();user=null;profile=null;signedIn()}else show('auth',true)};
 document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{if(user)openView(b.dataset.view)});
 for(const [id,mode] of [['globalFeed','global'],['followingFeed','following']]){$(id).onclick=()=>{feedMode=mode;$('globalFeed').setAttribute('aria-pressed',String(mode==='global'));$('followingFeed').setAttribute('aria-pressed',String(mode==='following'));loadFeed(true)}};
+$('welcomePublish').onclick=()=>{if(!profile)return note('Complète ton profil avant de publier.');$('compose').showModal()};$('welcomeExplore').onclick=()=>openView('explore');
 $('composeBtn').onclick=()=>{if(!profile)return note('Complète ton profil avant de publier');$('compose').showModal()};
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=closeDialogs);
 $('postForm').addEventListener('submit',upload);$('more').onclick=()=>loadFeed(false);$('search').oninput=()=>{clearTimeout(window.__socialSearchTimer);window.__socialSearchTimer=setTimeout(search,350)};
